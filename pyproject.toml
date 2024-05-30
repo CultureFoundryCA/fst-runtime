@@ -2,7 +2,7 @@
 name = "fst-runtime"
 version = "0.1.0"
 description = ""
-authors = ["Scott Parkhill <scott.parkhill@gmail.com>"]
+authors = ["CultureFoundry Inc. <info@culturefoundrystudios.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
