@@ -8,15 +8,19 @@ import os
 from collections import defaultdict
 import pprint
 
-class FST:
+class Fst:
+    STARTING_STATE = "0"
     def __init__(self, file_path):
         self.file_path = file_path
-        self.state = "0"
-        self.transitions = defaultdict(dict) #add empty list if source node doesn't exist
+        self.state = Fst.STARTING_STATE
+        # Add empty dictionary if source node doesn't exist.
+        self.transitions = defaultdict(dict) 
         self.accepting_states = set()
+        self.multichar_symbols = set()
+        self._create_transitions()
     
-    # constructing the graph
-    def create_transitions(self):
+    # Constructing the graph
+    def _create_transitions(self):
         lines = [] 
         with open(att_file_path) as att_file: 
             # test = att_file.readlines()
@@ -24,34 +28,67 @@ class FST:
             # close file
 
         for line in lines:
-            line = line.replace("\n", "")
-            line = line.split("\t")
+            line = line.strip().split("\t")
             if len(line) == 1:
-                # do something with accepting state
-                self.accepting_states.add(line[0])
+                accepting_state = line[0]
+                self.accepting_states.add(accepting_state)
             else:
-                current_state, next_state, inp, outp = line
+                current_state, next_state, input_symbol, output_symbol = line
+                if len(input_symbol) > 1:
+                    self.multichar_symbols.add(input_symbol)
 
-                self.transitions[current_state][inp] = (next_state, outp)    
+                self.transitions[current_state][input_symbol] = (next_state, output_symbol)    
         
         print(self.accepting_states)
         pprint.pprint(self.transitions)
 
+    def _tokenize_input_string(self, input_string):
+        multichar_lengths = list({len(symbol) for symbol in self.multichar_symbols})
+        multichar_lengths.sort(reverse=True)
+        tokens = []
+
+        while len(input_string) > 0:
+            if multichar_lengths:
+                for symbol_length in multichar_lengths:
+                    try:
+                        substring = input_string[0:symbol_length]
+                    except IndexError:
+                        continue
+
+                    multichar_symbol_match = substring in self.multichar_symbols
+
+                    if multichar_symbol_match:
+                        tokens.append(substring)
+                        input_string = input_string[symbol_length:]
+                        continue
+                        
+            tokens.append(input_string[0])
+            input_string = input_string[1:]
+        
+        return tokens
+
     # walk    
     def traverse(self, input_string):
-        res = ""
-        for char in input_string:
+        input_tokens = self._tokenize_input_string(input_string)
+        output_string = ""
+        print(input_tokens)
+        print(self.multichar_symbols)
+
+        for token in input_tokens:
             graph = self.transitions[self.state] 
-            next_state , outp = graph[char] 
-            res += outp
+            try:
+                next_state , output_symbol = graph[token] 
+            except KeyError:
+                return
+            output_string += output_symbol
             self.state = next_state
         
         # at this poinit, self.state is not going to change anymore
         # if self.state is in accepting state, save it 
         if self.state in self.accepting_states:
-            with open("{}_result.att".format(self.file_path), "a+") as text_file:
-                text_file.write(res + "\n")
-            return res
+            with open(f"{self.file_path}_result.att", "a+") as text_file:
+                text_file.write(output_string + "\n")
+            return output_string
         else:
             return ""
         
@@ -62,11 +99,11 @@ class FST:
 # TODO how exactly should we save - currently writing into new .att file
 
 
-# att_file_path = os.getenv("ATT_FILE")
-att_file_path = "../tests/examples/fst2.att"
+
     
 
 if __name__ == "__main__":
-    fst = FST(file_path=att_file_path)
-    fst.create_transitions()
-    print(fst.traverse("ad")) #need to be changed to command line
+    att_file_path = os.getenv("ATT_FILE")
+    # att_file_path = "../tests/examples/fst2.att"
+    fst = Fst(file_path=att_file_path)
+    print(fst.traverse("wal+VERB+GER")) #need to be changed to command line
