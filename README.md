@@ -2,7 +2,7 @@
 
 This project represents a Python package to query finite-state transducers that have been compiled to the AT&T format.
 
-# Setup
+## Setup
 
 ```bash
 python3 -m venv venv
