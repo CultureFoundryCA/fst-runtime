@@ -1,12 +1,17 @@
 [tool.poetry]
 name = "fst-runtime"
 version = "0.1.0"
-description = ""
-authors = ["CultureFoundry Inc. <info@culturefoundrystudios.com>"]
+description = "A runtime environment for querying FSTs stored in the AT&T `.att` format."
+authors = ["CultureFoundryInc. <info@culturefoundrystudios.com>"]
+maintainers = ["Scott Parkhill <contact@parkhill.tech>"]
 readme = "README.md"
+homepage = "https://github.com/CultureFoundryCA/fst-runtime"
+repository = "https://github.com/CultureFoundryCA/fst-runtime"
+license = "MIT"
+
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">3.8"
 
 
 [build-system]
