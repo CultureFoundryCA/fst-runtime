@@ -2,7 +2,7 @@
 
 This project represents a Python package to query finite-state transducers that have been compiled to the AT&T format.
 
-## Program Setup
+## Setup
 
 ```bash
 python3 -m venv venv
@@ -13,11 +13,11 @@ ln -s ./venv/bin/poetry
 
 ## Running the Program
 
-This program is still in early development and testing, and so "running the program" constitutes running the `fst-runtime.graph_ops` module as `'__main__'`.
+This program is still in early development and testing, and so "running the program" constitutes running the `fst-runtime` module as `'__main__'`.
 
-To run this program with a test file, pass the file path to the `ATT_FILE` environment variable during program execution.
+To run this program with a test file, pass the file path to the `ATT_FILE_PATH` environment variable during program execution.
 
 ```bash
 ./poetry shell
-ATT_FILE='./tests/examples/fst1.att' python3 -m fst-runtime.graphops
+ATT_FILE_PATH='./tests/data/fst1.att' LOG_LEVEL='DEBUG' python3 -m fst-runtime.fst 'input_string'
 ```
