@@ -7,23 +7,26 @@ import sys
 import os
 from . import logger
 
+from dataclasses import dataclass, field
+from typing import List
+
+@dataclass
+class DirectedNode:
+    id: int
+    is_accepting_state: bool
+    transitions_in: List["DirectedEdge"] = field(default_factory=list)
+    transitions_out: List["DirectedEdge"] = field(default_factory=list)
+
+@dataclass
 class DirectedEdge:
+    source_node: DirectedNode
+    target_node: DirectedNode
+    input_symbol: str
+    output_symbol: str
+    weight: float = -1
 
     NO_WEIGHT = -1
-
-    def __init__(self, source_node: DirectedNode, target_node: DirectedNode, input_symbol: str, output_symbol: str, weight: float = -1):
-        self.source_node: DirectedNode = source_node
-        self.target_node: DirectedNode = target_node
-        self.weight: float = weight
-        self.input_symbol: str = input_symbol
-        self.output_symbol: str = output_symbol
-
-class DirectedNode:
-    def __init__(self, id: int, is_accepting_state: bool):
-        self.id: int = id
-        self.is_accepting_state: bool = is_accepting_state
-        self.transitions_in: list[DirectedEdge] = []
-        self.transitions_out: list[DirectedEdge] = []
+    '''This value is set as the value of `weight` when no weight has been set for the edge.'''
 
 class DirectedGraph:
 
