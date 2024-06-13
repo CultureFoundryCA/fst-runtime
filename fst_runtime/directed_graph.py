@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 class DirectedNode:
     id: int
     is_accepting_state: bool
-    transitions_in: list["DirectedEdge"] = field(default_factory=list)
-    transitions_out: list["DirectedEdge"] = field(default_factory=list)
+    transitions_in: list[DirectedEdge] = field(default_factory=list)
+    transitions_out: list[DirectedEdge] = field(default_factory=list)
 
 @dataclass
 class DirectedEdge:
