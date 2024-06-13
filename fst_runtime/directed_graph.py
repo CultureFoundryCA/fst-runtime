@@ -4,14 +4,13 @@ import sys
 import os
 from . import logger
 from dataclasses import dataclass, field
-from typing import List
 
 @dataclass
 class DirectedNode:
     id: int
     is_accepting_state: bool
-    transitions_in: List["DirectedEdge"] = field(default_factory=list)
-    transitions_out: List["DirectedEdge"] = field(default_factory=list)
+    transitions_in: list["DirectedEdge"] = field(default_factory=list)
+    transitions_out: list["DirectedEdge"] = field(default_factory=list)
 
 @dataclass
 class DirectedEdge:
