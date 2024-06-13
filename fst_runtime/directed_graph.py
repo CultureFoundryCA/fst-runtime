@@ -3,7 +3,6 @@ from collections import defaultdict
 import sys
 import os
 from . import logger
-
 from dataclasses import dataclass, field
 from typing import List
 
