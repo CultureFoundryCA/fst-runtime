@@ -2,8 +2,9 @@ from __future__ import annotations
 from collections import defaultdict
 import sys
 import os
-from . import logger
 from dataclasses import dataclass, field
+from . import logger
+from .att_format_error import AttFormatError
 
 @dataclass
 class DirectedNode:
@@ -47,6 +48,10 @@ class DirectedGraph:
     def _create_graph(self, att_file_path: str) -> None:
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
+        # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
+        # and whose value is dictionary. This child dictionary is keyed to the input symbol from the `.att` file
+        # (i.e. 'k' or '+PLURAL'), and whose value is a tuple that contains the target state number, the output
+        # of the transition, and the weight of that transition.
         transitions: dict[int, dict[str, tuple[int, str, float]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
@@ -104,7 +109,7 @@ class DirectedGraph:
 
         # Add every node to dictionary.
         for current_state in all_state_ids:
-            node = _get_or_create_node(current_state)
+            current_node = _get_or_create_node(current_state)
 
             # Add every edge to nodes in nodes dictionary.
             for input_symbol in transitions[current_state].keys():
@@ -112,12 +117,15 @@ class DirectedGraph:
                 next_state, output_symbol, weight = transitions[current_state][input_symbol]
                 next_node = _get_or_create_node(next_state)
 
-                directed_edge = DirectedEdge(node, next_node, input_symbol, output_symbol, weight)
+                directed_edge = DirectedEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
-                nodes[current_state].transitions_out.append(directed_edge)
+                current_node.transitions_out.append(directed_edge)
                 next_node.transitions_in.append(directed_edge)
 
-        self.start_state = nodes[DirectedGraph._STARTING_STATE]
+        try:
+            self.start_state = nodes[DirectedGraph._STARTING_STATE]
+        except KeyError as key_error:
+            raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
     # `input` is a list of list of strings, where each inner-list of strings represents the valid options that should
     # be queried in the given order. I.e. [["PVDir/East"], ["waabam"], ["VAI"], ["Ind", "Neu"], ...]
