@@ -118,7 +118,6 @@ class DirectedGraph:
                 directed_edge = DirectedEdge(node, next_node, input_symbol, output_symbol, weight)
 
                 nodes[current_state].transitions_out.append(directed_edge)
-
                 next_node.transitions_in.append(directed_edge)
 
         self.start_state = nodes[DirectedGraph._STARTING_STATE]
