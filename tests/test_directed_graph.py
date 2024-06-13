@@ -2,14 +2,6 @@ import os
 import glob
 import pytest
 from fst_runtime.directed_graph import DirectedGraph
-# import logging
-
-# logging.basicConfig(
-#         level=getattr(logging, "DEBUG"),
-#         format="%(levelname)s %(asctime)s - %(module)s - %(message)s",
-#         datefmt="%Y-%m-%d %H:%M:%S",
-#         filename="basic.log"
-#     )
 
 def read_pairs_file(pairs_file_path):
     pairs = []
