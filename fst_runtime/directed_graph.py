@@ -28,6 +28,8 @@ class DirectedEdge:
     NO_WEIGHT = -1
     '''This value is set as the value of `weight` when no weight has been set for the edge.'''
 
+    NO_BIAS = 0
+
 class DirectedGraph:
 
     # The starting state in the `.att` format is represented by `0`.
@@ -122,8 +124,20 @@ class DirectedGraph:
 
         self.start_state = nodes[DirectedGraph._STARTING_STATE]
 
-    # This and the tests need to updated to accomodate multiple output I think.
-    # TODO Check with Miikka.
-    def traverse(self, input_string: str) -> str:
-        return None
+    # `input` is a list of list of strings, where each inner-list of strings represents the valid options that should
+    # be queried in the given order. I.e. [["PVDir/East"], ["waabam"], ["VAI"], ["Ind", "Neu"], ...]
+    # TODO Check the star forces parameter naming for parameters following it.
+    # TODO Follow epsilon symbols.
+    # TODO Check and handle infinite loops -> no input consumption via epsilon transition that has already been walked = loop.
+    # Consumed 4 symbols, if in same branch of serach we end up in the state but again having only consumed 4 symbols of the input,
+    # then somewhere there is an epsilon loop that has had us end up in the same state with having done nothing in the input.
+    # down_generation = `WAL+GER -> walking`
+    def down_generation(self,
+                 max_weight: float = DirectedEdge.NO_BIAS,
+                 *,
+                 prefix_options: list[list[str]],
+                 stem: str,
+                 suffix_options: list[list[str]]
+            ) -> list[str]:
+        ...
     
