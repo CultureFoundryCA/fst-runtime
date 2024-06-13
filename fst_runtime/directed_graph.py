@@ -27,6 +27,8 @@ class DirectedGraph:
 
     # The starting state in the `.att` format is represented by `0`.
     _STARTING_STATE = 0
+
+    # These values are based on how many values of input you're getting from one line of the `.att` file; i.e. "0 1 +PLURAL s" is 4.
     _ATT_DEFINES_ACCEPTING_STATE = 1
     _ATT_DEFINES_UNWEIGHTED_TRANSITION = 4
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
