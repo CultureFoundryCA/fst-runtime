@@ -96,25 +96,28 @@ class DirectedGraph:
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
         nodes: dict[int, DirectedNode] = {}
 
+        def _get_or_create_node(state_id: int) -> DirectedNode:
+            try:
+                node = nodes[state_id]
+            except KeyError:
+                node = DirectedNode(state_id, state_id in accepting_states)
+                nodes[state_id] = node
+
+            return node
+
         # Add every node to dictionary.
         for current_state in all_state_ids:
-            try:
-                node = nodes[current_state]
-            except KeyError:
-                node = DirectedNode(current_state, current_state in accepting_states)
-                nodes[current_state] = node
+            node = _get_or_create_node(current_state)
 
             # Add every edge to nodes in nodes dictionary.
             for input_symbol in transitions[current_state].keys():
-                next_state, output_symbol, weight = transitions[current_state][input_symbol]
-                directed_edge = DirectedEdge(current_state, next_state, input_symbol, output_symbol, weight)
-                nodes[current_state].transitions_out.append(directed_edge)
 
-                try:
-                    next_node = nodes[next_state]
-                except:
-                    next_node = DirectedNode(next_state, next_state in accepting_states)
-                    nodes[next_state] = next_node
+                next_state, output_symbol, weight = transitions[current_state][input_symbol]
+                next_node = _get_or_create_node(next_state)
+
+                directed_edge = DirectedEdge(node, next_node, input_symbol, output_symbol, weight)
+
+                nodes[current_state].transitions_out.append(directed_edge)
 
                 next_node.transitions_in.append(directed_edge)
 
