@@ -44,9 +44,6 @@ class DirectedGraph:
 
         self._create_graph(att_file_path)
 
-    def traverse(self, input_string: str):
-        return True
-
     def _create_graph(self, att_file_path: str):
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
@@ -119,3 +116,6 @@ class DirectedGraph:
                 next_node.transitions_in.append(directed_edge)
 
         self.start_state = nodes[DirectedGraph._STARTING_STATE]
+
+    def traverse(self, input_string: str):
+        return None
