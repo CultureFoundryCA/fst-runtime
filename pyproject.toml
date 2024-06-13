@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fst-runtime"
+name = "fst_runtime"
 version = "0.1.0"
 description = "A runtime environment for querying FSTs stored in the AT&T `.att` format."
 authors = ["CultureFoundryInc. <info@culturefoundrystudios.com>"]
@@ -8,12 +8,22 @@ readme = "README.md"
 homepage = "https://github.com/CultureFoundryCA/fst-runtime"
 repository = "https://github.com/CultureFoundryCA/fst-runtime"
 license = "MIT"
+packages = [{include = "fst_runtime"}]
 
 
 [tool.poetry.dependencies]
 python = ">3.8"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
