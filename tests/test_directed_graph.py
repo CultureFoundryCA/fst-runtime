@@ -1,7 +1,5 @@
 import pytest
-import os
 from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
-
 
 @pytest.fixture
 def att_file_path_unweighted(tmp_path):
