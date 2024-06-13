@@ -4,7 +4,7 @@ from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
 
 
 @pytest.fixture
-def att_file_path_1(tmp_path):
+def att_file_path_unweighted(tmp_path):
     att_file = tmp_path / "test1.att"
 
     # 0 1 a b
@@ -14,7 +14,7 @@ def att_file_path_1(tmp_path):
     return att_file
 
 @pytest.fixture
-def att_file_path_2(tmp_path):
+def att_file_path_weighted(tmp_path):
     att_file = tmp_path / "test2.att"
     
     # 0 1 a b 0.5
@@ -23,8 +23,8 @@ def att_file_path_2(tmp_path):
     att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
     return att_file
 
-def test_directed_graph_initialization_unweighted(att_file_path_1):
-    graph = DirectedGraph(att_file_path_1)
+def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
+    graph = DirectedGraph(att_file_path_unweighted)
     
     assert graph.start_state.id == 0
     assert len(graph.accepting_states) == 1
@@ -57,8 +57,8 @@ def test_directed_graph_initialization_unweighted(att_file_path_1):
     assert edge1.output_symbol == 'c'
     assert edge1.weight == DirectedEdge.NO_WEIGHT
 
-def test_directed_graph_initialization_weighted(att_file_path_2):
-    graph = DirectedGraph(att_file_path_2)
+def test_directed_graph_initialization_weighted(att_file_path_weighted):
+    graph = DirectedGraph(att_file_path_weighted)
     
     assert graph.start_state.id == 0
     assert len(graph.accepting_states) == 1
