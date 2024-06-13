@@ -10,10 +10,8 @@ repository = "https://github.com/CultureFoundryCA/fst-runtime"
 license = "MIT"
 packages = [{include = "fst_runtime"}]
 
-
 [tool.poetry.dependencies]
 python = ">3.8"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
