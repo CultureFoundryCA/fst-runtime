@@ -23,7 +23,7 @@ class DirectedEdge:
     target_node: DirectedNode
     input_symbol: str
     output_symbol: str
-    weight: float = -1
+    penalty_weight: float = -1
 
     NO_WEIGHT = -1
     '''This value is set as the value of `weight` when no weight has been set for the edge.'''
