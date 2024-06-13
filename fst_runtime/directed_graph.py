@@ -44,7 +44,7 @@ class DirectedGraph:
 
         self._create_graph(att_file_path)
 
-    def _create_graph(self, att_file_path: str):
+    def _create_graph(self, att_file_path: str) -> None:
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
         transitions: dict[int, dict[str, tuple[int, str, float]]] = defaultdict(dict)
@@ -117,5 +117,8 @@ class DirectedGraph:
 
         self.start_state = nodes[DirectedGraph._STARTING_STATE]
 
-    def traverse(self, input_string: str):
+    # This and the tests need to updated to accomodate multiple output I think.
+    # TODO Check with Miikka.
+    def traverse(self, input_string: str) -> str:
         return None
+    
