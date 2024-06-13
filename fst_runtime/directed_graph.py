@@ -18,13 +18,10 @@ class DirectedEdge:
     target_node: DirectedNode
     input_symbol: str
     output_symbol: str
-    penalty_weight: float = -1
+    penalty_weight: float = 0
 
-    NO_WEIGHT = -1
+    NO_WEIGHT = 0
     '''This value is set as the value of `weight` when no weight has been set for the edge.'''
-
-    NO_BIAS = 0
-    '''This value represents a weight that doesn't bias the results of walks through the graph.'''
 
 class DirectedGraph:
 
@@ -129,7 +126,7 @@ class DirectedGraph:
     # then somewhere there is an epsilon loop that has had us end up in the same state with having done nothing in the input.
     # down_generation = `WAL+GER -> walking`
     def down_generation(self,
-                 max_weight: float = DirectedEdge.NO_BIAS,
+                 max_weight: float = DirectedEdge.NO_WEIGHT,
                  *,
                  prefix_options: list[list[str]],
                  stem: str,
