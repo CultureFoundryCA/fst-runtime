@@ -1,5 +1,6 @@
 # Poetry symlink.
 poetry
+poetry.lock
 tests/examples
 
 # Byte-compiled / optimized / DLL files
