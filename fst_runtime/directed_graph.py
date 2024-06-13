@@ -24,6 +24,7 @@ class DirectedEdge:
     '''This value is set as the value of `weight` when no weight has been set for the edge.'''
 
     NO_BIAS = 0
+    '''This value represents a weight that doesn't bias the results of walks through the graph.'''
 
 class DirectedGraph:
 
