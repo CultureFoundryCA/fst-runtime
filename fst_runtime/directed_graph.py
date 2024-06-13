@@ -3,6 +3,9 @@ import logging
 from collections import defaultdict
 import uuid
 from pprint import pformat
+import sys
+import os
+from . import logger
 
 class DirectedEdge:
 
@@ -32,7 +35,7 @@ class DirectedGraph:
 
     def __init__(self, att_file_path: str):
         if not att_file_path:
-            logging.error("Failed to provide valid path to input file.")
+            logger.error("Failed to provide valid path to input file.")
             sys.exit(1)
 
         self.start_state: DirectedNode = None
@@ -40,6 +43,9 @@ class DirectedGraph:
         self.multichar_symbols: set[str] = set()
 
         self._create_graph(att_file_path)
+
+    def traverse(self, input_string: str):
+        return True
 
     def _create_graph(self, att_file_path: str):
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
@@ -82,7 +88,7 @@ class DirectedGraph:
 
             # Invalid input line.
             else:
-                logging.error(f"Invalid line in {os.path.basename(ATT_FILE_PATH)}.")
+                logger.error(f"Invalid line in {os.path.basename(att_file_path)}.")
                 sys.exit(1)
 
         self.accepting_states = list(accepting_states)
@@ -113,27 +119,3 @@ class DirectedGraph:
                 next_node.transitions_in.append(directed_edge)
 
         self.start_state = nodes[DirectedGraph._STARTING_STATE]
-
-if __name__ == '__main__':
-    import sys
-    import os
-
-    ATT_FILE_PATH = 'ATT_FILE_PATH'
-    LOG_LEVEL = os.getenv('LOG_LEVEL')
-
-    logging.basicConfig(
-        level=getattr(logging, LOG_LEVEL.upper()),
-        format="%(levelname)s %(asctime)s - %(module)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        filename="basic.log"
-    )
-
-    # if len(sys.argv) != 2:
-    #     logging.error("Must provide a filepath to the `.att` file that contains the FST.")
-    #     sys.exit(1)
-
-    att_file_path = os.getenv(ATT_FILE_PATH)
-    graph = DirectedGraph(att_file_path)
-
-    logging.debug(graph.accepting_states)
-    logging.debug([thing.input_symbol for thing in graph.start_state.transitions_out])

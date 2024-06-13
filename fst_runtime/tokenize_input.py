@@ -1,6 +1,6 @@
-import logging
+from . import logger
 
-def tokenize_input_string(self, input_string: str) -> list[str]:
+def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) -> list[str]:
     '''Returns a list containing the individual tokens that make up the `input_string`.'''
     
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
@@ -8,11 +8,11 @@ def tokenize_input_string(self, input_string: str) -> list[str]:
     multichar_lengths = list({
         len(symbol)
         for symbol
-        in self._multichar_symbols
+        in multichar_symbols
     })
     
     multichar_lengths.sort(reverse=True)
-    logging.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
+    logger.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
 
     tokens = []
 
@@ -34,7 +34,7 @@ def tokenize_input_string(self, input_string: str) -> list[str]:
                 except IndexError:
                     continue
 
-                if substring in self._multichar_symbols:
+                if substring in multichar_symbols:
                     tokens.append(substring)
                     input_string = input_string.removeprefix(substring) # Consume input characters.
                     should_continue_while = True
@@ -47,5 +47,5 @@ def tokenize_input_string(self, input_string: str) -> list[str]:
         tokens.append(input_string[0])
         input_string = input_string[1:] # Consume input characters.
 
-    logging.debug(f'_tokenize_input_string.tokens: {tokens}')
+    logger.debug(f'_tokenize_input_string.tokens: {tokens}')
     return tokens
