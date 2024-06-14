@@ -24,3 +24,5 @@ to run the project directly. Otherwise, run things through our tests.
 
 `./poetry run pytest`
 `./poetry run pylint`
+
+Test commit.
