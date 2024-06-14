@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python_env@main
+      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
       with:
         python-version: '3.8'
 
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python_env@main
+      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
       with:
         python-version: '3.8'
 
