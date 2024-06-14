@@ -1,5 +1,4 @@
 name: Run Pytest and Pylint
-description: Runs the pytest and pylint testing suites against the current project state.
 
 on:
   pull_request:
