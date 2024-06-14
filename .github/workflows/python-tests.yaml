@@ -36,4 +36,4 @@ jobs:
 
     - name: Run pylint.
       run: |
-        poetry run pylint --max-line-length=240 $(git ls-files '*.py')
+        poetry run pylint --max-line-length=150 $(git ls-files '*.py')
