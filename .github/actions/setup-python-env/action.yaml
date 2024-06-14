@@ -27,7 +27,6 @@ runs:
         python -m pip install --upgrade pip setuptools
         python -m pip install poetry
         poetry install --with dev
-      shell: bash
 
 inputs:
   python-version:
