@@ -2,7 +2,7 @@ from . import logger
 
 def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) -> list[str]:
     '''Returns a list containing the individual tokens that make up the `input_string`.'''
-    
+
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
     # Note lengths are distinct from use of set comprehension.
     multichar_lengths = list({
@@ -10,7 +10,7 @@ def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) 
         for symbol
         in multichar_symbols
     })
-    
+
     multichar_lengths.sort(reverse=True)
     logger.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
 

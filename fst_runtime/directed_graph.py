@@ -55,7 +55,7 @@ class DirectedGraph:
         transitions: dict[int, dict[str, tuple[int, str, float]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
-        with open(att_file_path) as att_file: 
+        with open(att_file_path) as att_file:
             att_lines = att_file.readlines()
 
         # Parse file into FST graph object.
@@ -64,7 +64,7 @@ class DirectedGraph:
             # Lines in the AT&T format are tab separated.
             att_line_items = line.strip().split("\t")
             num_defined_items = len(att_line_items)
-            
+
             # Accepting state read in only.
             if num_defined_items == DirectedGraph._ATT_DEFINES_ACCEPTING_STATE:
                 accepting_state = int(att_line_items[0])
@@ -77,7 +77,7 @@ class DirectedGraph:
                 if len(input_symbol) > 1:
                     self.multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, DirectedEdge.NO_WEIGHT)    
+                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, DirectedEdge.NO_WEIGHT)
 
             # Weighted transition.
             elif num_defined_items == DirectedGraph._ATT_DEFINES_WEIGHTED_TRANSITION:
@@ -86,7 +86,7 @@ class DirectedGraph:
                 if len(input_symbol) > 1:
                     self.multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, weight)    
+                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, weight)
 
             # Invalid input line.
             else:
@@ -146,4 +146,3 @@ class DirectedGraph:
 
     # test push for github actions
     # second dummy commit
-    
