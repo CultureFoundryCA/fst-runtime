@@ -1,6 +1,8 @@
 name: Setup Python Environment
-description: Checkout code, set up Python, and install dependencies.
+description: Checkout code, set up python, and install dependencies.
 
+# This is a "composite", in that it get plugged into different workflows.
+# This is used twice in the `python-tests.yaml` file for running test jobs.
 runs:
   using: "composite"
   steps:
@@ -21,6 +23,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
+    # If you have a cache miss (to abuse the term), install dependencies.
     - name: Install dependencies
       if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |

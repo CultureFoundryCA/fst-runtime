@@ -1,5 +1,6 @@
 name: Run Pytest and Pylint
 
+# These tests only run when a pull-request is opened from any branch into main.
 on:
   pull_request:
     branches:
@@ -9,6 +10,8 @@ permissions:
   contents: read
 
 jobs:
+
+  # This job executes the unit tests in the `tests/` folder on the project.
   pytest:
     runs-on: ubuntu-latest
     steps:
@@ -21,6 +24,7 @@ jobs:
       run: |
         poetry run pytest
 
+  # This job executes pylint on the project code, ensuring standardized code quality that is PEP compliant.
   pylint:
     runs-on: ubuntu-latest
     steps:
@@ -29,6 +33,7 @@ jobs:
       with:
         python-version: '3.8'
 
+    # Runs pylint with W0511 disabled, which is a warning about leaving TODOs and FIXMEs in the code.
     - name: Run pylint
       run: |
-        poetry run pylint --max-line-length=150 $(git ls-files '*.py')
+        poetry run pylint --max-line-length=150 --disable=W0511 $(git ls-files '*.py')
