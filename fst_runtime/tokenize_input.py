@@ -12,7 +12,7 @@ def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) 
     })
 
     multichar_lengths.sort(reverse=True)
-    logger.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
+    logger.debug('_tokenize_input_string.multichar_lengths: %s', multichar_lengths)
 
     tokens = []
 
@@ -47,5 +47,5 @@ def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) 
         tokens.append(input_string[0])
         input_string = input_string[1:] # Consume input characters.
 
-    logger.debug(f'_tokenize_input_string.tokens: {tokens}')
+    logger.debug('_tokenize_input_string.tokens: %s', tokens)
     return tokens
