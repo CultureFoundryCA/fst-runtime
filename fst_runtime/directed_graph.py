@@ -90,7 +90,7 @@ class DirectedGraph:
 
             # Invalid input line.
             else:
-                logger.error(f"Invalid line in {os.path.basename(att_file_path)}.")
+                logger.error("Invalid line in %s.", os.path.basename(att_file_path))
                 sys.exit(1)
 
         self.accepting_states = list(accepting_states)
