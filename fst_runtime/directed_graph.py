@@ -2,9 +2,20 @@ from __future__ import annotations
 from collections import defaultdict
 import sys
 import os
+import logging
 from dataclasses import dataclass, field
-from . import logger
-from .att_format_error import AttFormatError
+# from . import logger
+# from .att_format_error import AttFormatError
+# from .tokenize_input import tokenize_input_string
+
+logger = logging.getLogger(__name__)
+from att_format_error import AttFormatError
+from tokenize_input import tokenize_input_string
+from fst import Fst
+
+ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
+LOG_LEVEL = os.getenv('LOG_LEVEL')
+EPSILON = "@"
 
 @dataclass
 class DirectedNode:
@@ -129,20 +140,80 @@ class DirectedGraph:
 
     # `input` is a list of list of strings, where each inner-list of strings represents the valid options that should
     # be queried in the given order. I.e. [["PVDir/East"], ["waabam"], ["VAI"], ["Ind", "Neu"], ...]
+    # must fully explore every inner list (slot) , every possible option in the correct order 
     # TODO Check the star forces parameter naming for parameters following it.
     # TODO Follow epsilon symbols.
     # TODO Check and handle infinite loops -> no input consumption via epsilon transition that has already been walked = loop.
     # Consumed 4 symbols, if in same branch of serach we end up in the state but again having only consumed 4 symbols of the input,
     # then somewhere there is an epsilon loop that has had us end up in the same state with having done nothing in the input.
-    # down_generation = `WAL+GER -> walking`
+    # down_generation = `WAL+GER -> walking` GER = gerund verb becomes noun-like
     def down_generation(self,
-                 max_weight: float = DirectedEdge.NO_WEIGHT,
-                 *,
-                 prefix_options: list[list[str]],
-                 stem: str,
-                 suffix_options: list[list[str]]
-            ) -> list[str]:
-        ...
+        # *,
+        prefix_options: list[list[str]],
+        stem: str,
+        suffix_options: list[list[str]],
+        max_weight: float = DirectedEdge.NO_WEIGHT
+    ) -> list[str]:
+        results = []
+
+        master_list = prefix_options + [[stem]] + suffix_options
+        return self._permute_tags(master_list)
+        
+
+        return results
+    
+    def _permute_tags(self, parts):
+        
+        if not parts:
+            return ['']
+    
+        first_part = parts[0]
+        rest_parts = self._permute_tags(parts[1:])
+        result = []
+        
+        for prefix in first_part:
+            for suffix in rest_parts:
+                if prefix == EPSILON:
+                    result.append(suffix)
+                else:
+                    result.append(prefix + suffix)
+
+        return result
+        
+    
+    
+
+# TODO: FIGURE OUT IMPORT
+if __name__ == "__main__":
+    print("LOG LEVEL", LOG_LEVEL)
+    logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL.upper()),
+    format="%(levelname)s %(asctime)s - %(module)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    #filename="basic.log"
+    )
+
+    if len(sys.argv) != 2:
+        logging.error("Must provide an input string if running `fst.py` as `__main__`.")
+
+    input_string = sys.argv[1]
+    # fst = Fst(ATT_FILE_PATH)
+    # print(fst.traverse(input_string))
+
+    directed_graph = DirectedGraph(ATT_FILE_PATH) # create directed graph
+    result = directed_graph.down_generation([['un', 'de', EPSILON], ['pre', EPSILON]], "walk", [['able', 'ing', EPSILON], ['ed', EPSILON]])
+    for item in result:
+        print(item)
+
+# Example usage
+# prefix_options = [['un', 'de'], ['pre']]
+# stem = 'walk'
+# suffix_options = [['able', 'ing'], ['able']]
+# generated_words = down_generation(prefix_options, stem, suffix_options)
+# print(generated_words)
+
+
 
     # test push for github actions
     # second dummy commit
+    

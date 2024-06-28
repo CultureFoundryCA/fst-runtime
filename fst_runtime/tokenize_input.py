@@ -1,4 +1,6 @@
-from . import logger
+# from . import logger
+import logging
+logger = logging.getLogger(__name__)
 
 def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) -> list[str]:
     '''Returns a list containing the individual tokens that make up the `input_string`.'''

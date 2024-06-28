@@ -9,12 +9,7 @@ EXIT_FAILURE = 1
 ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
 
-logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL.upper()),
-    format="%(levelname)s %(asctime)s - %(module)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    #filename="basic.log"
-)
+
 
 class Fst:
     '''
@@ -182,10 +177,4 @@ class Fst:
 
     #endregion
 
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        logging.error("Must provide an input string if running `fst.py` as `__main__`.")
 
-    input_string = sys.argv[1]
-    fst = Fst(ATT_FILE_PATH)
-    print(fst.traverse(input_string))
