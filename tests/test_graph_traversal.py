@@ -1,31 +1,90 @@
-import os
-import glob
 import pytest
-from fst_runtime.directed_graph import DirectedGraph
+from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
 
-def read_pairs_file(pairs_file_path: str) -> list[tuple[str, str]]:
-    pairs = []
-    with open(pairs_file_path, 'r') as file:
-        for line in file:
-            input_string, expected_output_string = line.strip().split('\t')
-            pairs.append((input_string, expected_output_string))
-    return pairs
+@pytest.fixture
+def att_file_path_unweighted(tmp_path):
+    att_file = tmp_path / "test1.att"
 
-@pytest.mark.parametrize("att_file_path", glob.glob(os.path.join(os.path.dirname(__file__), 'data', '*.att')))
-def test_graph_traversals(att_file_path: str):
+    # 0 1 a b
+    # 1 2 b c
+    # 2
+    att_file.write_text("0\t1\ta\tb\n1\t2\tb\tc\n2\n")
+    return att_file
 
-    # Construct /path/to/basename.pairs from /path/to/basename.att.
-    base_filename = os.path.splitext(os.path.basename(att_file_path))[0]
-    pairs_file = os.path.join(os.path.dirname(att_file_path), f'{base_filename}.pairs')
+@pytest.fixture
+def att_file_path_weighted(tmp_path):
+    att_file = tmp_path / "test2.att"
 
-    # Make sure that the constructed path actually exists.
-    if not os.path.exists(pairs_file):
-        raise ValueError(f"Could not find `.pairs` file for `{os.path.basename(att_file_path)}.")
+    # 0 1 a b 0.5
+    # 1 2 b c 1.0
+    # 2
+    att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
+    return att_file
 
-    pairs = read_pairs_file(pairs_file)
-    graph = DirectedGraph(att_file_path)
+def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
+    graph = DirectedGraph(att_file_path_unweighted)
 
-    # Loop through the input and ensure the output matches the expected output.
-    for input_string, expected_output_string in pairs:
-        output_string = graph.traverse(input_string)
-        assert output_string == expected_output_string, f"Failed for {att_file_path} with input {input_string}"
+    assert graph.start_state.id == 0
+    assert len(graph.accepting_states) == 1
+    assert graph.accepting_states[0] == 2
+
+    node0 = graph.start_state
+    node1 = node0.transitions_out[0].target_node
+    node2 = node1.transitions_out[0].target_node
+
+    assert node0.id == 0
+    assert node1.id == 1
+    assert node2.id == 2
+
+    assert len(node0.transitions_out) == 1
+    assert len(node1.transitions_out) == 1
+    assert len(node2.transitions_out) == 0
+
+    edge0 = node0.transitions_out[0]
+    edge1 = node1.transitions_out[0]
+
+    assert edge0.source_node == node0
+    assert edge0.target_node == node1
+    assert edge0.input_symbol == 'a'
+    assert edge0.output_symbol == 'b'
+    assert edge0.penalty_weight == DirectedEdge.NO_WEIGHT
+
+    assert edge1.source_node == node1
+    assert edge1.target_node == node2
+    assert edge1.input_symbol == 'b'
+    assert edge1.output_symbol == 'c'
+    assert edge1.penalty_weight == DirectedEdge.NO_WEIGHT
+
+def test_directed_graph_initialization_weighted(att_file_path_weighted):
+    graph = DirectedGraph(att_file_path_weighted)
+
+    assert graph.start_state.id == 0
+    assert len(graph.accepting_states) == 1
+    assert graph.accepting_states[0] == 2
+
+    node0 = graph.start_state
+    node1 = node0.transitions_out[0].target_node
+    node2 = node1.transitions_out[0].target_node
+
+    assert node0.id == 0
+    assert node1.id == 1
+    assert node2.id == 2
+
+    assert len(node0.transitions_out) == 1
+    assert len(node1.transitions_out) == 1
+    assert len(node2.transitions_out) == 0
+
+    edge0 = node0.transitions_out[0]
+    edge1 = node1.transitions_out[0]
+
+    assert edge0.source_node == node0
+    assert edge0.target_node == node1
+    assert edge0.input_symbol == 'a'
+    assert edge0.output_symbol == 'b'
+    assert edge0.penalty_weight == '0.5'
+
+    assert edge1.source_node == node1
+    assert edge1.target_node == node2
+    assert edge1.input_symbol == 'b'
+    assert edge1.output_symbol == 'c'
+    assert edge1.penalty_weight == '1.0'

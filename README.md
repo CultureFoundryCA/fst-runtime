@@ -2,7 +2,12 @@
 
 This project represents a Python package to query finite-state transducers that have been compiled to the AT&T format.
 
-## Setup
+
+## Dev README
+
+### Setup
+
+This sets up a virtual environment with poetry installed to manage dependencies.
 
 ```bash
 python3 -m venv venv
@@ -12,6 +17,10 @@ ln -s ./venv/bin/poetry
 ./poetry install
 ```
 
-## Running the Tests
+### Running the Project
+
+The project is not setup to be run directly; to do this, add `if __name__ == '__main__'` checks wherever you might want
+to run the project directly. Otherwise, run things through our tests.
 
 `./poetry run pytest`
+`./poetry run pylint`

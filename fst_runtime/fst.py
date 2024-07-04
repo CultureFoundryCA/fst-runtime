@@ -56,11 +56,11 @@ class Fst:
 
 
     #region Private Methods
-    
+
     def _create_graph(self, att_file_path: str) -> None:
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
-        with open(att_file_path) as att_file: 
+        with open(att_file_path) as att_file:
             att_lines = att_file.readlines()
 
         # Parse file into FST graph object.
@@ -69,7 +69,7 @@ class Fst:
             # Lines in the AT&T format are tab separated.
             att_line_items = line.strip().split("\t")
             num_defined_items = len(att_line_items)
-            
+
             # Accepting state read in only.
             if num_defined_items == Fst._ATT_DEFINES_ACCEPTING_STATE:
                 accepting_state = int(att_line_items[0])
@@ -82,7 +82,7 @@ class Fst:
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
 
-                self._transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol)    
+                self._transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol)
 
             # Weighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
@@ -96,7 +96,7 @@ class Fst:
 
     def _tokenize_input_string(self, input_string: str) -> list[str]:
         '''Returns a list containing the individual tokens that make up the `input_string`.'''
-        
+
         # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
         # Note lengths are distinct from use of set comprehension.
         multichar_lengths = list({
@@ -104,7 +104,7 @@ class Fst:
             for symbol
             in self._multichar_symbols
         })
-        
+
         multichar_lengths.sort(reverse=True)
         logging.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
 
@@ -140,10 +140,10 @@ class Fst:
 
             tokens.append(input_string[0])
             input_string = input_string[1:] # Consume input characters.
-    
+
         logging.debug(f'_tokenize_input_string.tokens: {tokens}')
         return tokens
-    
+
     # TODO Discuss handling multiple outputs. I think it should maybe be `traverse -> list[str]`?
     def _traverse(self, input_string: str) -> str | None:
         '''TODO Comment this.'''
@@ -159,16 +159,16 @@ class Fst:
             # No transition available; invalid walk.
             except KeyError:
                 return None
-            
+
             output_string += output_symbol
             self._current_state = next_state
-        
+
         # If we finish on an accepting state, return output string.
         if self._current_state in self._accepting_states:
             return output_string
-    
+
         return None
-    
+
     #endregion
 
 
