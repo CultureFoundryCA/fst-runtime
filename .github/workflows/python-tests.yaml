@@ -33,7 +33,7 @@ jobs:
       with:
         python-version: '3.8'
 
-    # Runs pylint with W0511 disabled, which is a warning about leaving TODOs and FIXMEs in the code.
+    # Runs pylint to check and guarantee shared code quality.
     - name: Run pylint
       run: |
-        poetry run pylint --max-line-length=150 --disable=W0511 $(git ls-files '*.py')
+        poetry run pylint $(git ls-files '*.py')
