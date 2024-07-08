@@ -2,27 +2,21 @@ from __future__ import annotations
 from collections import defaultdict
 import sys
 import os
-import logging
 from dataclasses import dataclass, field
-# from . import logger
-# from .att_format_error import AttFormatError
-# from .tokenize_input import tokenize_input_string
-
-logger = logging.getLogger(__name__)
-from att_format_error import AttFormatError
-from tokenize_input import tokenize_input_string
-from fst import Fst
+from . import logger
+from .att_format_error import AttFormatError
+from .tokenize_input import tokenize_input_string
 
 ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
 LOG_LEVEL = os.getenv('LOG_LEVEL')
-EPSILON = "@"
+EPSILON = "@0@"
 
 @dataclass
 class DirectedNode:
     id: int
     is_accepting_state: bool
-    transitions_in: list[DirectedEdge] = field(default_factory=list)
-    transitions_out: list[DirectedEdge] = field(default_factory=list)
+    in_transitions: list[DirectedEdge] = field(default_factory=list)
+    out_transitions: list[DirectedEdge] = field(default_factory=list)
 
 @dataclass
 class DirectedEdge:
@@ -38,6 +32,7 @@ class DirectedEdge:
 class DirectedGraph:
 
     # The starting state in the `.att` format is represented by `0`.
+    # This is the "top" of the graph, so when you query down, you start here and go down. Down is like walk+GER -> walking.
     _STARTING_STATE = 0
 
     # These values are based on how many values of input you're getting from one line of the `.att` file; i.e. "0 1 +PLURAL s" is 4.
@@ -130,8 +125,8 @@ class DirectedGraph:
 
                 directed_edge = DirectedEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
-                current_node.transitions_out.append(directed_edge)
-                next_node.transitions_in.append(directed_edge)
+                current_node.out_transitions.append(directed_edge)
+                next_node.in_transitions.append(directed_edge)
 
         try:
             self.start_state = nodes[DirectedGraph._STARTING_STATE]
@@ -140,7 +135,7 @@ class DirectedGraph:
 
     # `input` is a list of list of strings, where each inner-list of strings represents the valid options that should
     # be queried in the given order. I.e. [["PVDir/East"], ["waabam"], ["VAI"], ["Ind", "Neu"], ...]
-    # must fully explore every inner list (slot) , every possible option in the correct order 
+    # must fully explore every inner list (slot) , every possible option in the correct order
     # TODO Check the star forces parameter naming for parameters following it.
     # TODO Follow epsilon symbols.
     # TODO Check and handle infinite loops -> no input consumption via epsilon transition that has already been walked = loop.
@@ -148,29 +143,124 @@ class DirectedGraph:
     # then somewhere there is an epsilon loop that has had us end up in the same state with having done nothing in the input.
     # down_generation = `WAL+GER -> walking` GER = gerund verb becomes noun-like
     def down_generation(self,
-        # *,
         prefix_options: list[list[str]],
         stem: str,
         suffix_options: list[list[str]],
         max_weight: float = DirectedEdge.NO_WEIGHT
     ) -> list[str]:
-        results = []
 
-        master_list = prefix_options + [[stem]] + suffix_options
-        return self._permute_tags(master_list)
-        
+        if max_weight != DirectedEdge.NO_WEIGHT:
+            raise NotImplementedError("The weight feature is not currently available.")
 
-        return results
-    
-    def _permute_tags(self, parts):
-        
+        permutations: list[list[str]] = prefix_options + [[stem]] + suffix_options
+        logger.debug('Permutations created: %s', permutations)
+
+        queries: list[str] = self._permute_tags(permutations)
+        logger.debug('Queries created: %s', queries)
+
+        return self._traverse_down(queries)
+
+    def _traverse_down(self, queries: list[str]) -> list[str]:
+
+        generated_results = []
+
+        for query in queries:
+            # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
+            results = DirectedGraph.__traverse_down(current_node=self.start_state, input_tokens=tokenize_input_string(query, self.multichar_symbols))
+
+            logger.debug('Query: %s\tResults: %s', query, results)
+            generated_results.extend(results)
+
+        return [generation.replace(EPSILON, '') for generation in generated_results]
+
+    @staticmethod
+    def __traverse_down(current_node: DirectedNode, input_tokens: list[str]) -> list[str]:
+        '''
+        Okay, I just have to write this out here. So what am I trying to do. I have a query string. For the query string, I want to
+        look at the first character(s) to see if they match the input symbol for a transition out of the current node. If that symbol matches,
+        I want to consume those characters, then call this function recursively with the next node selected and the new query added. Concantenting
+        the return values of these recursive calls together will then give me an output string, assuming an accepting walk was found.
+
+        Regardless, once that one walk is completed, I need to make sure that I don't do the exact same walk again. So, I start at the start state again,
+        but this time I IGNORE the transitions_out that I have already visited. This way, I can see if there are other accepting states to explore.
+        But, this can't happen at the recursive level, because then we'll have gibberish returned. UNLESS we instead return a list[str], in which case
+        all the returned values from the recursive call get permuted together as valid combinations from that node. Yes yes yes.
+
+        Base case is accepting state + no further input, OR no further input.
+        '''
+
+        matches: list[str] = []
+
+        current_token = input_tokens[0] if input_tokens else ''
+
+        for edge in current_node.out_transitions:
+
+            # If there are no input symbols left to consume and no epsilon transations to follow, then
+            # we are currently at an unaccepting state, and so we do nothing and continue.
+            if not current_token and edge.input_symbol != EPSILON:
+                logger.debug('no token no epsilon')
+                continue
+
+            # If the current transition is an epsilon transition, then consume no input and recurse.
+            elif edge.input_symbol == EPSILON:
+
+                # Case: there are no more input tokens, but you have an epsilon transition to follow.
+                # In this case, you follow the epsilon, and see if you're in an accepting state. If so,
+                # then add the output of this transition to the matches and continue to the recursive step,
+                # since there could be further epsilon transitions to follow.
+                if not current_token and edge.target_node.is_accepting_state:
+                    matches.append(edge.output_symbol)
+
+                recursive_results = DirectedGraph.__traverse_down(edge.target_node, input_tokens)
+
+                for result in recursive_results:
+                    matches.append(edge.output_symbol + result)
+
+            # If we have found an explicit match of the current token with the edge's input token, then we are going
+            # to want to create the new input symbols for the next level of recursion by chopping off the current token,
+            # and getting the resulting output of that recursion. Then, we'll want to loop over that result, and, since
+            # we consumed an input token over this current transition, we add `edge.output_symbol + result` to the matches.
+            elif current_token == edge.input_symbol:
+                new_input_tokens = input_tokens[1:]
+
+                if not new_input_tokens and edge.target_node.is_accepting_state:
+                    matches.append(edge.output_symbol)
+
+                recursive_results = DirectedGraph.__traverse_down(edge.target_node, new_input_tokens)
+
+                for result in recursive_results:
+                    matches.append(edge.output_symbol + result)
+
+            # No epsilon transitions to follow, and current token doesn't match the input symbol of the current edge.
+            else:
+                continue
+
+        logger.debug('matches: %s', matches)
+        return matches
+
+    def _permute_tags(self, parts: list[list[str]]) -> list[str]:
+        '''Recursively descend into the tags in order to create all permutations of the given tags in the given order.'''
+
         if not parts:
             return ['']
-    
+
+        # Remember: EPSILON in a slot mean that slot can be omitted for a construction.
+        # Example: parts = [["dis", "re"], ["member"], ["ment", "ing"], ["s", EPSILON]]
+        # First pass: first_part = ["dis", "re"], rest_parts = [["member"], ["ment", "ing"], ["s", EPSILON]]
+        # Second pass: first_part = ["member"], rest_parts = [["ment", "ing"], ["s", EPSILON]]
+        # Third pass: first_part = ["ment", "ing"], rest_parts = [["s", EPSILON]]
+        # Fourth pass: first_part = ["s", EPSILON], rest_parts = [] <- base case reached
+        # Fourth pass return: ['']
+        # Third pass return: ["ments", "ment", "ings", "ing"] <- note the epsilon omissions here
+        # Second pass return: ["memberments", "memberment", "memberings", "membering"]
+        # First pass return: ["dismemberments", "dismemberment", "dismemberings", "dismembering",
+        #                       "rememberments", "rememberment", "rememberings", "remembering"]
+        # Having incorrect combinations like this is okay, like "rememberments", as they'll just return no results
+        # from the final FST when you try to query it (i.e. ends up in an unaccepting state).
         first_part = parts[0]
         rest_parts = self._permute_tags(parts[1:])
         result = []
-        
+
         for prefix in first_part:
             for suffix in rest_parts:
                 if prefix == EPSILON:
@@ -179,41 +269,6 @@ class DirectedGraph:
                     result.append(prefix + suffix)
 
         return result
-        
-    
-    
 
-# TODO: FIGURE OUT IMPORT
-if __name__ == "__main__":
-    print("LOG LEVEL", LOG_LEVEL)
-    logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL.upper()),
-    format="%(levelname)s %(asctime)s - %(module)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    #filename="basic.log"
-    )
-
-    if len(sys.argv) != 2:
-        logging.error("Must provide an input string if running `fst.py` as `__main__`.")
-
-    input_string = sys.argv[1]
-    # fst = Fst(ATT_FILE_PATH)
-    # print(fst.traverse(input_string))
-
-    directed_graph = DirectedGraph(ATT_FILE_PATH) # create directed graph
-    result = directed_graph.down_generation([['un', 'de', EPSILON], ['pre', EPSILON]], "walk", [['able', 'ing', EPSILON], ['ed', EPSILON]])
-    for item in result:
-        print(item)
-
-# Example usage
-# prefix_options = [['un', 'de'], ['pre']]
-# stem = 'walk'
-# suffix_options = [['able', 'ing'], ['able']]
-# generated_words = down_generation(prefix_options, stem, suffix_options)
-# print(generated_words)
-
-
-
-    # test push for github actions
-    # second dummy commit
-    
+    def up_analysis():
+        raise NotImplementedError("Up direction not yet coded.")
