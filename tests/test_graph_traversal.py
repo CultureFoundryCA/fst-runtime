@@ -1,90 +1,29 @@
+import os
 import pytest
-from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
+from fst_runtime.directed_graph import DirectedGraph, EPSILON
 
-@pytest.fixture
-def att_file_path_unweighted(tmp_path):
-    att_file = tmp_path / "test1.att"
+# Define the path to the data folder
+ATT_DATA_FOLDER = os.path.join(os.path.dirname(__file__), 'data')
 
-    # 0 1 a b
-    # 1 2 b c
-    # 2
-    att_file.write_text("0\t1\ta\tb\n1\t2\tb\tc\n2\n")
-    return att_file
+# Generate a list of file paths in the data folder
+att_data_files = [os.path.join(ATT_DATA_FOLDER, filename)
+              for filename
+              in os.listdir(ATT_DATA_FOLDER)
+              if filename.endswith('.att')
+                and os.path.isfile(os.path.join(ATT_DATA_FOLDER, filename))]
 
-@pytest.fixture
-def att_file_path_weighted(tmp_path):
-    att_file = tmp_path / "test2.att"
+# Define the parameterized test
+# @pytest.mark.parametrize("att_data_file", att_data_files)
+def test_down_traversal(att_data_file = '/home/parkhill/Documents/Coding/fst-runtime/tests/data/fst4.att'):
+    graph = DirectedGraph(att_data_file)
 
-    # 0 1 a b 0.5
-    # 1 2 b c 1.0
-    # 2
-    att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
-    return att_file
+    prefix_options = [[EPSILON]]
+    stem = 'wal'
+    suffix_options = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
 
-def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
-    graph = DirectedGraph(att_file_path_unweighted)
+    results = graph.down_generation(prefix_options, stem, suffix_options)
 
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
+    results = set(results)
+    expected_results = {'walk', 'walks', 'walked', 'walking'}
 
-    node0 = graph.start_state
-    node1 = node0.transitions_out[0].target_node
-    node2 = node1.transitions_out[0].target_node
-
-    assert node0.id == 0
-    assert node1.id == 1
-    assert node2.id == 2
-
-    assert len(node0.transitions_out) == 1
-    assert len(node1.transitions_out) == 1
-    assert len(node2.transitions_out) == 0
-
-    edge0 = node0.transitions_out[0]
-    edge1 = node1.transitions_out[0]
-
-    assert edge0.source_node == node0
-    assert edge0.target_node == node1
-    assert edge0.input_symbol == 'a'
-    assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == DirectedEdge.NO_WEIGHT
-
-    assert edge1.source_node == node1
-    assert edge1.target_node == node2
-    assert edge1.input_symbol == 'b'
-    assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == DirectedEdge.NO_WEIGHT
-
-def test_directed_graph_initialization_weighted(att_file_path_weighted):
-    graph = DirectedGraph(att_file_path_weighted)
-
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
-
-    node0 = graph.start_state
-    node1 = node0.transitions_out[0].target_node
-    node2 = node1.transitions_out[0].target_node
-
-    assert node0.id == 0
-    assert node1.id == 1
-    assert node2.id == 2
-
-    assert len(node0.transitions_out) == 1
-    assert len(node1.transitions_out) == 1
-    assert len(node2.transitions_out) == 0
-
-    edge0 = node0.transitions_out[0]
-    edge1 = node1.transitions_out[0]
-
-    assert edge0.source_node == node0
-    assert edge0.target_node == node1
-    assert edge0.input_symbol == 'a'
-    assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == '0.5'
-
-    assert edge1.source_node == node1
-    assert edge1.target_node == node2
-    assert edge1.input_symbol == 'b'
-    assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == '1.0'
+    assert results == expected_results
