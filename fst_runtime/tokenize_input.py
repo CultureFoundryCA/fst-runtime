@@ -2,7 +2,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) -> list[str]:
+def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
     '''Returns a list containing the individual tokens that make up the `input_string`.'''
 
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
