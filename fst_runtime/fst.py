@@ -12,16 +12,16 @@ LOG_LEVEL = os.getenv('LOG_LEVEL')
 EPSILON = "@0@"
 
 @dataclass
-class DirectedNode:
+class FstNode:
     id: int
     is_accepting_state: bool
-    in_transitions: list[DirectedEdge] = field(default_factory=list)
-    out_transitions: list[DirectedEdge] = field(default_factory=list)
+    in_transitions: list[FstEdge] = field(default_factory=list)
+    out_transitions: list[FstEdge] = field(default_factory=list)
 
 @dataclass
-class DirectedEdge:
-    source_node: DirectedNode
-    target_node: DirectedNode
+class FstEdge:
+    source_node: FstNode
+    target_node: FstNode
     input_symbol: str
     output_symbol: str
     penalty_weight: float = 0
@@ -29,7 +29,7 @@ class DirectedEdge:
     NO_WEIGHT = 0
     '''This value is set as the value of `weight` when no weight has been set for the edge.'''
 
-class DirectedGraph:
+class Fst:
 
     # The starting state in the `.att` format is represented by `0`.
     # This is the "top" of the graph, so when you query down, you start here and go down. Down is like walk+GER -> walking.
@@ -45,8 +45,8 @@ class DirectedGraph:
             logger.error("Failed to provide valid path to input file.")
             sys.exit(1)
 
-        self.start_state: DirectedNode = None
-        self.accepting_states: list[DirectedNode] = []
+        self.start_state: FstNode = None
+        self.accepting_states: list[FstNode] = []
         self.multichar_symbols: set[str] = set()
 
         self._create_graph(att_file_path)
@@ -72,21 +72,21 @@ class DirectedGraph:
             num_defined_items = len(att_line_items)
 
             # Accepting state read in only.
-            if num_defined_items == DirectedGraph._ATT_DEFINES_ACCEPTING_STATE:
+            if num_defined_items == Fst._ATT_DEFINES_ACCEPTING_STATE:
                 accepting_state = int(att_line_items[0])
                 accepting_states.add(accepting_state)
 
             # Unweighted transition.
-            elif num_defined_items == DirectedGraph._ATT_DEFINES_UNWEIGHTED_TRANSITION:
+            elif num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_TRANSITION:
                 current_state, next_state, input_symbol, output_symbol = att_line_items
 
                 if len(input_symbol) > 1:
                     self.multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, DirectedEdge.NO_WEIGHT)
+                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, FstEdge.NO_WEIGHT)
 
             # Weighted transition.
-            elif num_defined_items == DirectedGraph._ATT_DEFINES_WEIGHTED_TRANSITION:
+            elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
                 current_state, next_state, input_symbol, output_symbol, weight = att_line_items
 
                 if len(input_symbol) > 1:
@@ -102,13 +102,13 @@ class DirectedGraph:
         self.accepting_states = list(accepting_states)
 
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
-        nodes: dict[int, DirectedNode] = {}
+        nodes: dict[int, FstNode] = {}
 
-        def _get_or_create_node(state_id: int) -> DirectedNode:
+        def _get_or_create_node(state_id: int) -> FstNode:
             try:
                 node = nodes[state_id]
             except KeyError:
-                node = DirectedNode(state_id, state_id in accepting_states)
+                node = FstNode(state_id, state_id in accepting_states)
                 nodes[state_id] = node
 
             return node
@@ -123,13 +123,13 @@ class DirectedGraph:
                 next_state, output_symbol, weight = transitions[current_state][input_symbol]
                 next_node = _get_or_create_node(next_state)
 
-                directed_edge = DirectedEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                directed_edge = FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
                 current_node.out_transitions.append(directed_edge)
                 next_node.in_transitions.append(directed_edge)
 
         try:
-            self.start_state = nodes[DirectedGraph._STARTING_STATE]
+            self.start_state = nodes[Fst._STARTING_STATE]
         except KeyError as key_error:
             raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
@@ -146,10 +146,10 @@ class DirectedGraph:
         prefix_options: list[list[str]],
         stem: str,
         suffix_options: list[list[str]],
-        max_weight: float = DirectedEdge.NO_WEIGHT
+        max_weight: float = FstEdge.NO_WEIGHT
     ) -> list[str]:
 
-        if max_weight != DirectedEdge.NO_WEIGHT:
+        if max_weight != FstEdge.NO_WEIGHT:
             raise NotImplementedError("The weight feature is not currently available.")
 
         permutations: list[list[str]] = prefix_options + [[stem]] + suffix_options
@@ -166,7 +166,7 @@ class DirectedGraph:
 
         for query in queries:
             # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
-            results = DirectedGraph.__traverse_down(current_node=self.start_state, input_tokens=tokenize_input_string(query, self.multichar_symbols))
+            results = Fst.__traverse_down(current_node=self.start_state, input_tokens=tokenize_input_string(query, self.multichar_symbols))
 
             logger.debug('Query: %s\tResults: %s', query, results)
             generated_results.extend(results)
@@ -174,7 +174,7 @@ class DirectedGraph:
         return [generation.replace(EPSILON, '') for generation in generated_results]
 
     @staticmethod
-    def __traverse_down(current_node: DirectedNode, input_tokens: list[str]) -> list[str]:
+    def __traverse_down(current_node: FstNode, input_tokens: list[str]) -> list[str]:
         '''
         Okay, I just have to write this out here. So what am I trying to do. I have a query string. For the query string, I want to
         look at the first character(s) to see if they match the input symbol for a transition out of the current node. If that symbol matches,
@@ -211,7 +211,7 @@ class DirectedGraph:
                 if not current_token and edge.target_node.is_accepting_state:
                     matches.append(edge.output_symbol)
 
-                recursive_results = DirectedGraph.__traverse_down(edge.target_node, input_tokens)
+                recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
@@ -226,7 +226,7 @@ class DirectedGraph:
                 if not new_input_tokens and edge.target_node.is_accepting_state:
                     matches.append(edge.output_symbol)
 
-                recursive_results = DirectedGraph.__traverse_down(edge.target_node, new_input_tokens)
+                recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
