@@ -1,13 +1,21 @@
 '''This module tests that the traversals and queries made to the FST are correct.'''
 
+from pathlib import Path
+import pytest
 from fst_runtime.fst import Fst, EPSILON
+
+
+@pytest.fixture(scope="module")
+def data_dir():
+    """Fixture to provide the path to the data directory."""
+    return Path(__file__).parent / "data"
 
 epsilon = [[EPSILON]]
 
-def test_down_traversal_fst1(att_data_file = '/home/parkhill/Documents/Coding/fst-runtime/tests/data/fst1.att'):
+def test_down_traversal_fst1(data_dir):
     '''Tests traveral for fst1.att.'''
 
-    graph = Fst(att_data_file)
+    graph = Fst(data_dir / 'fst1.att')
 
     stem1 = 'a'
     stem2 = 'c'
@@ -24,10 +32,10 @@ def test_down_traversal_fst1(att_data_file = '/home/parkhill/Documents/Coding/fs
     assert stem2_result[0] == 'd'
     assert stem3_result[0] == 'bbbbd'
 
-def test_down_traversal_fst2(att_data_file = '/home/parkhill/Documents/Coding/fst-runtime/tests/data/fst2.att'):
+def test_down_traversal_fst2(data_dir):
     '''Tests traveral for fst2.att.'''
 
-    graph = Fst(att_data_file)
+    graph = Fst(data_dir / 'fst2.att')
 
     lemma = 'acccccccd'
     result = graph.down_generation(epsilon, lemma, epsilon)
@@ -35,10 +43,10 @@ def test_down_traversal_fst2(att_data_file = '/home/parkhill/Documents/Coding/fs
     assert len(result) == 1
     assert result[0] == 'bccccccce'
 
-def test_down_traversal_fst3(att_data_file = '/home/parkhill/Documents/Coding/fst-runtime/tests/data/fst3.att'):
+def test_down_traversal_fst3(data_dir):
     '''Tests traveral for fst3.att.'''
 
-    graph = Fst(att_data_file)
+    graph = Fst(data_dir / 'fst3.att')
 
     stem1 = 'aaac'
     stem2 = 'aaaaaa'
@@ -56,10 +64,10 @@ def test_down_traversal_fst3(att_data_file = '/home/parkhill/Documents/Coding/fs
     assert stem3_result[0] == stem3
 
 
-def test_down_traversal_fst4(att_data_file = '/home/parkhill/Documents/Coding/fst-runtime/tests/data/fst4.att'):
+def test_down_traversal_fst4(data_dir):
     '''Tests traveral for fst4.att.'''
 
-    graph = Fst(att_data_file)
+    graph = Fst(data_dir / 'fst4.att')
 
     lemma = 'wal'
     suffix_options = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
