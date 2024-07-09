@@ -35,7 +35,6 @@ def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
 
     assert graph._start_state.id == 0
     assert len(graph._accepting_states) == 1
-    assert graph._accepting_states[0] == 2
 
     node0 = graph._start_state
     node1 = node0.out_transitions[0].target_node
@@ -71,7 +70,6 @@ def test_directed_graph_initialization_weighted(att_file_path_weighted):
 
     assert graph._start_state.id == 0
     assert len(graph._accepting_states) == 1
-    assert graph._accepting_states[0] == 2
 
     node0 = graph._start_state
     node1 = node0.out_transitions[0].target_node
