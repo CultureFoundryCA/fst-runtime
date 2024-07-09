@@ -29,8 +29,8 @@ def test_down_traversal_fst2(att_data_file = '/home/parkhill/Documents/Coding/fs
 
     graph = Fst(att_data_file)
 
-    stem = 'acccccccd'
-    result = graph.down_generation(epsilon, stem, epsilon)
+    lemma = 'acccccccd'
+    result = graph.down_generation(epsilon, lemma, epsilon)
 
     assert len(result) == 1
     assert result[0] == 'bccccccce'
@@ -61,10 +61,10 @@ def test_down_traversal_fst4(att_data_file = '/home/parkhill/Documents/Coding/fs
 
     graph = Fst(att_data_file)
 
-    stem = 'wal'
+    lemma = 'wal'
     suffix_options = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
 
-    results = graph.down_generation(epsilon, stem, suffix_options)
+    results = graph.down_generation(epsilon, lemma, suffix_options)
 
     results = set(results)
     expected_results = {'walk', 'walks', 'walked', 'walking'}
