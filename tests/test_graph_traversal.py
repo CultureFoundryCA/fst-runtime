@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name
+
 '''This module tests that the traversals and queries made to the FST are correct.'''
 
 from pathlib import Path
