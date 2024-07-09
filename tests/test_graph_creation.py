@@ -1,8 +1,14 @@
+# pylint: disable=protected-access,redefined-outer-name
+
+'''This module tests the graph creation process.'''
+
 import pytest
-from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
+from fst_runtime.fst import Fst, FstEdge
 
 @pytest.fixture
 def att_file_path_unweighted(tmp_path):
+    '''Provides a fixture of a simple unweighted FST.'''
+
     att_file = tmp_path / "test1.att"
 
     # 0 1 a b
@@ -13,6 +19,8 @@ def att_file_path_unweighted(tmp_path):
 
 @pytest.fixture
 def att_file_path_weighted(tmp_path):
+    '''Provides a fixture of a simple weighted FST.'''
+
     att_file = tmp_path / "test2.att"
 
     # 0 1 a b 0.5
@@ -22,13 +30,14 @@ def att_file_path_weighted(tmp_path):
     return att_file
 
 def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
-    graph = DirectedGraph(att_file_path_unweighted)
+    '''Test that all initialization of the graph from the file is done correctly for an unweighted FST.'''
+    graph = Fst(att_file_path_unweighted)
 
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
+    assert graph._start_state.id == 0
+    assert len(graph._accepting_states) == 1
+    assert graph._accepting_states[0] == 2
 
-    node0 = graph.start_state
+    node0 = graph._start_state
     node1 = node0.out_transitions[0].target_node
     node2 = node1.out_transitions[0].target_node
 
@@ -47,22 +56,24 @@ def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
     assert edge0.target_node == node1
     assert edge0.input_symbol == 'a'
     assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == DirectedEdge.NO_WEIGHT
+    assert edge0.penalty_weight == FstEdge.NO_WEIGHT
 
     assert edge1.source_node == node1
     assert edge1.target_node == node2
     assert edge1.input_symbol == 'b'
     assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == DirectedEdge.NO_WEIGHT
+    assert edge1.penalty_weight == FstEdge.NO_WEIGHT
 
 def test_directed_graph_initialization_weighted(att_file_path_weighted):
-    graph = DirectedGraph(att_file_path_weighted)
+    '''Test that all initialization of the graph from the file is done correctly for a weighted FST.'''
 
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
+    graph = Fst(att_file_path_weighted)
 
-    node0 = graph.start_state
+    assert graph._start_state.id == 0
+    assert len(graph._accepting_states) == 1
+    assert graph._accepting_states[0] == 2
+
+    node0 = graph._start_state
     node1 = node0.out_transitions[0].target_node
     node2 = node1.out_transitions[0].target_node
 
