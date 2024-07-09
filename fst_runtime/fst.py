@@ -51,7 +51,7 @@ class _AttInputInfo:
 
 
 @dataclass
-class FstNode:
+class _FstNode:
     '''This class represents a directed node in a graph that represents an FST.'''
 
     id: int
@@ -61,21 +61,21 @@ class FstNode:
     '''This boolean holds whether the current node is an accepting state of the FST. When we get to the end of our input string,
     if we are at an accepting state, that means that the input is valid according to the FST, and so it will then output a value accordingly.'''
 
-    in_transitions: list[FstEdge] = field(default_factory=list)
+    in_transitions: list[_FstEdge] = field(default_factory=list)
     '''This is a node in a directed graph, and this list holds all the edges that lead to this node.'''
 
-    out_transitions: list[FstEdge] = field(default_factory=list)
+    out_transitions: list[_FstEdge] = field(default_factory=list)
     '''This is a node in a directed graph, and this list holds all the edges that lead out of this node.'''
 
 
 @dataclass
-class FstEdge:
+class _FstEdge:
     '''This class represents a directed edge in a graph that represents an FST.'''
 
-    source_node: FstNode
+    source_node: _FstNode
     '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
 
-    target_node: FstNode
+    target_node: _FstNode
     '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
 
     input_symbol: str
@@ -127,10 +127,10 @@ class Fst:
             logger.error("Provided file path does not point to a `.att` file. Example: `/path/to/fst.att`.")
             sys.exit(1)
 
-        self._start_state: FstNode = None
+        self._start_state: _FstNode = None
         '''This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree).'''
 
-        self._accepting_states: set[FstNode] = set()
+        self._accepting_states: set[_FstNode] = set()
         '''This set holds all the accepting states of the FST.'''
 
         self._multichar_symbols: set[str] = set()
@@ -177,7 +177,7 @@ class Fst:
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, FstEdge.NO_WEIGHT)
+                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, _FstEdge.NO_WEIGHT)
 
             # Weighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
@@ -196,15 +196,15 @@ class Fst:
         self._accepting_states = accepting_states
 
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
-        nodes: dict[int, FstNode] = {}
+        nodes: dict[int, _FstNode] = {}
 
 
-        def _get_or_create_node(state_id: int) -> FstNode:
+        def _get_or_create_node(state_id: int) -> _FstNode:
             '''Tries to get a node, and if it doesn't exist, it creates it first, then returns it.'''
             try:
                 node = nodes[state_id]
             except KeyError:
-                node = FstNode(state_id, state_id in accepting_states)
+                node = _FstNode(state_id, state_id in accepting_states)
                 nodes[state_id] = node
 
             return node
@@ -220,7 +220,7 @@ class Fst:
                 next_state, output_symbol, weight = transitions[current_state][input_symbol]
                 next_node = _get_or_create_node(next_state)
 
-                directed_edge = FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
                 current_node.out_transitions.append(directed_edge)
                 next_node.in_transitions.append(directed_edge)
@@ -271,7 +271,7 @@ class Fst:
         return [generation.replace(EPSILON, '') for generation in generated_results]
 
     @staticmethod
-    def __traverse_down(current_node: FstNode, input_tokens: list[str]) -> list[str]:
+    def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> list[str]:
         '''
         This method traverses down the FST beginning at an initial provided node. It walks through the FST,
         recursively finding matches that it builds up through the traversal.

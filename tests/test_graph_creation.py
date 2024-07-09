@@ -3,7 +3,7 @@
 '''This module tests the graph creation process.'''
 
 import pytest
-from fst_runtime.fst import Fst, FstEdge
+from fst_runtime.fst import Fst, _FstEdge
 
 @pytest.fixture
 def att_file_path_unweighted(tmp_path):
@@ -55,13 +55,13 @@ def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
     assert edge0.target_node == node1
     assert edge0.input_symbol == 'a'
     assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == FstEdge.NO_WEIGHT
+    assert edge0.penalty_weight == _FstEdge.NO_WEIGHT
 
     assert edge1.source_node == node1
     assert edge1.target_node == node2
     assert edge1.input_symbol == 'b'
     assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == FstEdge.NO_WEIGHT
+    assert edge1.penalty_weight == _FstEdge.NO_WEIGHT
 
 def test_directed_graph_initialization_weighted(att_file_path_weighted):
     '''Test that all initialization of the graph from the file is done correctly for a weighted FST.'''
