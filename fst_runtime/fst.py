@@ -33,7 +33,7 @@ EPSILON = "@0@"
 #region Helper Classes
 
 @dataclass
-class AttInputInfo:
+class _AttInputInfo:
     '''This class represents input information from the AT&T file format (`.att`) for a transition to a new state.'''
 
     target_state_id: int
@@ -152,7 +152,7 @@ class Fst:
         # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
         # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
         # of the transition, and the weight of that transition.
-        transitions: dict[int, dict[str, AttInputInfo]] = defaultdict(dict)
+        transitions: dict[int, dict[str, _AttInputInfo]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
         with open(att_file_path, encoding='utf-8') as att_file:
@@ -177,7 +177,7 @@ class Fst:
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = AttInputInfo(int(next_state), output_symbol, FstEdge.NO_WEIGHT)
+                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, FstEdge.NO_WEIGHT)
 
             # Weighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
@@ -186,7 +186,7 @@ class Fst:
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = AttInputInfo(int(next_state), output_symbol, weight)
+                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, weight)
 
             # Invalid input line.
             else:
