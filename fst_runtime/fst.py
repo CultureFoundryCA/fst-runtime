@@ -1,3 +1,11 @@
+'''
+fst
+
+This file is the main file of this library. It provides a class called `Fst` that defines an FST in-memory as a directed graph.
+The class exposes several public endpoints, namely `multichar_symbols`, `down_generation`, and `up_analysis` (which is pending).
+It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'`, according to the AT&T format standard.
+'''
+
 from __future__ import annotations
 from collections import defaultdict
 import sys
@@ -7,61 +15,147 @@ from . import logger
 from .att_format_error import AttFormatError
 from .tokenize_input import tokenize_input_string
 
+
+#region Constants
+
 ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
+'''This is the path to the FST that's been compiled to the AT&T `.att` format.'''
+
 LOG_LEVEL = os.getenv('LOG_LEVEL')
+'''The log level of the current environment.'''
+
 EPSILON = "@0@"
+'''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
+
+#endregion
+
+
+#region Helper Classes
+
+@dataclass
+class AttInputInfo:
+    '''This class represents input information from the AT&T file format (`.att`) for a transition to a new state.'''
+
+    target_state_id: int
+    '''The ID of the state in the FST that is being transitioned to.'''
+
+    transition_output_symbol: str
+    '''The symbol that is outputted over the transition.'''
+
+    transition_weight: float = 0
+    '''The penalty weight of the transition. Default is zero.'''
+
+    def __iter__(self):
+        '''Defines an iterable for this object to allow for object unpacking.'''
+        return iter((self.target_state_id, self.transition_output_symbol, self.transition_weight))
+
 
 @dataclass
 class FstNode:
+    '''This class represents a directed node in a graph that represents an FST.'''
+
     id: int
+    '''A unique ID is given to each node in order to allow for easier lookup of nodes.'''
+
     is_accepting_state: bool
+    '''This boolean holds whether the current node is an accepting state of the FST. When we get to the end of our input string,
+    if we are at an accepting state, that means that the input is valid according to the FST, and so it will then output a value accordingly.'''
+
     in_transitions: list[FstEdge] = field(default_factory=list)
+    '''This is a node in a directed graph, and this list holds all the edges that lead to this node.'''
+
     out_transitions: list[FstEdge] = field(default_factory=list)
+    '''This is a node in a directed graph, and this list holds all the edges that lead out of this node.'''
+
 
 @dataclass
 class FstEdge:
+    '''This class represents a directed edge in a graph that represents an FST.'''
+
     source_node: FstNode
+    '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
+
     target_node: FstNode
+    '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
+
     input_symbol: str
+    '''This edge is in an FST, and so it consumes input symbols and outputs output symbols.'''
+
     output_symbol: str
+    '''This edge is in an FST, and so it consumes input symbols and outputs output symbols.'''
+
     penalty_weight: float = 0
+    '''
+    This represents a weight that penalizes walks through the FST. That is, if there's an edge with 0 weight and another with 1 weight,
+    the edge without weight will be prioritized (walked) first.
+    '''
 
     NO_WEIGHT = 0
-    '''This value is set as the value of `weight` when no weight has been set for the edge.'''
+    '''This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge.'''
+
+#endregion
+
 
 class Fst:
+    '''This class represents a finite-state transducer as a directed graph.'''
 
-    # The starting state in the `.att` format is represented by `0`.
-    # This is the "top" of the graph, so when you query down, you start here and go down. Down is like walk+GER -> walking.
+
     _STARTING_STATE = 0
+    '''
+    The starting state in the `.att` format is represented by `0`.
+    This is the "top" of the graph, so when you query down, you start here and go down. Down is like walk+GER -> walking.
+    '''
 
-    # These values are based on how many values of input you're getting from one line of the `.att` file; i.e. "0 1 +PLURAL s" is 4.
     _ATT_DEFINES_ACCEPTING_STATE = 1
+    '''One input value on a line means that that line represents an accepting state in the `.att` file.'''
+
     _ATT_DEFINES_UNWEIGHTED_TRANSITION = 4
+    '''Four input values an a line means that the line represents an unweighted transition in the `.att` file.'''
+
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
+    '''Five input values an a line means that the line represents a weighted transition in the `.att` file.'''
+
 
     def __init__(self, att_file_path: str):
+        '''Initializes the FST via the provided `.att` file.'''
+
         if not att_file_path:
-            logger.error("Failed to provide valid path to input file.")
+            logger.error("Failed to provide valid path to input file. Example: `/path/to/fst.att`.")
             sys.exit(1)
 
-        self.start_state: FstNode = None
-        self.accepting_states: list[FstNode] = []
-        self.multichar_symbols: set[str] = set()
+        if not str(att_file_path).endswith('.att'):
+            logger.error("Provided file path does not point to a `.att` file. Example: `/path/to/fst.att`.")
+            sys.exit(1)
+
+        self._start_state: FstNode = None
+        '''This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree).'''
+
+        self._accepting_states: set[FstNode] = set()
+        '''This set holds all the accepting states of the FST.'''
+
+        self._multichar_symbols: set[str] = set()
+        '''This set represents all the multi-character symbols that have been defined in the FST.'''
 
         self._create_graph(att_file_path)
 
-    def _create_graph(self, att_file_path: str) -> None:
+
+    @property
+    def multichar_symbols(self):
+        '''Public getter for the multichar_symbols variable.'''
+        return self._multichar_symbols.copy()
+
+
+    def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
         # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
-        # and whose value is dictionary. This child dictionary is keyed to the input symbol from the `.att` file
-        # (i.e. 'k' or '+PLURAL'), and whose value is a tuple that contains the target state number, the output
+        # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
+        # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
         # of the transition, and the weight of that transition.
-        transitions: dict[int, dict[str, tuple[int, str, float]]] = defaultdict(dict)
+        transitions: dict[int, dict[str, AttInputInfo]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
-        with open(att_file_path) as att_file:
+        with open(att_file_path, encoding='utf-8') as att_file:
             att_lines = att_file.readlines()
 
         # Parse file into FST graph object.
@@ -81,30 +175,32 @@ class Fst:
                 current_state, next_state, input_symbol, output_symbol = att_line_items
 
                 if len(input_symbol) > 1:
-                    self.multichar_symbols.add(input_symbol)
+                    self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, FstEdge.NO_WEIGHT)
+                transitions[int(current_state)][input_symbol] = AttInputInfo(int(next_state), output_symbol, FstEdge.NO_WEIGHT)
 
             # Weighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
                 current_state, next_state, input_symbol, output_symbol, weight = att_line_items
 
                 if len(input_symbol) > 1:
-                    self.multichar_symbols.add(input_symbol)
+                    self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = (int(next_state), output_symbol, weight)
+                transitions[int(current_state)][input_symbol] = AttInputInfo(int(next_state), output_symbol, weight)
 
             # Invalid input line.
             else:
                 logger.error("Invalid line in %s.", os.path.basename(att_file_path))
                 sys.exit(1)
 
-        self.accepting_states = list(accepting_states)
+        self._accepting_states = accepting_states
 
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
         nodes: dict[int, FstNode] = {}
 
+
         def _get_or_create_node(state_id: int) -> FstNode:
+            '''Tries to get a node, and if it doesn't exist, it creates it first, then returns it.'''
             try:
                 node = nodes[state_id]
             except KeyError:
@@ -112,6 +208,7 @@ class Fst:
                 nodes[state_id] = node
 
             return node
+
 
         # Add every node to dictionary.
         for current_state in all_state_ids:
@@ -129,44 +226,44 @@ class Fst:
                 next_node.in_transitions.append(directed_edge)
 
         try:
-            self.start_state = nodes[Fst._STARTING_STATE]
+            self._start_state = nodes[Fst._STARTING_STATE]
         except KeyError as key_error:
             raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
-    # `input` is a list of list of strings, where each inner-list of strings represents the valid options that should
-    # be queried in the given order. I.e. [["PVDir/East"], ["waabam"], ["VAI"], ["Ind", "Neu"], ...]
-    # must fully explore every inner list (slot) , every possible option in the correct order
-    # TODO Check the star forces parameter naming for parameters following it.
-    # TODO Follow epsilon symbols.
+
+    # region Down/Generation Methods
+
     # TODO Check and handle infinite loops -> no input consumption via epsilon transition that has already been walked = loop.
-    # Consumed 4 symbols, if in same branch of serach we end up in the state but again having only consumed 4 symbols of the input,
-    # then somewhere there is an epsilon loop that has had us end up in the same state with having done nothing in the input.
-    # down_generation = `WAL+GER -> walking` GER = gerund verb becomes noun-like
     def down_generation(self,
         prefix_options: list[list[str]],
-        stem: str,
+        lemma: str,
         suffix_options: list[list[str]],
-        max_weight: float = FstEdge.NO_WEIGHT
     ) -> list[str]:
+        '''
+        This function queries the FST in the down/generation direction. That means that, when provided lists of prefixes and suffixes
+        as well as the lemma, it fully permutes the the tags based on the slots of the affixes. For example, say you have the lemma "wal"
+        in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. Then, these would be fully
+        permuted to "wal+VERB+INF", "wal+VERB+PAST", "wal+VERB+GER", and "wal+VERB+PRES"; likewise with any prefixes. All of these constructions
+        are then walked over the FST to see if we end at an accepting state. If so, the generated forms (i.e. walk, walked, walking, walks) will
+        be added to a list and returned.
+        '''
 
-        if max_weight != FstEdge.NO_WEIGHT:
-            raise NotImplementedError("The weight feature is not currently available.")
-
-        permutations: list[list[str]] = prefix_options + [[stem]] + suffix_options
+        permutations: list[list[str]] = prefix_options + [[lemma]] + suffix_options
         logger.debug('Permutations created: %s', permutations)
 
-        queries: list[str] = self._permute_tags(permutations)
+        queries: list[str] = Fst._permute_tags(permutations)
         logger.debug('Queries created: %s', queries)
 
         return self._traverse_down(queries)
 
     def _traverse_down(self, queries: list[str]) -> list[str]:
+        '''This function handles all the queries down the FST, and returns all the resulting outputs that were found.'''
 
         generated_results = []
 
         for query in queries:
             # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
-            results = Fst.__traverse_down(current_node=self.start_state, input_tokens=tokenize_input_string(query, self.multichar_symbols))
+            results = Fst.__traverse_down(current_node=self._start_state, input_tokens=tokenize_input_string(query, self._multichar_symbols))
 
             logger.debug('Query: %s\tResults: %s', query, results)
             generated_results.extend(results)
@@ -176,17 +273,8 @@ class Fst:
     @staticmethod
     def __traverse_down(current_node: FstNode, input_tokens: list[str]) -> list[str]:
         '''
-        Okay, I just have to write this out here. So what am I trying to do. I have a query string. For the query string, I want to
-        look at the first character(s) to see if they match the input symbol for a transition out of the current node. If that symbol matches,
-        I want to consume those characters, then call this function recursively with the next node selected and the new query added. Concantenting
-        the return values of these recursive calls together will then give me an output string, assuming an accepting walk was found.
-
-        Regardless, once that one walk is completed, I need to make sure that I don't do the exact same walk again. So, I start at the start state again,
-        but this time I IGNORE the transitions_out that I have already visited. This way, I can see if there are other accepting states to explore.
-        But, this can't happen at the recursive level, because then we'll have gibberish returned. UNLESS we instead return a list[str], in which case
-        all the returned values from the recursive call get permuted together as valid combinations from that node. Yes yes yes.
-
-        Base case is accepting state + no further input, OR no further input.
+        This method traverses down the FST beginning at an initial provided node. It walks through the FST,
+        recursively finding matches that it builds up through the traversal.
         '''
 
         matches: list[str] = []
@@ -195,14 +283,8 @@ class Fst:
 
         for edge in current_node.out_transitions:
 
-            # If there are no input symbols left to consume and no epsilon transations to follow, then
-            # we are currently at an unaccepting state, and so we do nothing and continue.
-            if not current_token and edge.input_symbol != EPSILON:
-                logger.debug('no token no epsilon')
-                continue
-
             # If the current transition is an epsilon transition, then consume no input and recurse.
-            elif edge.input_symbol == EPSILON:
+            if edge.input_symbol == EPSILON:
 
                 # Case: there are no more input tokens, but you have an epsilon transition to follow.
                 # In this case, you follow the epsilon, and see if you're in an accepting state. If so,
@@ -231,14 +313,11 @@ class Fst:
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
 
-            # No epsilon transitions to follow, and current token doesn't match the input symbol of the current edge.
-            else:
-                continue
-
         logger.debug('matches: %s', matches)
         return matches
 
-    def _permute_tags(self, parts: list[list[str]]) -> list[str]:
+    @staticmethod
+    def _permute_tags(parts: list[list[str]]) -> list[str]:
         '''Recursively descend into the tags in order to create all permutations of the given tags in the given order.'''
 
         if not parts:
@@ -258,7 +337,7 @@ class Fst:
         # Having incorrect combinations like this is okay, like "rememberments", as they'll just return no results
         # from the final FST when you try to query it (i.e. ends up in an unaccepting state).
         first_part = parts[0]
-        rest_parts = self._permute_tags(parts[1:])
+        rest_parts = Fst._permute_tags(parts[1:])
         result = []
 
         for prefix in first_part:
@@ -270,5 +349,4 @@ class Fst:
 
         return result
 
-    def up_analysis():
-        raise NotImplementedError("Up direction not yet coded.")
+    #endregion
