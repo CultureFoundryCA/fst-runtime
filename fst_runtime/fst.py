@@ -233,7 +233,6 @@ class Fst:
 
     # region Down/Generation Methods
 
-    # TODO Check and handle infinite loops -> no input consumption via epsilon transition that has already been walked = loop.
     def down_generation(self,
         prefix_options: list[list[str]],
         lemma: str,
