@@ -152,7 +152,7 @@ class Fst:
         # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
         # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
         # of the transition, and the weight of that transition.
-        transitions: dict[int, dict[str, _AttInputInfo]] = defaultdict(dict)
+        transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
         with open(att_file_path, encoding='utf-8') as att_file:
@@ -162,7 +162,7 @@ class Fst:
         for line in att_lines:
 
             # Lines in the AT&T format are tab separated.
-            att_line_items = line.strip().split("\t")
+            att_line_items = line.replace('\n', '').split("\t")
             num_defined_items = len(att_line_items)
 
             # Accepting state read in only.
@@ -177,7 +177,15 @@ class Fst:
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
 
-                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, _FstEdge.NO_WEIGHT)
+                if len(output_symbol) > 1:
+                    self._multichar_symbols.add(output_symbol)
+
+                info = _AttInputInfo(int(next_state), output_symbol, _FstEdge.NO_WEIGHT)
+                
+                try:
+                    transitions[int(current_state)][input_symbol].append(info)
+                except KeyError:
+                    transitions[int(current_state)][input_symbol] = [info]
 
             # Weighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
@@ -185,12 +193,20 @@ class Fst:
 
                 if len(input_symbol) > 1:
                     self._multichar_symbols.add(input_symbol)
+                
+                if len(output_symbol) > 1:
+                    self._multichar_symbols.add(output_symbol)
 
-                transitions[int(current_state)][input_symbol] = _AttInputInfo(int(next_state), output_symbol, weight)
+                info = _AttInputInfo(int(next_state), output_symbol, weight)
+
+                try:
+                    transitions[int(current_state)][input_symbol].append(info)
+                except KeyError:
+                    transitions[int(current_state)][input_symbol] = [info]
 
             # Invalid input line.
             else:
-                logger.error("Invalid line in %s.", os.path.basename(att_file_path))
+                logger.error("Invalid line in %s. Offending line: %s", os.path.basename(att_file_path), line)
                 sys.exit(1)
 
         self._accepting_states = accepting_states
@@ -198,7 +214,7 @@ class Fst:
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
         nodes: dict[int, _FstNode] = {}
 
-
+        # This is a local function.
         def _get_or_create_node(state_id: int) -> _FstNode:
             '''Tries to get a node, and if it doesn't exist, it creates it first, then returns it.'''
             try:
@@ -209,22 +225,23 @@ class Fst:
 
             return node
 
-
         # Add every node to dictionary.
         for current_state in all_state_ids:
+
             current_node = _get_or_create_node(current_state)
 
             # Add every edge to nodes in nodes dictionary.
             for input_symbol in transitions[current_state].keys():
 
-                next_state, output_symbol, weight = transitions[current_state][input_symbol]
-                next_node = _get_or_create_node(next_state)
+                for input_info in transitions[current_state][input_symbol]:
+                    next_state, output_symbol, weight = input_info
+                    next_node = _get_or_create_node(next_state)
 
-                directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
-                current_node.out_transitions.append(directed_edge)
-                next_node.in_transitions.append(directed_edge)
-
+                    current_node.out_transitions.append(directed_edge)
+                    next_node.in_transitions.append(directed_edge)
+            
         try:
             self._start_state = nodes[Fst._STARTING_STATE]
         except KeyError as key_error:
@@ -248,7 +265,6 @@ class Fst:
         '''
 
         permutations: list[list[str]] = prefix_options + [[lemma]] + suffix_options
-        logger.debug('Permutations created: %s', permutations)
 
         queries: list[str] = Fst._permute_tags(permutations)
         logger.debug('Queries created: %s', queries)
@@ -262,12 +278,17 @@ class Fst:
 
         for query in queries:
             # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
-            results = Fst.__traverse_down(current_node=self._start_state, input_tokens=tokenize_input_string(query, self._multichar_symbols))
+            results = Fst.__traverse_down(
+                current_node=self._start_state,
+                input_tokens=tokenize_input_string(query, self._multichar_symbols)
+            )
+
+            results = [result.replace(EPSILON, '') for result in results]
 
             logger.debug('Query: %s\tResults: %s', query, results)
             generated_results.extend(results)
 
-        return [generation.replace(EPSILON, '') for generation in generated_results]
+        return generated_results
 
     @staticmethod
     def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> list[str]:
@@ -284,12 +305,14 @@ class Fst:
 
             # If the current transition is an epsilon transition, then consume no input and recurse.
             if edge.input_symbol == EPSILON:
+                # logger.debug("Found eps transition, %s %s", edge.target_node.id, edge.target_node.is_accepting_state)
+                # logger.debug("Input symbol %s", current_token)
 
                 # Case: there are no more input tokens, but you have an epsilon transition to follow.
                 # In this case, you follow the epsilon, and see if you're in an accepting state. If so,
                 # then add the output of this transition to the matches and continue to the recursive step,
                 # since there could be further epsilon transitions to follow.
-                if not current_token and edge.target_node.is_accepting_state:
+                if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
                     matches.append(edge.output_symbol)
 
                 recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
@@ -302,6 +325,9 @@ class Fst:
             # and getting the resulting output of that recursion. Then, we'll want to loop over that result, and, since
             # we consumed an input token over this current transition, we add `edge.output_symbol + result` to the matches.
             elif current_token == edge.input_symbol:
+                # logger.debug("Found matching input character transition, %s %s", edge.target_node.id, edge.target_node.is_accepting_state)
+                # logger.debug("Matching characters: %s %s", current_token, edge.input_symbol)
+
                 new_input_tokens = input_tokens[1:]
 
                 if not new_input_tokens and edge.target_node.is_accepting_state:
@@ -312,7 +338,7 @@ class Fst:
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
 
-        logger.debug('matches: %s', matches)
+        # logger.debug('matches: %s', matches)
         return matches
 
     @staticmethod
