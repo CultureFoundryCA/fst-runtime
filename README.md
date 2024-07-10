@@ -24,3 +24,7 @@ to run the project directly. Otherwise, run things through our tests.
 
 `./poetry run pytest`
 `./poetry run pylint`
+
+## Acknowledgements
+
+We would like to thank Miikka Silfverberg for providing the FSTs in our `tests/data` folder, and to the [OjibweMorph repo](https://github.com/ELF-Lab/OjibweMorph) from UBC's ELF-Lab for providing the 'waabam' FST to use in our testing.
