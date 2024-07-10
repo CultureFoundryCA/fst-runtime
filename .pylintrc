@@ -1,0 +1,12 @@
+[MASTER]
+# Set the regex to enforce docstrings on all functions and methods
+no-docstring-rgx='__.*__'
+
+[FORMAT]
+# Set maximum line length
+max-line-length=150
+
+[MESSAGES CONTROL]
+# Disable specific Pylint warnings and errors; these are comma-separated.
+disable=
+    # fixme

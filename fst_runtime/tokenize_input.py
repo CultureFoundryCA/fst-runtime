@@ -1,6 +1,8 @@
+'''This module tests the tokenize_input_string function.'''
+
 from . import logger
 
-def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) -> list[str]:
+def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
     '''Returns a list containing the individual tokens that make up the `input_string`.'''
 
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
@@ -12,7 +14,7 @@ def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) 
     })
 
     multichar_lengths.sort(reverse=True)
-    logger.debug(f'_tokenize_input_string.multichar_lengths: {multichar_lengths}')
+    logger.debug('_tokenize_input_string.multichar_lengths: %s', multichar_lengths)
 
     tokens = []
 
@@ -47,5 +49,5 @@ def tokenize_input_string(self, input_string: str, multichar_symbols: set[str]) 
         tokens.append(input_string[0])
         input_string = input_string[1:] # Consume input characters.
 
-    logger.debug(f'_tokenize_input_string.tokens: {tokens}')
+    logger.debug('_tokenize_input_string.tokens: %s', tokens)
     return tokens

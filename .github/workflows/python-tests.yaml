@@ -15,20 +15,35 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     steps:
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Run pytest
-      run: |
-        poetry run pytest
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+
+      - name: Run pytest
+        run: |
+          poetry run pytest
 
   # This job executes pylint on the project code, ensuring standardized code quality that is PEP compliant.
   pylint:
     runs-on: ubuntu-latest
     steps:
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Run pylint
-      run: |
-        poetry run pylint $(git ls-files '*.py')
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+
+      # Runs pylint to check and guarantee shared code quality.
+      - name: Run pylint
+        run: |
+          poetry run pylint $(git ls-files '*.py')

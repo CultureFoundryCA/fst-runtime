@@ -1,90 +1,82 @@
+# pylint: disable=redefined-outer-name
+
+'''This module tests that the traversals and queries made to the FST are correct.'''
+
+from pathlib import Path
 import pytest
-from fst_runtime.directed_graph import DirectedGraph, DirectedNode, DirectedEdge
+from fst_runtime.fst import Fst, EPSILON
 
-@pytest.fixture
-def att_file_path_unweighted(tmp_path):
-    att_file = tmp_path / "test1.att"
 
-    # 0 1 a b
-    # 1 2 b c
-    # 2
-    att_file.write_text("0\t1\ta\tb\n1\t2\tb\tc\n2\n")
-    return att_file
+@pytest.fixture(scope="module")
+def data_dir():
+    """Fixture to provide the path to the data directory."""
+    return Path(__file__).parent / "data"
 
-@pytest.fixture
-def att_file_path_weighted(tmp_path):
-    att_file = tmp_path / "test2.att"
+epsilon = [[EPSILON]]
 
-    # 0 1 a b 0.5
-    # 1 2 b c 1.0
-    # 2
-    att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
-    return att_file
+def test_down_traversal_fst1(data_dir):
+    '''Tests traveral for fst1.att.'''
 
-def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
-    graph = DirectedGraph(att_file_path_unweighted)
+    graph = Fst(data_dir / 'fst1.att')
 
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
+    stem1 = 'a'
+    stem2 = 'c'
+    stem3 = 'aaaac'
 
-    node0 = graph.start_state
-    node1 = node0.transitions_out[0].target_node
-    node2 = node1.transitions_out[0].target_node
+    stem1_result = graph.down_generation(epsilon, stem1, epsilon)
+    stem2_result = graph.down_generation(epsilon, stem2, epsilon)
+    stem3_result = graph.down_generation(epsilon, stem3, epsilon)
 
-    assert node0.id == 0
-    assert node1.id == 1
-    assert node2.id == 2
+    assert len(stem1_result) == 0
+    assert len(stem2_result) == 1
+    assert len(stem3_result) == 1
 
-    assert len(node0.transitions_out) == 1
-    assert len(node1.transitions_out) == 1
-    assert len(node2.transitions_out) == 0
+    assert stem2_result[0] == 'd'
+    assert stem3_result[0] == 'bbbbd'
 
-    edge0 = node0.transitions_out[0]
-    edge1 = node1.transitions_out[0]
+def test_down_traversal_fst2(data_dir):
+    '''Tests traveral for fst2.att.'''
 
-    assert edge0.source_node == node0
-    assert edge0.target_node == node1
-    assert edge0.input_symbol == 'a'
-    assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == DirectedEdge.NO_WEIGHT
+    graph = Fst(data_dir / 'fst2.att')
 
-    assert edge1.source_node == node1
-    assert edge1.target_node == node2
-    assert edge1.input_symbol == 'b'
-    assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == DirectedEdge.NO_WEIGHT
+    lemma = 'acccccccd'
+    result = graph.down_generation(epsilon, lemma, epsilon)
 
-def test_directed_graph_initialization_weighted(att_file_path_weighted):
-    graph = DirectedGraph(att_file_path_weighted)
+    assert len(result) == 1
+    assert result[0] == 'bccccccce'
 
-    assert graph.start_state.id == 0
-    assert len(graph.accepting_states) == 1
-    assert graph.accepting_states[0] == 2
+def test_down_traversal_fst3(data_dir):
+    '''Tests traveral for fst3.att.'''
 
-    node0 = graph.start_state
-    node1 = node0.transitions_out[0].target_node
-    node2 = node1.transitions_out[0].target_node
+    graph = Fst(data_dir / 'fst3.att')
 
-    assert node0.id == 0
-    assert node1.id == 1
-    assert node2.id == 2
+    stem1 = 'aaac'
+    stem2 = 'aaaaaa'
+    stem3 = 'aac'
 
-    assert len(node0.transitions_out) == 1
-    assert len(node1.transitions_out) == 1
-    assert len(node2.transitions_out) == 0
+    stem1_result = graph.down_generation(epsilon, stem1, epsilon)
+    stem2_result = graph.down_generation(epsilon, stem2, epsilon)
+    stem3_result = graph.down_generation(epsilon, stem3, epsilon)
 
-    edge0 = node0.transitions_out[0]
-    edge1 = node1.transitions_out[0]
+    assert len(stem1_result) == 0
+    assert len(stem2_result) == 1
+    assert len(stem3_result) == 1
 
-    assert edge0.source_node == node0
-    assert edge0.target_node == node1
-    assert edge0.input_symbol == 'a'
-    assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == '0.5'
+    assert stem2_result[0] == stem2
+    assert stem3_result[0] == stem3
 
-    assert edge1.source_node == node1
-    assert edge1.target_node == node2
-    assert edge1.input_symbol == 'b'
-    assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == '1.0'
+
+def test_down_traversal_fst4(data_dir):
+    '''Tests traveral for fst4.att.'''
+
+    graph = Fst(data_dir / 'fst4.att')
+
+    lemma = 'wal'
+    suffix_options = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
+
+    results = graph.down_generation(epsilon, lemma, suffix_options)
+
+    results = set(results)
+    expected_results = {'walk', 'walks', 'walked', 'walking'}
+
+    assert results == expected_results
