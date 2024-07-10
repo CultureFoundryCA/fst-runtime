@@ -145,7 +145,7 @@ class Fst:
         return self._multichar_symbols.copy()
 
 
-    def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals
+    def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals,too-many-statements,too-many-branches
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
         # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
