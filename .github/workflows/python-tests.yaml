@@ -15,10 +15,8 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
-      with:
-        python-version: '3.8'
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
 
     - name: Run pytest
       run: |
@@ -28,10 +26,8 @@ jobs:
   pylint:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
-      with:
-        python-version: '3.8'
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
 
     # Runs pylint to check and guarantee shared code quality.
     - name: Run pylint
