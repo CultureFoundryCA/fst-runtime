@@ -9,4 +9,4 @@ max-line-length=150
 [MESSAGES CONTROL]
 # Disable specific Pylint warnings and errors; these are comma-separated.
 disable=
-    # fixme
+    trailing-whitespace
