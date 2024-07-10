@@ -14,7 +14,6 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
     })
 
     multichar_lengths.sort(reverse=True)
-    logger.debug('_tokenize_input_string.multichar_lengths: %s', multichar_lengths)
 
     tokens = []
 
