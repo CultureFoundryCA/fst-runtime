@@ -1,5 +1,6 @@
 name: Run Pytest and Pylint
 
+# These tests only run when a pull-request is opened from any branch into main.
 on:
   pull_request:
     branches:
@@ -9,26 +10,27 @@ permissions:
   contents: read
 
 jobs:
+
+  # This job executes the unit tests in the `tests/` folder on the project.
   pytest:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
-      with:
-        python-version: '3.8'
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
 
+    # Runs all the tests in the project.
     - name: Run pytest
       run: |
         poetry run pytest
 
+  # This job executes pylint on the project code, ensuring standardized code quality that is PEP compliant.
   pylint:
     runs-on: ubuntu-latest
     steps:
-    - name: Setup environment
-      uses: CultureFoundryCA/fst-runtime/.github/actions/setup-python-env@main
-      with:
-        python-version: '3.8'
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
 
+    # Runs pylint to check and guarantee shared code quality.
     - name: Run pylint
       run: |
-        poetry run pylint --max-line-length=150 $(git ls-files '*.py')
+        poetry run pylint $(git ls-files '*.py')
