@@ -92,12 +92,12 @@ def test_down_traversal_fst5(data_dir):
 
     graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
 
-    lemma = 'ab'
+    lemma = 'abc'
 
-    results = graph.down_generation([epsilon], lemma, [epsilon])
+    results = set(graph.down_generation([epsilon], lemma, [epsilon]))
+    expected_results = {'xwv', 'xwzv', 'xywzv', 'xyyyyyyyyyyyyyywv', 'xyyyyyyyyyyyyyywzv'}
 
-    # The above function completing is the test.
-    assert True
+    assert results.issuperset(expected_results)
 
 
 def test_down_traversal_fst6(data_dir):
