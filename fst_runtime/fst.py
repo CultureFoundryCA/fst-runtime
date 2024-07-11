@@ -181,7 +181,7 @@ class Fst:
 
             # Accepting state read in only.
             if num_defined_items == Fst._ATT_DEFINES_ACCEPTING_STATE:
-                accepting_states.add(att_line_items[0])
+                accepting_states.add(int(att_line_items[0]))
 
             # Unweighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_TRANSITION:
