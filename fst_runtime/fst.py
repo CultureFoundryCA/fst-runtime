@@ -6,6 +6,9 @@ The class exposes several public endpoints, namely `multichar_symbols`, `down_ge
 It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'`, according to the AT&T format standard.
 '''
 
+
+#region Imports and Constants
+
 from __future__ import annotations
 from collections import defaultdict
 import sys
@@ -14,15 +17,6 @@ from dataclasses import dataclass, field
 from . import logger
 from .att_format_error import AttFormatError
 from .tokenize_input import tokenize_input_string
-
-
-#region Constants
-
-ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
-'''This is the path to the FST that's been compiled to the AT&T `.att` format.'''
-
-LOG_LEVEL = os.getenv('LOG_LEVEL')
-'''The log level of the current environment.'''
 
 EPSILON = "@0@"
 '''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
@@ -96,9 +90,12 @@ class _FstEdge:
 #endregion
 
 
+
 class Fst:
     '''This class represents a finite-state transducer as a directed graph.'''
 
+
+    #region Variables and Initialization
 
     _STARTING_STATE = 0
     '''
@@ -116,7 +113,7 @@ class Fst:
     '''Five input values an a line means that the line represents a weighted transition in the `.att` file.'''
 
 
-    def __init__(self, att_file_path: str):
+    def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
         '''Initializes the FST via the provided `.att` file.'''
 
         if not att_file_path:
@@ -135,6 +132,9 @@ class Fst:
 
         self._multichar_symbols: set[str] = set()
         '''This set represents all the multi-character symbols that have been defined in the FST.'''
+
+        self.recursion_limit: int = recursion_limit
+        '''This sets the recursion limit for the generation/analysis functionality, so that epsilon cycles don't run amok.'''
 
         self._create_graph(att_file_path)
 
@@ -247,6 +247,8 @@ class Fst:
         except KeyError as key_error:
             raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
+    #endregion
+
 
     # region Down/Generation Methods
 
@@ -275,6 +277,14 @@ class Fst:
         '''This function handles all the queries down the FST, and returns all the resulting outputs that were found.'''
 
         generated_results = []
+            
+        original_recursion_limit = 0
+        recursion_limit_set = self.recursion_limit > 0
+        
+        # If the recursion limit has been set, the save the original value, and set it to the specified one.
+        if recursion_limit_set:
+            original_recursion_limit = sys.getrecursionlimit()
+            sys.setrecursionlimit(self.recursion_limit)
 
         for query in queries:
             # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
@@ -287,6 +297,10 @@ class Fst:
 
             logger.debug('Query: %s\tResults: %s', query, results)
             generated_results.extend(results)
+
+        # Reset recursion limit before exiting the function.
+        if recursion_limit_set:
+            sys.setrecursionlimit(original_recursion_limit)
 
         return generated_results
 
@@ -315,7 +329,10 @@ class Fst:
                 if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
                     matches.append(edge.output_symbol)
 
-                recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
+                try:
+                    recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
+                except RecursionError:
+                    recursive_results = []
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
@@ -333,7 +350,10 @@ class Fst:
                 if not new_input_tokens and edge.target_node.is_accepting_state:
                     matches.append(edge.output_symbol)
 
-                recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
+                try:
+                    recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
+                except RecursionError:
+                    recursive_results = []
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
@@ -350,10 +370,10 @@ class Fst:
 
         # Remember: EPSILON in a slot mean that slot can be omitted for a construction.
         # Example: parts = [["dis", "re"], ["member"], ["ment", "ing"], ["s", EPSILON]]
-        # First pass: first_part = ["dis", "re"], rest_parts = [["member"], ["ment", "ing"], ["s", EPSILON]]
-        # Second pass: first_part = ["member"], rest_parts = [["ment", "ing"], ["s", EPSILON]]
-        # Third pass: first_part = ["ment", "ing"], rest_parts = [["s", EPSILON]]
-        # Fourth pass: first_part = ["s", EPSILON], rest_parts = [] <- base case reached
+        # First pass: head = ["dis", "re"], tail = [["member"], ["ment", "ing"], ["s", EPSILON]]
+        # Second pass: head = ["member"], tail = [["ment", "ing"], ["s", EPSILON]]
+        # Third pass: head = ["ment", "ing"], tail = [["s", EPSILON]]
+        # Fourth pass: head = ["s", EPSILON], tail = [] <- base case reached
         # Fourth pass return: ['']
         # Third pass return: ["ments", "ment", "ings", "ing"] <- note the epsilon omissions here
         # Second pass return: ["memberments", "memberment", "memberings", "membering"]
@@ -361,12 +381,12 @@ class Fst:
         #                       "rememberments", "rememberment", "rememberings", "remembering"]
         # Having incorrect combinations like this is okay, like "rememberments", as they'll just return no results
         # from the final FST when you try to query it (i.e. ends up in an unaccepting state).
-        first_part = parts[0]
-        rest_parts = Fst._permute_tags(parts[1:])
+        head = parts[0]
+        tail = Fst._permute_tags(parts[1:])
         result = []
 
-        for prefix in first_part:
-            for suffix in rest_parts:
+        for prefix in head:
+            for suffix in tail:
                 if prefix == EPSILON:
                     result.append(suffix)
                 else:
