@@ -350,10 +350,10 @@ class Fst:
 
         # Remember: EPSILON in a slot mean that slot can be omitted for a construction.
         # Example: parts = [["dis", "re"], ["member"], ["ment", "ing"], ["s", EPSILON]]
-        # First pass: first_part = ["dis", "re"], rest_parts = [["member"], ["ment", "ing"], ["s", EPSILON]]
-        # Second pass: first_part = ["member"], rest_parts = [["ment", "ing"], ["s", EPSILON]]
-        # Third pass: first_part = ["ment", "ing"], rest_parts = [["s", EPSILON]]
-        # Fourth pass: first_part = ["s", EPSILON], rest_parts = [] <- base case reached
+        # First pass: head = ["dis", "re"], tail = [["member"], ["ment", "ing"], ["s", EPSILON]]
+        # Second pass: head = ["member"], tail = [["ment", "ing"], ["s", EPSILON]]
+        # Third pass: head = ["ment", "ing"], tail = [["s", EPSILON]]
+        # Fourth pass: head = ["s", EPSILON], tail = [] <- base case reached
         # Fourth pass return: ['']
         # Third pass return: ["ments", "ment", "ings", "ing"] <- note the epsilon omissions here
         # Second pass return: ["memberments", "memberment", "memberings", "membering"]
@@ -361,12 +361,12 @@ class Fst:
         #                       "rememberments", "rememberment", "rememberings", "remembering"]
         # Having incorrect combinations like this is okay, like "rememberments", as they'll just return no results
         # from the final FST when you try to query it (i.e. ends up in an unaccepting state).
-        first_part = parts[0]
-        rest_parts = Fst._permute_tags(parts[1:])
+        head = parts[0]
+        tail = Fst._permute_tags(parts[1:])
         result = []
 
-        for prefix in first_part:
-            for suffix in rest_parts:
+        for prefix in head:
+            for suffix in tail:
                 if prefix == EPSILON:
                     result.append(suffix)
                 else:
