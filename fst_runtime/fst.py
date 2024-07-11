@@ -18,12 +18,6 @@ from .tokenize_input import tokenize_input_string
 
 #region Constants
 
-ATT_FILE_PATH = os.getenv('ATT_FILE_PATH')
-'''This is the path to the FST that's been compiled to the AT&T `.att` format.'''
-
-LOG_LEVEL = os.getenv('LOG_LEVEL')
-'''The log level of the current environment.'''
-
 EPSILON = "@0@"
 '''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
 
@@ -96,9 +90,12 @@ class _FstEdge:
 #endregion
 
 
+
 class Fst:
     '''This class represents a finite-state transducer as a directed graph.'''
 
+
+    #region Variables and Initialization
 
     _STARTING_STATE = 0
     '''
@@ -247,6 +244,8 @@ class Fst:
         except KeyError as key_error:
             raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
+    #endregion
+    
 
     # region Down/Generation Methods
 
