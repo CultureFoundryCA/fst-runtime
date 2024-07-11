@@ -11,7 +11,7 @@ permissions:
 
 jobs:
 
-  # This job executes the unit tests in the `tests/` folder on the project.
+  # This job executes the unit tests in the `tests/` folder of the project.
   pytest:
     runs-on: ubuntu-latest
     steps:
