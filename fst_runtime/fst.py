@@ -166,6 +166,7 @@ class Fst:
         Returns: `transitions, accepting_states`
         '''
         
+        # See comment in `_create_graph` for what this object is.
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
@@ -228,13 +229,12 @@ class Fst:
     def _create_graph(self, att_file_path: str) -> None:
         '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
 
-        # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
+        # `transitions` is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
         # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
         # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
         # of the transition, and the weight of that transition.
         # transitions: dict[int, dict[str, list[_AttInputInfo]]]
         # accepting_states: set[int] = set()
-
         transitions, self._accepting_states = self._read_att_file_into_transitions(att_file_path)
 
         all_state_ids: list[int] = list(set(transitions.keys()).union(self._accepting_states))
