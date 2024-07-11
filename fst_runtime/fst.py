@@ -95,7 +95,7 @@ class Fst:
     '''This class represents a finite-state transducer as a directed graph.'''
 
 
-    #region Variables and Initialization
+    #region Variables, Properties, and Initialization
 
     _STARTING_STATE = 0
     '''
@@ -143,6 +143,8 @@ class Fst:
     def multichar_symbols(self):
         '''Public getter for the multichar_symbols variable.'''
         return self._multichar_symbols.copy()
+    
+    #endregion
 
 
     @staticmethod
@@ -408,5 +410,12 @@ class Fst:
                     result.append(prefix + suffix)
 
         return result
+
+    #endregion
+
+
+    #region Up/Analysis Methods
+
+
 
     #endregion
