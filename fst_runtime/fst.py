@@ -145,13 +145,27 @@ class Fst:
         return self._multichar_symbols.copy()
 
 
-    def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals,too-many-statements,too-many-branches
-        '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
+    @staticmethod
+    def _get_or_create_node(state_id: int, nodes: dict[int, _FstNode], accepting_states: set[int]) -> _FstNode:
+        '''Tries to get a node from the dictionary, and if it doesn't exist, create it first, then return it.'''
 
-        # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
-        # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
-        # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
-        # of the transition, and the weight of that transition.
+        try:
+            node = nodes[state_id]
+        except KeyError:
+            node = _FstNode(state_id, state_id in accepting_states)
+            nodes[state_id] = node
+
+        return node
+    
+    
+    def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
+        '''
+        This function reads in all the transition and state information from the file into the `transitions` object,
+        and also saves the accepting states of the FST.
+        
+        Returns: `transitions, accepting_states`
+        '''
+        
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
@@ -167,8 +181,7 @@ class Fst:
 
             # Accepting state read in only.
             if num_defined_items == Fst._ATT_DEFINES_ACCEPTING_STATE:
-                accepting_state = int(att_line_items[0])
-                accepting_states.add(accepting_state)
+                accepting_states.add(att_line_items[0])
 
             # Unweighted transition.
             elif num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_TRANSITION:
@@ -209,33 +222,35 @@ class Fst:
                 logger.error("Invalid line in %s. Offending line: %s", os.path.basename(att_file_path), line)
                 sys.exit(1)
 
-        self._accepting_states = accepting_states
+        return transitions, accepting_states
 
-        all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
+
+    def _create_graph(self, att_file_path: str) -> None:
+        '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
+
+        # This is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
+        # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
+        # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
+        # of the transition, and the weight of that transition.
+        # transitions: dict[int, dict[str, list[_AttInputInfo]]]
+        # accepting_states: set[int] = set()
+
+        transitions, self._accepting_states = self._read_att_file_into_transitions(att_file_path)
+
+        all_state_ids: list[int] = list(set(transitions.keys()).union(self._accepting_states))
         nodes: dict[int, _FstNode] = {}
 
-        # This is a local function.
-        def _get_or_create_node(state_id: int) -> _FstNode:
-            '''Tries to get a node, and if it doesn't exist, it creates it first, then returns it.'''
-            try:
-                node = nodes[state_id]
-            except KeyError:
-                node = _FstNode(state_id, state_id in accepting_states)
-                nodes[state_id] = node
-
-            return node
-
-        # Add every node to dictionary.
+        # Create the FST from the transitions object by creating all the appropriate nodes and transitions.
         for current_state in all_state_ids:
 
-            current_node = _get_or_create_node(current_state)
+            current_node = Fst._get_or_create_node(current_state, nodes, self._accepting_states)
 
             # Add every edge to nodes in nodes dictionary.
             for input_symbol in transitions[current_state].keys():
 
                 for input_info in transitions[current_state][input_symbol]:
                     next_state, output_symbol, weight = input_info
-                    next_node = _get_or_create_node(next_state)
+                    next_node = Fst._get_or_create_node(next_state, nodes, self._accepting_states)
 
                     directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
