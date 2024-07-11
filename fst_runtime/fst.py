@@ -147,6 +147,8 @@ class Fst:
     #endregion
 
 
+    #region Graph Creation
+
     @staticmethod
     def _get_or_create_node(state_id: int, nodes: dict[int, _FstNode], accepting_states: set[int]) -> _FstNode:
         '''Tries to get a node from the dictionary, and if it doesn't exist, create it first, then return it.'''
