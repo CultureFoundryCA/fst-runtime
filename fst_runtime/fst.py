@@ -6,6 +6,9 @@ The class exposes several public endpoints, namely `multichar_symbols`, `down_ge
 It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'`, according to the AT&T format standard.
 '''
 
+
+#region Imports and Constants
+
 from __future__ import annotations
 from collections import defaultdict
 import sys
@@ -14,9 +17,6 @@ from dataclasses import dataclass, field
 from . import logger
 from .att_format_error import AttFormatError
 from .tokenize_input import tokenize_input_string
-
-
-#region Constants
 
 EPSILON = "@0@"
 '''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
@@ -245,7 +245,7 @@ class Fst:
             raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
 
     #endregion
-    
+
 
     # region Down/Generation Methods
 
@@ -314,7 +314,10 @@ class Fst:
                 if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
                     matches.append(edge.output_symbol)
 
-                recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
+                try:
+                    recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
+                except RecursionError:
+                    recursive_results = []
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
@@ -332,7 +335,10 @@ class Fst:
                 if not new_input_tokens and edge.target_node.is_accepting_state:
                     matches.append(edge.output_symbol)
 
-                recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
+                try:
+                    recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
+                except RecursionError:
+                    recursive_results = []
 
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
