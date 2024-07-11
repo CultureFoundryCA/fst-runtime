@@ -90,7 +90,7 @@ def test_down_traversal_fst4(data_dir):
 def test_down_traversal_fst5(data_dir):
     '''Tests the traversal down through the epsilon cycle FST.'''
 
-    graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
+    graph = Fst(data_dir / 'fst5_epsilon_cycle.att', recursion_limit=100)
 
     lemma = 'abc'
 

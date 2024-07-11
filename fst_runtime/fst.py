@@ -21,9 +21,6 @@ from .tokenize_input import tokenize_input_string
 EPSILON = "@0@"
 '''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
 
-DEFAULT_RECURSION_LIMIT = 250
-'''This sets the recursion limit for the generation/analysis functionality. This stops epsilon cycles from going on infinitely.'''
-
 #endregion
 
 
@@ -116,7 +113,7 @@ class Fst:
     '''Five input values an a line means that the line represents a weighted transition in the `.att` file.'''
 
 
-    def __init__(self, att_file_path: str, recursion_limit: int = DEFAULT_RECURSION_LIMIT):
+    def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
         '''Initializes the FST via the provided `.att` file.'''
 
         if not att_file_path:
@@ -280,9 +277,14 @@ class Fst:
         '''This function handles all the queries down the FST, and returns all the resulting outputs that were found.'''
 
         generated_results = []
+            
+        original_recursion_limit = 0
+        recursion_limit_set = self.recursion_limit > 0
         
-        original_recursion_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(self.recursion_limit)
+        # If the recursion limit has been set, the save the original value, and set it to the specified one.
+        if recursion_limit_set:
+            original_recursion_limit = sys.getrecursionlimit()
+            sys.setrecursionlimit(self.recursion_limit)
 
         for query in queries:
             # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
@@ -296,7 +298,10 @@ class Fst:
             logger.debug('Query: %s\tResults: %s', query, results)
             generated_results.extend(results)
 
-        sys.setrecursionlimit(original_recursion_limit)
+        # Reset recursion limit before exiting the function.
+        if recursion_limit_set:
+            sys.setrecursionlimit(original_recursion_limit)
+
         return generated_results
 
     @staticmethod
