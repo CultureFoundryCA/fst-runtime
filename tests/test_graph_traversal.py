@@ -14,8 +14,11 @@ def data_dir():
 
 epsilon = [EPSILON]
 
+
+#region Down/Generation Tests
+
 def test_down_traversal_fst1(data_dir):
-    '''Tests traveral for fst1.att.'''
+    '''Tests traveral down for fst1.att.'''
 
     graph = Fst(data_dir / 'fst1.att')
 
@@ -34,8 +37,9 @@ def test_down_traversal_fst1(data_dir):
     assert stem2_result[0] == 'd'
     assert stem3_result[0] == 'bbbbd'
 
+
 def test_down_traversal_fst2(data_dir):
-    '''Tests traveral for fst2.att.'''
+    '''Tests traveral down for fst2.att.'''
 
     graph = Fst(data_dir / 'fst2.att')
 
@@ -45,8 +49,9 @@ def test_down_traversal_fst2(data_dir):
     assert len(result) == 1
     assert result[0] == 'bccccccce'
 
+
 def test_down_traversal_fst3(data_dir):
-    '''Tests traveral for fst3.att.'''
+    '''Tests traveral down for fst3.att.'''
 
     graph = Fst(data_dir / 'fst3.att')
 
@@ -67,7 +72,7 @@ def test_down_traversal_fst3(data_dir):
 
 
 def test_down_traversal_fst4(data_dir):
-    '''Tests traveral for fst4.att.'''
+    '''Tests traveral down for fst4.att.'''
 
     graph = Fst(data_dir / 'fst4.att')
 
@@ -81,8 +86,22 @@ def test_down_traversal_fst4(data_dir):
 
     assert expected_results == results
 
+
+def test_down_traversal_fst5(data_dir):
+    '''Tests the traversal down through the epsilon cycle FST.'''
+
+    graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
+
+    lemma = 'ab'
+
+    results = graph.down_generation([epsilon], lemma, [epsilon])
+
+    # The above function completing is the test.
+    assert True
+
+
 def test_down_traversal_fst6(data_dir):
-    '''Tests the traversal through the "waabam" FST.'''
+    '''Tests the traversal down through the "waabam" FST.'''
 
     graph = Fst(data_dir / 'fst6_waabam.att')
 
@@ -115,3 +134,5 @@ def test_down_traversal_fst6(data_dir):
     }
 
     assert expected_results == results
+
+#endregion
