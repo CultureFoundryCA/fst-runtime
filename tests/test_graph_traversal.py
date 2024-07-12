@@ -204,4 +204,58 @@ def test_up_traversal_fst4(data_dir):
     assert 'wal+VERB+GER' in results1
     assert 'wal+VERB+PRES' in results2
 
+
+def test_up_traversal_fst5(data_dir):
+
+    graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
+
+    wordform1 = 'xyyyyyyyyyywv'
+    wordform2 = 'xyyywzv'
+    wordform3 = 'xwv'
+    wordform4 = 'xyyyyyyyv'
+
+    results1 = graph.up_analysis(wordform1)
+    results2 = graph.up_analysis(wordform2)
+    results3 = graph.up_analysis(wordform3)
+    results4 = graph.up_analysis(wordform4)
+
+    assert len(results1) == 1
+    assert len(results2) == 1
+    assert len(results3) == 1
+    assert len(results4) == 0
+
+    assert 'abc' in results1
+    assert 'abc' in results2
+    assert 'abc' in results3
+
+
+def test_up_analysis_fst6(data_dir):
+
+    graph = Fst(data_dir / 'fst6_waabam.att')
+
+    wordform1 = "gigii-waabamin"
+    wordform2 = "gigii-waabamininim"
+    wordform3 = "giwii'-waabamin"
+    wordform4 ="giwii'-waabamininim"
+
+    results1 = graph.up_analysis(wordform1)
+    results2 = graph.up_analysis(wordform2)
+    results3 = graph.up_analysis(wordform3)
+    results4 = graph.up_analysis(wordform4)
+
+    assert len(results1) == 1
+    assert len(results2) == 1
+    assert len(results3) == 1
+    assert len(results4) == 1
+    
+    expected_result1 = "PVTense/gii+waabam+VTA+Ind+Pos+Neu+1SgSubj+2SgObj"
+    expected_result2 = "PVTense/gii+waabam+VTA+Ind+Pos+Neu+1SgSubj+2PlObj"
+    expected_result3 = "PVTense/wii'+waabam+VTA+Ind+Pos+Neu+1SgSubj+2SgObj"
+    expected_result4 = "PVTense/wii'+waabam+VTA+Ind+Pos+Neu+1SgSubj+2PlObj"
+
+    assert expected_result1 in results1
+    assert expected_result2 in results2
+    assert expected_result3 in results3
+    assert expected_result4 in results4
+
 #endregion
