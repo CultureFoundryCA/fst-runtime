@@ -136,3 +136,72 @@ def test_down_traversal_fst6(data_dir):
     assert expected_results == results
 
 #endregion
+
+
+#region Up/Analysis Tests
+
+def test_up_traversal_fst1(data_dir):
+
+    graph = Fst(data_dir / 'fst1.att')
+
+    wordform = 'bbbbd'
+
+    results = graph.up_analysis(wordform)
+
+    assert len(results) == 1
+    assert 'aaaac' in results
+
+
+def test_up_traversal_fst2(data_dir):
+
+    graph = Fst(data_dir / 'fst2.att')
+
+    wordform = 'bccce'
+
+    results = graph.up_analysis(wordform)
+
+    assert len(results) == 1
+    assert 'acccd' in results
+
+
+def test_up_traversal_fst3(data_dir):
+
+    graph = Fst(data_dir / 'fst3.att')
+
+    wordform1 = 'aac'
+    wordform2 = 'aaaab'
+    wordform3 = 'aaaac'
+    wordform4 = 'aaac'
+
+    results1 = graph.up_analysis(wordform1)
+    results2 = graph.up_analysis(wordform2)
+    results3 = graph.up_analysis(wordform3)
+    results4 = graph.up_analysis(wordform4)
+
+    assert len(results1) == 1
+    assert len(results2) == 1
+    assert len(results3) == 1
+    assert len(results4) == 0
+
+    assert wordform1 in results1
+    assert wordform2 in results2
+    assert wordform3 in results3
+
+
+def test_up_traversal_fst4(data_dir):
+
+    graph = Fst(data_dir / 'fst4.att')
+
+    wordform1 = 'walking'
+    wordform2 = 'walks'
+
+    results1 = graph.up_analysis(wordform1)
+    results2 = graph.up_analysis(wordform2)
+
+    assert len(results1) == 1
+    assert len(results2) == 1
+
+    assert 'wal+VERB+GER' in results1
+    assert 'wal+VERB+PRES' in results2
+
+#endregion
