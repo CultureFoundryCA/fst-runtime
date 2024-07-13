@@ -173,10 +173,10 @@ def test_up_traversal_fst3(data_dir):
     wordform3 = 'aaaac'
     wordform4 = 'aaac'
 
-    results1 = graph.up_analysis(wordform1)
-    results2 = graph.up_analysis(wordform2)
-    results3 = graph.up_analysis(wordform3)
-    results4 = graph.up_analysis(wordform4)
+    results1 = set(graph.up_analysis(wordform1))
+    results2 = set(graph.up_analysis(wordform2))
+    results3 = set(graph.up_analysis(wordform3))
+    results4 = set(graph.up_analysis(wordform4))
 
     assert len(results1) == 1
     assert len(results2) == 1
