@@ -424,7 +424,7 @@ class Fst:
     def up_analysis(self, wordform: str) -> list[str]:
         '''This function queries the FST up, or in the direction of analysis. It starts at the accepting states, and instead of looking at the
         input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. In this way, the FST
-        because reversed. So where down/generation generates forms from a lemma plus some tags, the up/analysis direction instead takes a word form,
+        becomes reversed. So where down/generation generates forms from a lemma plus some tags, the up/analysis direction instead takes a word form,
         and generates the tagged forms that could lead that to that particular word form. For example, `walking -> wal+GER`. Of course, there can be
         several tagged forms that lead to a single word. Take the word `walk` again: you have `wal+VERB+1Sg+Pres`, `wal+VERB+2Sg+Pres`, etc. that lead
         to its generation. So all these tagged forms then have to be aggregated and returned.'''
@@ -443,55 +443,59 @@ class Fst:
             recursive_results = Fst._traverse_up(accepting_state, wordform)
             tagged_forms.extend(recursive_results)
 
-
         # Reset recursion limit before exiting the function.
         if recursion_limit_set:
             sys.setrecursionlimit(original_recursion_limit)
         
-        return [tagged_form[::-1] for tagged_form in tagged_forms]
+        return [tagged_form[::-1].replace(EPSILON, '') for tagged_form in tagged_forms]
     
     @staticmethod
     def _traverse_up(current_state: _FstNode, wordform: str):
         
         matches: list[str] = []
         current_char = wordform[-1] if wordform else None
-        
+
         for edge in current_state.in_transitions:
 
-            recursive_results: list[str] = []
+            # If the current character matches the output symbol and takes you to the starting state.
+            if current_char == edge.output_symbol and edge.source_node.id == Fst._STARTING_STATE:
 
-            AT_START_STATE = edge.source_node.id == Fst._STARTING_STATE
-            EPSILON_INPUT_SYMBOL = edge.input_symbol == EPSILON
-
-            if edge.output_symbol == EPSILON:
-                
-                if not current_char and AT_START_STATE and not EPSILON_INPUT_SYMBOL:
-                    matches.append(edge.input_symbol[::-1])
-
-                try:
-                    recursive_results = Fst._traverse_up(edge.source_node, wordform)
-                except RecursionError:
-                    pass
-
-            elif current_char == edge.output_symbol:
                 new_wordform = wordform[:-1]
 
-                if not new_wordform and AT_START_STATE and not EPSILON_INPUT_SYMBOL:
+                if not new_wordform:
                     matches.append(edge.input_symbol[::-1])
 
                 try:
                     recursive_results = Fst._traverse_up(edge.source_node, new_wordform)
                 except RecursionError:
-                    pass
+                    recursive_results = []
 
-            for result in recursive_results:
-                if edge.input_symbol != EPSILON:
+                for result in recursive_results:
                     matches.append(edge.input_symbol[::-1] + result)
-                else:
-                    matches.append(result)
 
-        logger.debug(matches)
+            # Otherwise, output symbol is epsilon, then consume no characters and recurse.
+            elif edge.output_symbol == EPSILON:
+
+                try:
+                    recursive_results = Fst._traverse_up(edge.source_node, wordform)
+                except RecursionError:
+                    recursive_results = []
+
+                for result in recursive_results:
+                    matches.append(edge.input_symbol[::-1] + result)
+
+            # Otherwise, current character matches output character, so chop off the current character and recurse.
+            elif current_char == edge.output_symbol:
+                new_wordform = wordform[:-1]
+
+                try:
+                    recursive_results = Fst._traverse_up(edge.source_node, new_wordform)
+                except RecursionError:
+                    recursive_results = []
+
+                for result in recursive_results:
+                    matches.append(edge.input_symbol[::-1] + result)
+
         return matches
-
 
     #endregion
