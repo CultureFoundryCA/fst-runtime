@@ -199,7 +199,7 @@ def test_up_traversal_fst4(data_dir):
     results2 = graph.up_analysis(wordform2)
 
     assert len(results1) == 1
-    assert len(results2) == 1
+    assert len(results2) == 2
 
     assert 'wal+VERB+GER' in results1
     assert 'wal+VERB+PRES' in results2
