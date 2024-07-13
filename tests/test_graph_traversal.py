@@ -18,7 +18,7 @@ epsilon = [EPSILON]
 #region Down/Generation Tests
 
 def test_down_traversal_fst1(data_dir):
-    '''Tests traveral down for fst1.att.'''
+    '''Tests traversal down for fst1.att.'''
 
     graph = Fst(data_dir / 'fst1.att')
 
@@ -39,7 +39,7 @@ def test_down_traversal_fst1(data_dir):
 
 
 def test_down_traversal_fst2(data_dir):
-    '''Tests traveral down for fst2.att.'''
+    '''Tests traversal down for fst2.att.'''
 
     graph = Fst(data_dir / 'fst2.att')
 
@@ -51,7 +51,7 @@ def test_down_traversal_fst2(data_dir):
 
 
 def test_down_traversal_fst3(data_dir):
-    '''Tests traveral down for fst3.att.'''
+    '''Tests traversal down for fst3.att.'''
 
     graph = Fst(data_dir / 'fst3.att')
 
@@ -72,7 +72,7 @@ def test_down_traversal_fst3(data_dir):
 
 
 def test_down_traversal_fst4(data_dir):
-    '''Tests traveral down for fst4.att.'''
+    '''Tests traversal down for fst4.att.'''
 
     graph = Fst(data_dir / 'fst4.att')
 
@@ -141,6 +141,7 @@ def test_down_traversal_fst6(data_dir):
 #region Up/Analysis Tests
 
 def test_up_traversal_fst1(data_dir):
+    '''Tests travel up'''
 
     graph = Fst(data_dir / 'fst1.att')
 
