@@ -4,7 +4,7 @@
 
 from pathlib import Path
 import pytest
-from fst_runtime.fst import Fst, EPSILON
+from fst_runtime.fst import Fst
 
 
 @pytest.fixture(scope="module")
@@ -12,74 +12,86 @@ def data_dir():
     """Fixture to provide the path to the data directory."""
     return Path(__file__).parent / "data"
 
-epsilon = [EPSILON]
-
 
 #region Down/Generation Tests
 
 def test_down_traversal_fst1(data_dir):
-    '''Tests traversal down for fst1.att.'''
+    '''
+    Tests traversal down for fst1.att.
+    
+    This is a very basic test that input to an FST gives the expected output. It also checks that an incorrect form is rejected.
+    '''
 
     graph = Fst(data_dir / 'fst1.att')
 
-    stem1 = 'a'
-    stem2 = 'c'
-    stem3 = 'aaaac'
+    lemma1 = 'a' # <- Incorrect form.
+    lemma2 = 'c'
+    lemma3 = 'aaaac'
 
-    stem1_result = graph.down_generation([epsilon], stem1, [epsilon])
-    stem2_result = graph.down_generation([epsilon], stem2, [epsilon])
-    stem3_result = graph.down_generation([epsilon], stem3, [epsilon])
+    lemma1_results = graph.down_generation(lemma1)
+    lemma2_results = graph.down_generation(lemma2)
+    lemma3_results = graph.down_generation(lemma3)
 
-    assert len(stem1_result) == 0
-    assert len(stem2_result) == 1
-    assert len(stem3_result) == 1
+    assert len(lemma1_results) == 0 # <- Incorrect form supplied, so there should be zero results.
+    assert len(lemma2_results) == 1
+    assert len(lemma3_results) == 1
 
-    assert stem2_result[0] == 'd'
-    assert stem3_result[0] == 'bbbbd'
+    assert 'd' in lemma2_results
+    assert 'bbbbd' in lemma3_results
 
 
 def test_down_traversal_fst2(data_dir):
-    '''Tests traversal down for fst2.att.'''
+    '''
+    Tests traversal down for fst2.att.
+
+    This is a very basic test that input to an FST gives the expected output. It also checks that an incorrect form is rejected.
+    '''
 
     graph = Fst(data_dir / 'fst2.att')
 
     lemma = 'acccccccd'
-    result = graph.down_generation([epsilon], lemma, [epsilon])
+    results = graph.down_generation(lemma)
 
-    assert len(result) == 1
-    assert result[0] == 'bccccccce'
+    assert len(results) == 1
+    assert 'bccccccce' in results
 
 
 def test_down_traversal_fst3(data_dir):
-    '''Tests traversal down for fst3.att.'''
+    '''
+    Tests traversal down for fst3.att.
+    
+    This also tests the `down_generations` function, which can take multiple queries at once.
+    '''
 
     graph = Fst(data_dir / 'fst3.att')
 
-    stem1 = 'aaac'
-    stem2 = 'aaaaaa'
-    stem3 = 'aac'
+    lemma1 = 'aaac'
+    lemma2 = 'aaaaaa'
+    lemma3 = 'aac'
 
-    stem1_result = graph.down_generation([epsilon], stem1, [epsilon])
-    stem2_result = graph.down_generation([epsilon], stem2, [epsilon])
-    stem3_result = graph.down_generation([epsilon], stem3, [epsilon])
+    results_dict = graph.down_generations([lemma1, lemma2, lemma3])
 
-    assert len(stem1_result) == 0
-    assert len(stem2_result) == 1
-    assert len(stem3_result) == 1
+    assert len(results_dict[lemma1]) == 0
+    assert len(results_dict[lemma2]) == 1
+    assert len(results_dict[lemma3]) == 1
 
-    assert stem2_result[0] == stem2
-    assert stem3_result[0] == stem3
+    assert lemma2 in results_dict[lemma2]
+    assert lemma3 in results_dict[lemma3]
 
 
 def test_down_traversal_fst4(data_dir):
-    '''Tests traversal down for fst4.att.'''
+    '''
+    Tests traversal down for fst4.att.
+    
+    This test tests that adding suffixes to queries produces the correct and expected forms.
+    '''
 
     graph = Fst(data_dir / 'fst4.att')
 
     lemma = 'wal'
-    suffix_options = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
+    suffixes = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
 
-    results = graph.down_generation([epsilon], lemma, suffix_options)
+    results = graph.down_generation(lemma, suffixes=suffixes)
 
     results = set(results)
     expected_results = {'walk', 'walks', 'walked', 'walking'}
@@ -88,34 +100,42 @@ def test_down_traversal_fst4(data_dir):
 
 
 def test_down_traversal_fst5(data_dir):
-    '''Tests the traversal down through the epsilon cycle FST.'''
+    '''
+    Tests traversal down for fst5_epsilon_cycles.att.
+    
+    Tests the traversal down through an FST that can fall into a infinite loop during generation via an epsilon cycle.
+    '''
 
     graph = Fst(data_dir / 'fst5_epsilon_cycle.att', recursion_limit=100)
 
     lemma = 'abc'
 
-    results = set(graph.down_generation([epsilon], lemma, [epsilon]))
+    results = set(graph.down_generation(lemma))
     expected_results = {'xwv', 'xwzv', 'xywzv', 'xyyyyyyyyyyyyyywv', 'xyyyyyyyyyyyyyywzv'}
 
     assert results.issuperset(expected_results)
 
 
 def test_down_traversal_fst6(data_dir):
-    '''Tests the traversal down through the "waabam" FST.'''
+    '''
+    Tests traversal down for fst6_waabam.att.
+
+    Tests the traversal down through the complicated "waabam" FST, and test the use of both prefixes and suffixes robustly.
+    '''
 
     graph = Fst(data_dir / 'fst6_waabam.att')
 
-    prefix_options = [["PVTense/gii+", "PVTense/wii'+"]]
+    prefixes = [["PVTense/gii+", "PVTense/wii'+"]]
     lemma = 'waabam'
 
-    suffix_options = [['+VTA'],
+    suffixes = [['+VTA'],
                       ['+Ind'],
                       ['+Pos'],
                       ['+Neu'],
                       ['+1SgSubj'],
                       ['+2SgObj', '+2PlObj']]
 
-    results = set(graph.down_generation(prefix_options, lemma, suffix_options))
+    results = set(graph.down_generation(lemma, prefixes=prefixes, suffixes=suffixes))
 
     expected_results = \
     {
@@ -141,7 +161,11 @@ def test_down_traversal_fst6(data_dir):
 #region Up/Analysis Tests
 
 def test_up_traversal_fst1(data_dir):
-    '''Tests travel up'''
+    '''
+    Tests traversal up for fst1.att.
+    
+    This is a simple test that just gives the FST a form that should be accepted with a single output and checks that it gets that.
+    '''
 
     graph = Fst(data_dir / 'fst1.att')
 
@@ -154,6 +178,11 @@ def test_up_traversal_fst1(data_dir):
 
 
 def test_up_traversal_fst2(data_dir):
+    '''
+    Tests traversal up for fst2.att.
+    
+    This is a simple test that just gives the FST a form that should be accepted with a single output and checks that it gets that.
+    '''
 
     graph = Fst(data_dir / 'fst2.att')
 
@@ -166,47 +195,67 @@ def test_up_traversal_fst2(data_dir):
 
 
 def test_up_traversal_fst3(data_dir):
+    '''
+    Tests traversal up for fst3.att.
+
+    This test checks that forms you expect to get accepted are and that the output of that is correct,
+    as well as testing to make sure an invalid form is rejected by the FST.
+
+    This also tests the `up_analyses` function, which allows for querying multiple wordforms at once.
+    '''
 
     graph = Fst(data_dir / 'fst3.att')
 
     wordform1 = 'aac'
     wordform2 = 'aaaab'
     wordform3 = 'aaaac'
-    wordform4 = 'aaac'
+    wordform4 = 'aaac' # <- Not valid in the FST.
 
-    results1 = set(graph.up_analysis(wordform1))
-    results2 = set(graph.up_analysis(wordform2))
-    results3 = set(graph.up_analysis(wordform3))
-    results4 = set(graph.up_analysis(wordform4))
+    results_dict = graph.up_analyses([wordform1, wordform2, wordform3, wordform4])
 
-    assert len(results1) == 1
-    assert len(results2) == 1
-    assert len(results3) == 1
-    assert len(results4) == 0
+    assert len(results_dict[wordform1]) == 1
+    assert len(results_dict[wordform2]) == 1
+    assert len(results_dict[wordform3]) == 1
+    assert len(results_dict[wordform4]) == 0 # <- No valid form was sent to the FST, so result should be zero.
 
-    assert wordform1 in results1
-    assert wordform2 in results2
-    assert wordform3 in results3
+    assert wordform1 in results_dict[wordform1]
+    assert wordform2 in results_dict[wordform2]
+    assert wordform3 in results_dict[wordform3]
 
 
 def test_up_traversal_fst4(data_dir):
+    '''
+    Tests traversal up for fst4.att.
+
+    This test checks that forms employing multi-character symbols come out correctly and as expected.
+    It also tests that the up/analysis direction can output multiple tagged forms that can generate
+    our starting wordform.
+    '''
 
     graph = Fst(data_dir / 'fst4.att')
 
     wordform1 = 'walking'
-    wordform2 = 'walks'
+    wordform2 = 'walks' # <- Dummy form was added to the FST so that this input should generate two output forms.
 
     results1 = graph.up_analysis(wordform1)
     results2 = graph.up_analysis(wordform2)
 
     assert len(results1) == 1
-    assert len(results2) == 2
+    assert len(results2) == 2 # <- Should contain {'wal+VERB+PRES', 'wal+VERB+PRES_DUMMY'}.
 
     assert 'wal+VERB+GER' in results1
     assert 'wal+VERB+PRES' in results2
+    assert 'wal+VERB+PRES_DUMMY' in results2
 
 
 def test_up_traversal_fst5(data_dir):
+    '''
+    Tests traversal up for fst5.att.
+
+    fst5.att contains epsilon cycles, and this test is basically just a sanity check that epsilon cycles don't break the logic.
+    It also tests some more complicated forms where epsilon loops will be followed in order to get to the output. You can see,
+    for example, that `abc` can generate wordforms 1 through 4, where an arbitrary number of y's can be inserted.
+    '''
 
     graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
 
@@ -231,6 +280,11 @@ def test_up_traversal_fst5(data_dir):
 
 
 def test_up_analysis_fst6(data_dir):
+    '''
+    Tests traversal up for fst6.att.
+
+    This tests the navigation of a complex FST and confirms the correct output given a real wordform.
+    '''
 
     graph = Fst(data_dir / 'fst6_waabam.att')
 
