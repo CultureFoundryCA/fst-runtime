@@ -159,7 +159,7 @@ class Fst:
             node = _FstNode(state_id, is_accepting_state)
             nodes[state_id] = node
 
-            if is_accepting_state and not node.id in self._accepting_states.keys():
+            if is_accepting_state and node.id not in self._accepting_states:
                 self._accepting_states[node.id] = node
 
         return node
@@ -233,7 +233,8 @@ class Fst:
         return transitions, accepting_states
 
 
-    def _create_graph(self, att_file_path: str) -> None:
+    # This function is easier to read when not split up into more parts. Too many locals disabled for this reason.
+    def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals
         """
         Create the graph that represents the FST from reading in the provided `.att` file.
 
@@ -510,6 +511,9 @@ class Fst:
     
     @staticmethod
     def _traverse_up(current_state: _FstNode, wordform: str):
+        '''
+        This function handles the recursive walk through the FST.
+        '''
         
         matches: list[str] = []
         current_char = wordform[-1] if wordform else None
