@@ -143,7 +143,7 @@ class Fst:
     def multichar_symbols(self):
         '''Public getter for the multichar_symbols variable.'''
         return self._multichar_symbols.copy()
-    
+
     #endregion
 
 
@@ -163,8 +163,8 @@ class Fst:
                 self._accepting_states[node.id] = node
 
         return node
-    
-    
+
+
     def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
         '''
         This function reads in all the transition and state information from the file into the `transitions` object,
@@ -172,7 +172,7 @@ class Fst:
         
         Returns: `transitions, accepting_states`
         '''
-        
+
         # See comment in `_create_graph` for what this object is.
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
         accepting_states: set[int] = set()
@@ -202,7 +202,7 @@ class Fst:
                     self._multichar_symbols.add(output_symbol)
 
                 info = _AttInputInfo(int(next_state), output_symbol, _FstEdge.NO_WEIGHT)
-                
+
                 try:
                     transitions[int(current_state)][input_symbol].append(info)
                 except KeyError:
@@ -234,36 +234,49 @@ class Fst:
 
 
     def _create_graph(self, att_file_path: str) -> None:
-        '''Create the graph that represents the FST from reading-in the provided `.att` file.'''
+        """
+        Create the graph that represents the FST from reading in the provided `.att` file.
 
-        # `transitions` is a dictionary whose key is the source state number as read in from the `.att` file (i.e. 22),
-        # and whose value is a dictionary. This child dictionary is keyed to the input symbol from the `.att` file
-        # (i.e. 'k' or '+PLURAL'), and whose value is a class that contains the target state number, the output
-        # of the transition, and the weight of that transition.
-        # transitions: dict[int, dict[str, list[_AttInputInfo]]]
-        # accepting_states: set[int] = set()
+        This method initializes the FST by reading transitions and accepting states from the
+        specified file, creating all nodes and transitions, and setting the start state.
+
+        Parameters
+        ----------
+        att_file_path :
+            The path to the `.att` file containing the FST description.
+
+        Notes
+        -----
+        `transitions` is a dictionary whose key is the source state number as read in from the `.att` file
+        (e.g., 22), and whose value is a dictionary. This child dictionary is keyed to the input symbol from 
+        the `.att` file (e.g., 'k' or '+PLURAL'), and whose value is a class that contains the target state 
+        number, the output of the transition, and the weight of that transition.
+        """
+        transitions: dict[int, dict[str, list[_AttInputInfo]]]
+        accepting_states: set[int]
         transitions, accepting_states = self._read_att_file_into_transitions(att_file_path)
 
         all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
         nodes: dict[int, _FstNode] = {}
 
-        # Create the FST from the transitions object by creating all the appropriate nodes and transitions.
+        # For every state in the FST, create/get that as a _FstNode object
         for current_state in all_state_ids:
-
             current_node = self._get_or_create_node(current_state, nodes, accepting_states)
 
-            # Add every edge to nodes in nodes dictionary.
-            for input_symbol in transitions[current_state].keys():
+            # Then, for every transition that leads out from this node, get then next node, create the new transition as an _FstEdge object,
+            # and add that transition to the current node's out transitions and the target node's in transitions.
+            for input_symbol, att_inputs in transitions[current_state].items():
+                for att_input in att_inputs:
 
-                for input_info in transitions[current_state][input_symbol]:
-                    next_state, output_symbol, weight = input_info
+                    next_state, output_symbol, weight = att_input
                     next_node = self._get_or_create_node(next_state, nodes, accepting_states)
 
                     directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
                     current_node.out_transitions.append(directed_edge)
                     next_node.in_transitions.append(directed_edge)
-            
+
+        # Set the start state.
         try:
             self._start_state = nodes[Fst._STARTING_STATE]
         except KeyError as key_error:
@@ -274,10 +287,37 @@ class Fst:
 
     # region Down/Generation Methods
 
-    def down_generation(self,
-        prefix_options: list[list[str]],
+    def down_generations(
+        self,
+        lemmas: list[str],
+        *,
+        prefixes: list[list[str]] = None,
+        suffixes: list[list[str]] = None,
+    ) -> dict[str, list[str]]:
+        '''
+        Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma. The values in the dictionary are a list
+        of the wordforms returned by the FST.
+
+        See `down_generation` docstring for more information.
+        '''
+
+        prefixes = [[EPSILON]] if prefixes is None else prefixes
+        suffixes = [[EPSILON]] if suffixes is None else suffixes
+
+        generated_forms = {}
+
+        for lemma in lemmas:
+            generated_forms[lemma] = self.down_generation(lemma, prefixes=prefixes, suffixes=suffixes)
+
+        return generated_forms
+
+
+    def down_generation(
+        self,
         lemma: str,
-        suffix_options: list[list[str]],
+        *,
+        prefixes: list[list[str]] = None,
+        suffixes: list[list[str]] = None,
     ) -> list[str]:
         '''
         This function queries the FST in the down/generation direction. That means that, when provided lists of prefixes and suffixes
@@ -287,8 +327,11 @@ class Fst:
         are then walked over the FST to see if we end at an accepting state. If so, the generated forms (i.e. walk, walked, walking, walks) will
         be added to a list and returned.
         '''
+        
+        prefixes = [[EPSILON]] if prefixes is None else prefixes
+        suffixes = [[EPSILON]] if suffixes is None else suffixes
 
-        permutations: list[list[str]] = prefix_options + [[lemma]] + suffix_options
+        permutations: list[list[str]] = prefixes + [[lemma]] + suffixes
 
         queries: list[str] = Fst._permute_tags(permutations)
         logger.debug('Queries created: %s', queries)
@@ -420,6 +463,22 @@ class Fst:
 
 
     #region Up/Analysis Methods
+
+    def up_analyses(self, wordforms: list[str]) -> dict[str, list[str]]:
+        '''
+        Calls `up_analysis` for each wordform and returns a dictionary keyed on each wordform. The values in the dictionary are a list
+        of the tagged forms returned by the FST.
+
+        See `up_analysis` docstring for more information.
+        '''
+
+        tagged_forms = {}
+
+        for wordform in wordforms:
+            tagged_forms[wordform] = self.up_analysis(wordform)
+
+        return tagged_forms
+    
 
     def up_analysis(self, wordform: str) -> list[str]:
         '''This function queries the FST up, or in the direction of analysis. It starts at the accepting states, and instead of looking at the
