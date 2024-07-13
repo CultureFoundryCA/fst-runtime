@@ -243,7 +243,7 @@ class Fst:
 
         Parameters
         ----------
-        att_file_path :
+        att_file_path
             The path to the `.att` file containing the FST description.
 
         Notes
