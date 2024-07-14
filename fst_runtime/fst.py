@@ -1,10 +1,48 @@
-'''
-fst
+"""
+This module provides the main class `Fst` which defines a finite-state transducer (FST) in-memory as a directed graph.
 
-This file is the main file of this library. It provides a class called `Fst` that defines an FST in-memory as a directed graph.
-The class exposes several public endpoints, namely `multichar_symbols`, `down_generation`, and `up_analysis` (which is pending).
-It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'`, according to the AT&T format standard.
-'''
+Classes
+-------
+Fst
+    Defines an FST in-memory as a directed graph.
+
+Constants
+---------
+EPSILON : str
+    The epsilon character as encoded in the AT&T `.att` FST format.
+
+Functions
+---------
+None
+
+Notes
+-----
+The `Fst` class exposes several public endpoints:
+    - `multichar_symbols`
+    - `down_generation`
+    - `down_generations`
+    - `up_analysis`
+    - `up_analyses`
+
+It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'` according to the AT&T format standard.
+"""
+
+#region Imports and Constants
+
+from __future__ import annotations
+from collections import defaultdict
+import sys
+import os
+from dataclasses import dataclass, field
+from . import logger
+from .att_format_error import AttFormatError
+from .tokenize_input import tokenize_input_string
+
+EPSILON: str = "@0@"
+"""This is the epsilon character as encoded in the AT&T `.att` FST format."""
+
+#endregion
+
 
 
 #region Imports and Constants
@@ -18,7 +56,7 @@ from . import logger
 from .att_format_error import AttFormatError
 from .tokenize_input import tokenize_input_string
 
-EPSILON = "@0@"
+EPSILON: str = "@0@"
 '''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
 
 #endregion
@@ -28,93 +66,174 @@ EPSILON = "@0@"
 
 @dataclass
 class _AttInputInfo:
-    '''This class represents input information from the AT&T file format (`.att`) for a transition to a new state.'''
+    """
+    Represents input information from the AT&T file format (`.att`) for a transition to a new state.
+
+    Attributes
+    ----------
+    target_state_id : int
+        The ID of the state in the FST that is being transitioned to.
+    transition_output_symbol : str
+        The symbol that is outputted over the transition.
+    transition_weight : float, optional
+        The penalty weight of the transition. Default is zero.
+    """
 
     target_state_id: int
-    '''The ID of the state in the FST that is being transitioned to.'''
+    """The ID of the state in the FST that is being transitioned to."""
 
     transition_output_symbol: str
-    '''The symbol that is outputted over the transition.'''
+    """The symbol that is outputted over the transition."""
 
     transition_weight: float = 0
-    '''The penalty weight of the transition. Default is zero.'''
+    """The penalty weight of the transition. Default is zero."""
 
     def __iter__(self):
-        '''Defines an iterable for this object to allow for object unpacking.'''
+        """
+        Defines an iterable for this object to allow for object unpacking.
+
+        Yields
+        ------
+        int
+            The ID of the state in the FST that is being transitioned to.
+        str
+            The symbol that is outputted over the transition.
+        float
+            The penalty weight of the transition.
+        """
         return iter((self.target_state_id, self.transition_output_symbol, self.transition_weight))
 
 
 @dataclass
 class _FstNode:
-    '''This class represents a directed node in a graph that represents an FST.'''
+    """
+    Represents a directed node in a graph that represents an FST.
+
+    Attributes
+    ----------
+    id : int
+        A unique ID given to each node for easier lookup.
+    is_accepting_state : bool
+        Indicates whether the current node is an accepting state of the FST.
+    in_transitions : list[_FstEdge]
+        Holds all the edges that lead to this node.
+    out_transitions : list[_FstEdge]
+        Holds all the edges that lead out of this node.
+    """
 
     id: int
-    '''A unique ID is given to each node in order to allow for easier lookup of nodes.'''
+    """A unique ID is given to each node in order to allow for easier lookup of nodes."""
 
     is_accepting_state: bool
-    '''This boolean holds whether the current node is an accepting state of the FST. When we get to the end of our input string,
-    if we are at an accepting state, that means that the input is valid according to the FST, and so it will then output a value accordingly.'''
+    """
+    This boolean holds whether the current node is an accepting state of the FST.
+    When we get to the end of our input string, if we are at an accepting state, that means
+    that the input is valid according to the FST, and so it will then output a value accordingly.
+    """
 
     in_transitions: list[_FstEdge] = field(default_factory=list)
-    '''This is a node in a directed graph, and this list holds all the edges that lead to this node.'''
+    """This is a node in a directed graph, and this list holds all the edges that lead to this node."""
 
     out_transitions: list[_FstEdge] = field(default_factory=list)
-    '''This is a node in a directed graph, and this list holds all the edges that lead out of this node.'''
+    """This is a node in a directed graph, and this list holds all the edges that lead out of this node."""
 
 
 @dataclass
 class _FstEdge:
-    '''This class represents a directed edge in a graph that represents an FST.'''
+    """
+    Represents a directed edge in a graph that represents an FST.
+
+    Attributes
+    ----------
+    source_node : _FstNode
+        The source node where the edge starts.
+    target_node : _FstNode
+        The target node where the edge ends.
+    input_symbol : str
+        The input symbol consumed by this edge in the FST.
+    output_symbol : str
+        The output symbol produced by this edge in the FST.
+    penalty_weight : float, optional
+        The weight that penalizes traversing this edge. Default is 0.
+    NO_WEIGHT : float
+        A constant representing no weight. Default is 0.
+    """
 
     source_node: _FstNode
-    '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
+    """This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node)."""
 
     target_node: _FstNode
-    '''This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node).'''
+    """This is an edge in a directed graph, and so it leads from somewhere (source node) to somewhere (target node)."""
 
     input_symbol: str
-    '''This edge is in an FST, and so it consumes input symbols and outputs output symbols.'''
+    """This edge is in an FST, and so it consumes input symbols and outputs output symbols."""
 
     output_symbol: str
-    '''This edge is in an FST, and so it consumes input symbols and outputs output symbols.'''
+    """This edge is in an FST, and so it consumes input symbols and outputs output symbols."""
 
     penalty_weight: float = 0
-    '''
+    """
     This represents a weight that penalizes walks through the FST. That is, if there's an edge with 0 weight and another with 1 weight,
     the edge without weight will be prioritized (walked) first.
-    '''
+    """
 
     NO_WEIGHT = 0
-    '''This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge.'''
+    """This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge."""
 
 #endregion
 
 
-
 class Fst:
-    '''This class represents a finite-state transducer as a directed graph.'''
+    """
+    Represents a finite-state transducer as a directed graph.
 
-
-    #region Variables, Properties, and Initialization
+    Attributes
+    ----------
+    _STARTING_STATE : int
+        The starting state in the `.att` format, represented by `0`. This is the "top" of the graph.
+    _ATT_DEFINES_ACCEPTING_STATE : int
+        One input value on a line means that that line represents an accepting state in the `.att` file.
+    _ATT_DEFINES_UNWEIGHTED_TRANSITION : int
+        Four input values on a line mean that the line represents an unweighted transition in the `.att` file.
+    _ATT_DEFINES_WEIGHTED_TRANSITION : int
+        Five input values on a line mean that the line represents a weighted transition in the `.att` file.
+    _start_state : _FstNode
+        The entry point into the FST, functionally like the root of a tree.
+    _accepting_states : dict[int, _FstNode]
+        Holds all the accepting states of the FST.
+    recursion_limit : int
+        Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.
+    multichar_symbols : set[str]
+        A copy of the set of multi-character symbols defined in the FST.
+    """
 
     _STARTING_STATE = 0
-    '''
+    """
     The starting state in the `.att` format is represented by `0`.
-    This is the "top" of the graph, so when you query down, you start here and go down. Down is like walk+GER -> walking.
-    '''
+    This is the "top" of the graph, so when you query down, you start here and go down.
+    Down is like walk+GER -> walking.
+    """
 
     _ATT_DEFINES_ACCEPTING_STATE = 1
-    '''One input value on a line means that that line represents an accepting state in the `.att` file.'''
+    """One input value on a line means that that line represents an accepting state in the `.att` file."""
 
     _ATT_DEFINES_UNWEIGHTED_TRANSITION = 4
-    '''Four input values an a line means that the line represents an unweighted transition in the `.att` file.'''
+    """Four input values on a line mean that the line represents an unweighted transition in the `.att` file."""
 
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
-    '''Five input values an a line means that the line represents a weighted transition in the `.att` file.'''
-
+    """Five input values on a line mean that the line represents a weighted transition in the `.att` file."""
 
     def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
-        '''Initializes the FST via the provided `.att` file.'''
+        """
+        Initializes the FST via the provided `.att` file.
+
+        Parameters
+        ----------
+        att_file_path : str
+            The path to the `.att` file containing the FST description.
+        recursion_limit : int, optional
+            The recursion limit for the generation/analysis functionality. Default is 0.
+        """
 
         if not att_file_path:
             logger.error("Failed to provide valid path to input file. Example: `/path/to/fst.att`.")
@@ -125,23 +244,29 @@ class Fst:
             sys.exit(1)
 
         self._start_state: _FstNode = None
-        '''This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree).'''
+        """This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree)."""
 
         self._accepting_states: dict[int, _FstNode] = {}
-        '''This set holds all the accepting states of the FST.'''
+        """This dictionary holds all the accepting states of the FST."""
 
         self._multichar_symbols: set[str] = set()
-        '''This set represents all the multi-character symbols that have been defined in the FST.'''
+        """This set represents all the multi-character symbols that have been defined in the FST."""
 
         self.recursion_limit: int = recursion_limit
-        '''This sets the recursion limit for the generation/analysis functionality, so that epsilon cycles don't run amok.'''
+        """This sets the recursion limit for the generation/analysis functionality, so that epsilon cycles don't run amok."""
 
         self._create_graph(att_file_path)
 
-
     @property
-    def multichar_symbols(self):
-        '''Public getter for the multichar_symbols variable.'''
+    def multichar_symbols(self) -> set[str]:
+        """
+        Public getter for the multichar_symbols variable.
+
+        Returns
+        -------
+        set[str]
+            A copy of the set of multi-character symbols.
+        """
         return self._multichar_symbols.copy()
 
     #endregion
@@ -150,8 +275,23 @@ class Fst:
     #region Graph Creation
 
     def _get_or_create_node(self, state_id: int, nodes: dict[int, _FstNode], accepting_states: set[int]) -> _FstNode:
-        '''Tries to get a node from the dictionary, and if it doesn't exist, create it first, then return it.'''
+        """
+        Tries to get a node from the dictionary, and if it doesn't exist, creates it first, then returns it.
 
+        Parameters
+        ----------
+        state_id : int
+            The unique identifier for the state.
+        nodes : dict[int, _FstNode]
+            The dictionary containing all the nodes, keyed by their state IDs.
+        accepting_states : set[int]
+            The set of accepting state IDs.
+
+        Returns
+        -------
+        _FstNode
+            The node corresponding to the given state ID.
+        """
         try:
             node = nodes[state_id]
         except KeyError:
@@ -165,13 +305,26 @@ class Fst:
         return node
 
 
+    # TODO This crazy tuple thing really needs to be changed into a separate class.
     def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
-        '''
-        This function reads in all the transition and state information from the file into the `transitions` object,
+        """
+        Reads in all the transition and state information from the file into the `transitions` object,
         and also saves the accepting states of the FST.
-        
-        Returns: `transitions, accepting_states`
-        '''
+
+        Parameters
+        ----------
+        att_file_path : str
+            The path to the `.att` file containing the FST description.
+
+        Returns
+        -------
+        tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]
+            A tuple containing:
+            - `transitions` : dict[int, dict[str, list[_AttInputInfo]]]
+                The dictionary of transitions read from the `.att` file, keyed by state ID and input symbol.
+            - `accepting_states` : set[int]
+                The set of accepting state IDs.
+        """
 
         # See comment in `_create_graph` for what this object is.
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
@@ -295,12 +448,29 @@ class Fst:
         prefixes: list[list[str]] = None,
         suffixes: list[list[str]] = None,
     ) -> dict[str, list[str]]:
-        '''
-        Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma. The values in the dictionary are a list
-        of the wordforms returned by the FST.
+        """
+        Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma.
 
-        See `down_generation` docstring for more information.
-        '''
+        The values in the dictionary are a list of the wordforms returned by the FST.
+
+        Parameters
+        ----------
+        lemmas : list[str]
+            The list of lemmas to process.
+        prefixes : list[list[str]], optional
+            A list of lists containing prefix sequences. Default is None.
+        suffixes : list[list[str]], optional
+            A list of lists containing suffix sequences. Default is None.
+
+        Returns
+        -------
+        dict[str, list[str]]
+            A dictionary where each key is a lemma and the value is a list of wordforms generated by the FST.
+
+        See Also
+        --------
+        down_generation : For more information on how each lemma is processed.
+        """
 
         prefixes = [[EPSILON]] if prefixes is None else prefixes
         suffixes = [[EPSILON]] if suffixes is None else suffixes
@@ -320,14 +490,31 @@ class Fst:
         prefixes: list[list[str]] = None,
         suffixes: list[list[str]] = None,
     ) -> list[str]:
-        '''
-        This function queries the FST in the down/generation direction. That means that, when provided lists of prefixes and suffixes
-        as well as the lemma, it fully permutes the the tags based on the slots of the affixes. For example, say you have the lemma "wal"
-        in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. Then, these would be fully
-        permuted to "wal+VERB+INF", "wal+VERB+PAST", "wal+VERB+GER", and "wal+VERB+PRES"; likewise with any prefixes. All of these constructions
-        are then walked over the FST to see if we end at an accepting state. If so, the generated forms (i.e. walk, walked, walking, walks) will
-        be added to a list and returned.
-        '''
+        """
+        Queries the FST in the down/generation direction.
+
+        Parameters
+        ----------
+        lemma : str
+            The lemma to process.
+        prefixes : list[list[str]], optional
+            A list of lists containing prefix sequences. Default is None.
+        suffixes : list[list[str]], optional
+            A list of lists containing suffix sequences. Default is None.
+
+        Returns
+        -------
+        list[str]
+            A list of generated forms that are accepted by the FST.
+
+        Notes
+        -----
+        When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes. 
+        For example, say you have the lemma "wal" in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. 
+        Then, these would be fully permuted to "wal+VERB+INF", "wal+VERB+PAST", "wal+VERB+GER", and "wal+VERB+PRES"; likewise with any prefixes. 
+        All of these constructions are then walked over the FST to see if we end at an accepting state. If so, the generated forms 
+        (i.e., walk, walked, walking, walks) will be added to a list and returned.
+        """
         
         prefixes = [[EPSILON]] if prefixes is None else prefixes
         suffixes = [[EPSILON]] if suffixes is None else suffixes
@@ -339,8 +526,21 @@ class Fst:
 
         return self._traverse_down(queries)
 
+    
     def _traverse_down(self, queries: list[str]) -> list[str]:
-        '''This function handles all the queries down the FST, and returns all the resulting outputs that were found.'''
+        """
+        Handles all the queries down the FST and returns all the resulting outputs that were found.
+
+        Parameters
+        ----------
+        queries : list[str]
+            The list of queries to process down the FST.
+
+        Returns
+        -------
+        list[str]
+            A list of all the resulting outputs that were found.
+        """
 
         generated_results: list[str] = []
             
@@ -372,10 +572,25 @@ class Fst:
 
     @staticmethod
     def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> list[str]:
-        '''
-        This method traverses down the FST beginning at an initial provided node. It walks through the FST,
-        recursively finding matches that it builds up through the traversal.
-        '''
+        """
+        Traverses down the FST beginning at an initial provided node.
+
+        Parameters
+        ----------
+        current_node : _FstNode
+            The initial node to start the traversal from.
+        input_tokens : list[str]
+            The list of input tokens to process through the FST.
+
+        Returns
+        -------
+        list[str]
+            A list of matches found during the traversal.
+
+        Notes
+        -----
+        It walks through the FST, recursively finding matches that it builds up through the traversal.
+        """
 
         matches: list[str] = []
 
@@ -429,7 +644,23 @@ class Fst:
 
     @staticmethod
     def _permute_tags(parts: list[list[str]]) -> list[str]:
-        '''Recursively descend into the tags in order to create all permutations of the given tags in the given order.'''
+        """
+        Recursively descends into the tags to create all permutations of the given tags in the given order.
+
+        Parameters
+        ----------
+        parts : list[list[str]]
+            A list of lists containing tag sequences to permute.
+
+        Returns
+        -------
+        list[str]
+            A list of all permutations of the given tags in the given order.
+
+        Notes
+        -----
+        This method generates all possible permutations of the tags by recursively descending through the provided lists of tags.
+        """
 
         if not parts:
             return ['']
@@ -466,12 +697,25 @@ class Fst:
     #region Up/Analysis Methods
 
     def up_analyses(self, wordforms: list[str]) -> dict[str, list[str]]:
-        '''
-        Calls `up_analysis` for each wordform and returns a dictionary keyed on each wordform. The values in the dictionary are a list
-        of the tagged forms returned by the FST.
+        """
+        Calls `up_analysis` for each wordform and returns a dictionary keyed on each wordform.
 
-        See `up_analysis` docstring for more information.
-        '''
+        The values in the dictionary are a list of the tagged forms returned by the FST.
+
+        Parameters
+        ----------
+        wordforms : list[str]
+            The list of wordforms to process.
+
+        Returns
+        -------
+        dict[str, list[str]]
+            A dictionary where each key is a wordform and the value is a list of tagged forms generated by the FST.
+
+        See Also
+        --------
+        up_analysis : For more information on how each wordform is processed.
+        """
 
         tagged_forms = {}
 
@@ -482,12 +726,31 @@ class Fst:
     
 
     def up_analysis(self, wordform: str) -> list[str]:
-        '''This function queries the FST up, or in the direction of analysis. It starts at the accepting states, and instead of looking at the
-        input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. In this way, the FST
-        becomes reversed. So where down/generation generates forms from a lemma plus some tags, the up/analysis direction instead takes a word form,
-        and generates the tagged forms that could lead that to that particular word form. For example, `walking -> wal+GER`. Of course, there can be
-        several tagged forms that lead to a single word. Take the word `walk` again: you have `wal+VERB+1Sg+Pres`, `wal+VERB+2Sg+Pres`, etc. that lead
-        to its generation. So all these tagged forms then have to be aggregated and returned.'''
+        """
+        Queries the FST up, or in the direction of analysis.
+
+        Parameters
+        ----------
+        wordform : str
+            The wordform to process.
+
+        Returns
+        -------
+        list[str]
+            A list of tagged forms that could lead to the provided wordform.
+
+        Notes
+        -----
+        This function queries the FST in the direction of analysis by starting at the accepting states. Instead of looking at 
+        the input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. 
+        In this way, the FST becomes reversed. For example, `walking -> wal+GER`. There can be several tagged forms that lead to 
+        a single word. For instance, the word `walk` can have forms like `wal+VERB+1Sg+Pres`, `wal+VERB+2Sg+Pres`, etc., that lead 
+        to its generation. All these tagged forms are aggregated and returned.
+
+        This method starts at the accepting states and looks at the output symbols of the node and the in transitions,
+        effectively reversing the FST. While down/generation generates forms from a lemma plus some tags, the up/analysis 
+        direction takes a word form and generates the tagged forms that could lead to that particular word form.
+        """
 
         tagged_forms: list[str] = []
 
@@ -511,9 +774,20 @@ class Fst:
     
     @staticmethod
     def _traverse_up(current_state: _FstNode, wordform: str):
-        '''
-        This function handles the recursive walk through the FST.
-        '''
+        """
+        Handles the recursive walk through the FST.
+
+        Parameters
+        ----------
+        current_state : _FstNode
+            The current state node to start the traversal from.
+        wordform : str
+            The wordform to be processed during the traversal.
+
+        Notes
+        -----
+        This function recursively walks through the FST starting from the given state node.
+        """
         
         matches: list[str] = []
         current_char = wordform[-1] if wordform else None

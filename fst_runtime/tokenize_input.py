@@ -1,9 +1,37 @@
-'''This module tests the tokenize_input_string function.'''
+"""
+This module tests the `tokenize_input_string` function.
+
+Functions
+---------
+test_tokenize_input_string
+    Tests the `tokenize_input_string` function for various input cases.
+"""
 
 from . import logger
 
 def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
-    '''Returns a list containing the individual tokens that make up the `input_string`.'''
+    """
+    Returns a list containing the individual tokens that make up the `input_string`.
+
+    Parameters
+    ----------
+    input_string : str
+        The input string to be tokenized.
+    multichar_symbols : set[str]
+        A set of multi-character symbols that need to be recognized as single tokens.
+
+    Returns
+    -------
+    list[str]
+        A list of individual tokens that make up the input string.
+
+    Notes
+    -----
+    This function tokenizes the input string into individual tokens, taking into account
+    the multi-character symbols specified in the `multichar_symbols` set. It ensures that
+    the multi-character symbols are recognized as single tokens rather than being split
+    into multiple tokens.
+    """
 
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
     # Note lengths are distinct from use of set comprehension.
