@@ -44,24 +44,6 @@ EPSILON: str = "@0@"
 #endregion
 
 
-
-#region Imports and Constants
-
-from __future__ import annotations
-from collections import defaultdict
-import sys
-import os
-from dataclasses import dataclass, field
-from . import logger
-from .att_format_error import AttFormatError
-from .tokenize_input import tokenize_input_string
-
-EPSILON: str = "@0@"
-'''This is the epsilon character as encoded in the AT&T `.att` FST format.'''
-
-#endregion
-
-
 #region Helper Classes
 
 @dataclass
