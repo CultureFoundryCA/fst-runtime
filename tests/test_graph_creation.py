@@ -3,13 +3,6 @@
 """
 This module tests the graph creation process.
 
-Fixtures
---------
-att_file_path_unweighted
-    Provides a fixture of a simple unweighted FST.
-att_file_path_weighted
-    Provides a fixture of a simple weighted FST.
-
 Functions
 ---------
 test_directed_graph_initialization_unweighted
@@ -18,18 +11,20 @@ test_directed_graph_initialization_weighted
     Tests that all initialization of the graph from the file is done correctly for a weighted FST.
 """
 
+
 import pytest
 from fst_runtime.fst import Fst, _FstEdge
 
+
 @pytest.fixture
-def att_file_path_unweighted(tmp_path):
+def _att_file_path_unweighted(tmp_path):
     """
     Provides a fixture of a simple unweighted FST.
 
     Parameters
     ----------
     tmp_path : pathlib.Path
-        Temporary path for the test file.
+        Temporary path for the test file. Provided automatically by Pytest.
 
     Returns
     -------
@@ -44,15 +39,16 @@ def att_file_path_unweighted(tmp_path):
     att_file.write_text("0\t1\ta\tb\n1\t2\tb\tc\n2\n")
     return att_file
 
+
 @pytest.fixture
-def att_file_path_weighted(tmp_path):
+def _att_file_path_weighted(tmp_path):
     """
     Provides a fixture of a simple weighted FST.
 
     Parameters
     ----------
     tmp_path : pathlib.Path
-        Temporary path for the test file.
+        Temporary path for the test file. Provided automatically by Pytest.
 
     Returns
     -------
@@ -67,16 +63,17 @@ def att_file_path_weighted(tmp_path):
     att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
     return att_file
 
-def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
+
+def test_directed_graph_initialization_unweighted(_att_file_path_unweighted):
     """
-    Tests that all initialization of the graph from the file is done correctly for an unweighted FST.
+    Tests that the initialization of the graph from the file is done correctly for an unweighted FST.
 
     Parameters
     ----------
-    att_file_path_unweighted : pathlib.Path
-        Path to the temporary unweighted FST file.
+    _att_file_path_unweighted : pathlib.Path
+        Path to the temporary unweighted FST file. Provided automatically by Pytest.
     """
-    graph = Fst(att_file_path_unweighted)
+    graph = Fst(_att_file_path_unweighted)
 
     assert graph._start_state.id == 0
     assert len(graph._accepting_states) == 1
@@ -108,16 +105,17 @@ def test_directed_graph_initialization_unweighted(att_file_path_unweighted):
     assert edge1.output_symbol == 'c'
     assert edge1.penalty_weight == _FstEdge.NO_WEIGHT
 
-def test_directed_graph_initialization_weighted(att_file_path_weighted):
+
+def test_directed_graph_initialization_weighted(_att_file_path_weighted):
     """
     Tests that all initialization of the graph from the file is done correctly for a weighted FST.
 
     Parameters
     ----------
-    att_file_path_weighted : pathlib.Path
-        Path to the temporary weighted FST file.
+    _att_file_path_weighted : pathlib.Path
+        Path to the temporary weighted FST file. Provided automatically by Pytest.
     """
-    graph = Fst(att_file_path_weighted)
+    graph = Fst(_att_file_path_weighted)
 
     assert graph._start_state.id == 0
     assert len(graph._accepting_states) == 1

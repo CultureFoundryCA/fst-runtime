@@ -17,15 +17,17 @@ None
 
 Notes
 -----
-The `Fst` class exposes several public endpoints:
+The `Fst` class exposes several public members:
     - `multichar_symbols`
+    - `recursion_limit`
     - `down_generation`
     - `down_generations`
     - `up_analysis`
     - `up_analyses`
 
-It also exposes a constant called `EPSILON`, which defines epsilon as `'@0@'` according to the AT&T format standard.
+It also exposes a constant called `EPSILON`, which defines epsilon as `@0@` according to the AT&T format standard.
 """
+
 
 #region Imports and Constants
 
@@ -153,13 +155,13 @@ class _FstEdge:
     output_symbol: str
     """This edge is in an FST, and so it consumes input symbols and outputs output symbols."""
 
-    penalty_weight: float = 0
+    penalty_weight: float = field(default=0.0)
     """
     This represents a weight that penalizes walks through the FST. That is, if there's an edge with 0 weight and another with 1 weight,
     the edge without weight will be prioritized (walked) first.
     """
 
-    NO_WEIGHT = 0
+    NO_WEIGHT: float = 0.0
     """This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge."""
 
 #endregion
@@ -171,23 +173,14 @@ class Fst:
 
     Attributes
     ----------
-    _STARTING_STATE : int
-        The starting state in the `.att` format, represented by `0`. This is the "top" of the graph.
-    _ATT_DEFINES_ACCEPTING_STATE : int
-        One input value on a line means that that line represents an accepting state in the `.att` file.
-    _ATT_DEFINES_UNWEIGHTED_TRANSITION : int
-        Four input values on a line mean that the line represents an unweighted transition in the `.att` file.
-    _ATT_DEFINES_WEIGHTED_TRANSITION : int
-        Five input values on a line mean that the line represents a weighted transition in the `.att` file.
-    _start_state : _FstNode
-        The entry point into the FST, functionally like the root of a tree.
-    _accepting_states : dict[int, _FstNode]
-        Holds all the accepting states of the FST.
     recursion_limit : int
         Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.
     multichar_symbols : set[str]
         A copy of the set of multi-character symbols defined in the FST.
     """
+
+
+    #region Variables and Initialization
 
     _STARTING_STATE = 0
     """
@@ -234,7 +227,7 @@ class Fst:
         self._multichar_symbols: set[str] = set()
         """This set represents all the multi-character symbols that have been defined in the FST."""
 
-        self.recursion_limit: int = recursion_limit
+        self._recursion_limit: int = recursion_limit
         """This sets the recursion limit for the generation/analysis functionality, so that epsilon cycles don't run amok."""
 
         self._create_graph(att_file_path)
@@ -250,6 +243,30 @@ class Fst:
             A copy of the set of multi-character symbols.
         """
         return self._multichar_symbols.copy()
+    
+    @property
+    def recursion_limit(self) -> int:
+        '''
+        Public getter for the recursion_limit variable.
+
+        Returns
+        -------
+        int
+            The recursion limit that has been set. A value less than 1 represents that no recursion limit has been set,
+            and so the current system recursion limit will be used (default for Python applications).
+        '''
+
+    @recursion_limit.setter
+    def recursion_limit(self, new_recursion_limit: int) -> None:
+        '''
+        Public setter for the recursion_limit variable.
+
+        Parameters
+        ----------
+        new_recursion_limit : int
+            The new value to set the recursion limit to.
+        '''
+        self._recursion_limit = new_recursion_limit
 
     #endregion
 
@@ -287,7 +304,6 @@ class Fst:
         return node
 
 
-    # TODO This crazy tuple thing really needs to be changed into a separate class.
     def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
         """
         Reads in all the transition and state information from the file into the `transitions` object,
@@ -388,6 +404,7 @@ class Fst:
         the `.att` file (e.g., 'k' or '+PLURAL'), and whose value is a class that contains the target state 
         number, the output of the transition, and the weight of that transition.
         """
+
         transitions: dict[int, dict[str, list[_AttInputInfo]]]
         accepting_states: set[int]
         transitions, accepting_states = self._read_att_file_into_transitions(att_file_path)
@@ -560,7 +577,7 @@ class Fst:
         Parameters
         ----------
         current_node : _FstNode
-            The initial node to start the traversal from.
+            The current node in the recursion. Provide the FST's start state if calling this for the first time.
         input_tokens : list[str]
             The list of input tokens to process through the FST.
 
@@ -571,7 +588,7 @@ class Fst:
 
         Notes
         -----
-        It walks through the FST, recursively finding matches that it builds up through the traversal.
+        This function walks through the FST, recursively finding matches that it builds up through the traversal.
         """
 
         matches: list[str] = []
@@ -582,8 +599,6 @@ class Fst:
 
             # If the current transition is an epsilon transition, then consume no input and recurse.
             if edge.input_symbol == EPSILON:
-                # logger.debug("Found eps transition, %s %s", edge.target_node.id, edge.target_node.is_accepting_state)
-                # logger.debug("Input symbol %s", current_token)
 
                 # Case: there are no more input tokens, but you have an epsilon transition to follow.
                 # In this case, you follow the epsilon, and see if you're in an accepting state. If so,
@@ -605,8 +620,6 @@ class Fst:
             # and getting the resulting output of that recursion. Then, we'll want to loop over that result, and, since
             # we consumed an input token over this current transition, we add `edge.output_symbol + result` to the matches.
             elif current_token == edge.input_symbol:
-                # logger.debug("Found matching input character transition, %s %s", edge.target_node.id, edge.target_node.is_accepting_state)
-                # logger.debug("Matching characters: %s %s", current_token, edge.input_symbol)
 
                 new_input_tokens = input_tokens[1:]
 
@@ -621,7 +634,6 @@ class Fst:
                 for result in recursive_results:
                     matches.append(edge.output_symbol + result)
 
-        # logger.debug('matches: %s', matches)
         return matches
 
     @staticmethod

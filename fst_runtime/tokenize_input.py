@@ -1,10 +1,11 @@
 """
-This module tests the `tokenize_input_string` function.
+This module holds a tokenization function that splits an input string into its constituent parts,
+while considering the set of provided multi-character symbols.
 
 Functions
 ---------
-test_tokenize_input_string
-    Tests the `tokenize_input_string` function for various input cases.
+tokenize_input_string
+    Tokenizes the input string while respecting the multichar_symbols.
 """
 
 from . import logger
