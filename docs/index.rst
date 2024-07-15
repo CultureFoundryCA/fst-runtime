@@ -6,12 +6,13 @@
 fst_runtime documentation
 =========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+This is the documentation for the `fst_runtime` python package found here: https://github.com/CultureFoundryCA/fst-runtime
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+    
+   .. modules <- there is only one module, so ignoring this.
 
+   source/fst_runtime
