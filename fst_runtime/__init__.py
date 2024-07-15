@@ -21,8 +21,6 @@ direction of "generation" (i.e., creating forms from some tagged word form). For
 possible affixes of `prefixes = [['de', 'un']]` and `suffixes = [['+VERB'], ['+GER', '+INF', '+PAST']]`,
 the call would be `fst.down_generation([['un']], 'do', [['+VERB'], ['+GER', '+INF', '+PAST']])`.
 This would return `['do', 'doing', 'did', 'undo', 'undoing', 'undid']`.
-
-Support for `up_analysis` is pending.
 """
 
 import logging

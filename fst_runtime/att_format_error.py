@@ -12,7 +12,7 @@ AttFormatError
 
 class AttFormatError(Exception):
     """
-    Exception raised for errors in the input AT&T file format (.att file).
+    Exception raised for errors in the input AT&T file format (.att file) that stores an FST.
 
     Parameters
     ----------

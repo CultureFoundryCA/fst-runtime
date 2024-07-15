@@ -3,10 +3,8 @@
 """
 This module tests that the traversals and queries made to the FST are correct.
 
-Fixtures
---------
-data_dir
-    Provides the path to the data directory.
+These tests cover many different possible breaking points, such as epsilon loops resulting in infinite recursion,
+handling multiple outputted forms, following epsilon cycles successfully, etc.
 
 Functions
 ---------
@@ -42,7 +40,7 @@ from fst_runtime.fst import Fst
 
 
 @pytest.fixture(scope="module")
-def data_dir():
+def _data_dir():
     """
     Provides the path to the data directory.
 
@@ -51,23 +49,25 @@ def data_dir():
     pathlib.Path
         Path to the data directory.
     """
+
     return Path(__file__).parent / "data"
 
 
 #region Down/Generation Tests
 
-def test_down_traversal_fst1(data_dir):
+def test_down_traversal_fst1(_data_dir):
     """
     Tests traversal down for fst1.att.
 
-    This is a very basic test that input to an FST gives the expected output. It also checks that an incorrect form is rejected.
+    This is a very basic test that tests input to an FST gives the expected output. It also checks that an incorrect form is rejected.
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst1.att')
+
+    graph = Fst(_data_dir / 'fst1.att')
 
     lemma1 = 'a'  # <- Incorrect form.
     lemma2 = 'c'
@@ -85,7 +85,7 @@ def test_down_traversal_fst1(data_dir):
     assert 'bbbbd' in lemma3_results
 
 
-def test_down_traversal_fst2(data_dir):
+def test_down_traversal_fst2(_data_dir):
     """
     Tests traversal down for fst2.att.
 
@@ -93,10 +93,11 @@ def test_down_traversal_fst2(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst2.att')
+
+    graph = Fst(_data_dir / 'fst2.att')
 
     lemma = 'acccccccd'
     results = graph.down_generation(lemma)
@@ -105,7 +106,7 @@ def test_down_traversal_fst2(data_dir):
     assert 'bccccccce' in results
 
 
-def test_down_traversal_fst3(data_dir):
+def test_down_traversal_fst3(_data_dir):
     """
     Tests traversal down for fst3.att.
 
@@ -113,10 +114,11 @@ def test_down_traversal_fst3(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst3.att')
+
+    graph = Fst(_data_dir / 'fst3.att')
 
     lemma1 = 'aaac'
     lemma2 = 'aaaaaa'
@@ -132,7 +134,7 @@ def test_down_traversal_fst3(data_dir):
     assert lemma3 in results_dict[lemma3]
 
 
-def test_down_traversal_fst4(data_dir):
+def test_down_traversal_fst4(_data_dir):
     """
     Tests traversal down for fst4.att.
 
@@ -140,10 +142,11 @@ def test_down_traversal_fst4(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst4.att')
+
+    graph = Fst(_data_dir / 'fst4.att')
 
     lemma = 'wal'
     suffixes = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
@@ -156,7 +159,7 @@ def test_down_traversal_fst4(data_dir):
     assert expected_results == results
 
 
-def test_down_traversal_fst5(data_dir):
+def test_down_traversal_fst5(_data_dir):
     """
     Tests traversal down for fst5_epsilon_cycles.att.
 
@@ -164,10 +167,11 @@ def test_down_traversal_fst5(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst5_epsilon_cycle.att', recursion_limit=100)
+
+    graph = Fst(_data_dir / 'fst5_epsilon_cycle.att', recursion_limit=100)
 
     lemma = 'abc'
 
@@ -177,7 +181,7 @@ def test_down_traversal_fst5(data_dir):
     assert results.issuperset(expected_results)
 
 
-def test_down_traversal_fst6(data_dir):
+def test_down_traversal_fst6(_data_dir):
     """
     Tests traversal down for fst6_waabam.att.
 
@@ -185,10 +189,11 @@ def test_down_traversal_fst6(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst6_waabam.att')
+
+    graph = Fst(_data_dir / 'fst6_waabam.att')
 
     prefixes = [["PVTense/gii+", "PVTense/wii'+"]]
     lemma = 'waabam'
@@ -224,7 +229,7 @@ def test_down_traversal_fst6(data_dir):
 
 #region Up/Analysis Tests
 
-def test_up_traversal_fst1(data_dir):
+def test_up_traversal_fst1(_data_dir):
     """
     Tests traversal up for fst1.att.
 
@@ -232,10 +237,11 @@ def test_up_traversal_fst1(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst1.att')
+
+    graph = Fst(_data_dir / 'fst1.att')
 
     wordform = 'bbbbd'
 
@@ -245,7 +251,7 @@ def test_up_traversal_fst1(data_dir):
     assert 'aaaac' in results
 
 
-def test_up_traversal_fst2(data_dir):
+def test_up_traversal_fst2(_data_dir):
     """
     Tests traversal up for fst2.att.
 
@@ -253,10 +259,11 @@ def test_up_traversal_fst2(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst2.att')
+
+    graph = Fst(_data_dir / 'fst2.att')
 
     wordform = 'bccce'
 
@@ -266,7 +273,7 @@ def test_up_traversal_fst2(data_dir):
     assert 'acccd' in results
 
 
-def test_up_traversal_fst3(data_dir):
+def test_up_traversal_fst3(_data_dir):
     """
     Tests traversal up for fst3.att.
 
@@ -277,10 +284,11 @@ def test_up_traversal_fst3(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst3.att')
+
+    graph = Fst(_data_dir / 'fst3.att')
 
     wordform1 = 'aac'
     wordform2 = 'aaaab'
@@ -299,7 +307,7 @@ def test_up_traversal_fst3(data_dir):
     assert wordform3 in results_dict[wordform3]
 
 
-def test_up_traversal_fst4(data_dir):
+def test_up_traversal_fst4(_data_dir):
     """
     Tests traversal up for fst4.att.
 
@@ -309,10 +317,11 @@ def test_up_traversal_fst4(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst4.att')
+
+    graph = Fst(_data_dir / 'fst4.att')
 
     wordform1 = 'walking'
     wordform2 = 'walks'  # <- Dummy form was added to the FST so that this input should generate two output forms.
@@ -328,7 +337,7 @@ def test_up_traversal_fst4(data_dir):
     assert 'wal+VERB+PRES_DUMMY' in results2
 
 
-def test_up_traversal_fst5(data_dir):
+def test_up_traversal_fst5(_data_dir):
     """
     Tests traversal up for fst5.att.
 
@@ -338,10 +347,11 @@ def test_up_traversal_fst5(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst5_epsilon_cycle.att')
+
+    graph = Fst(_data_dir / 'fst5_epsilon_cycle.att')
 
     wordform1 = 'xyyyyyyyyyywv'
     wordform2 = 'xyyywzv'
@@ -363,7 +373,7 @@ def test_up_traversal_fst5(data_dir):
     assert 'abc' in results3
 
 
-def test_up_analysis_fst6(data_dir):
+def test_up_analysis_fst6(_data_dir):
     """
     Tests traversal up for fst6.att.
 
@@ -371,10 +381,11 @@ def test_up_analysis_fst6(data_dir):
 
     Parameters
     ----------
-    data_dir : pathlib.Path
-        Path to the data directory.
+    _data_dir : pathlib.Path
+        Path to the data directory. Provided automatically by Pytest.
     """
-    graph = Fst(data_dir / 'fst6_waabam.att')
+
+    graph = Fst(_data_dir / 'fst6_waabam.att')
 
     wordform1 = "gigii-waabamin"
     wordform2 = "gigii-waabamininim"
