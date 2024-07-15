@@ -9,7 +9,7 @@ Documentation for this project can be found at [https://culturefoundryca.github.
 ## Example Usage
 
 ```python
-from fst_runtime import Fst
+from fst_runtime.fst import Fst
 
 fst = Fst('/home/username/fsts/walk.att')
 
