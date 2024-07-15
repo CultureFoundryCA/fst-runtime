@@ -255,6 +255,7 @@ class Fst:
             The recursion limit that has been set. A value less than 1 represents that no recursion limit has been set,
             and so the current system recursion limit will be used (default for Python applications).
         '''
+        return self._recursion_limit
 
     @recursion_limit.setter
     def recursion_limit(self, new_recursion_limit: int) -> None:
