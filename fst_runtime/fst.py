@@ -161,7 +161,7 @@ class _FstEdge:
     the edge without weight will be prioritized (walked) first.
     """
 
-    NO_WEIGHT: float = 0.0
+    NO_WEIGHT: float = 0.0 # pylint: disable=invalid-name
     """This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge."""
 
 #endregion
@@ -510,7 +510,7 @@ class Fst:
         Notes
         -----
         When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes. 
-        For example, say you have the lemma "wal" in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. 
+        For example, the lemma "wal" in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. 
         Then, these would be fully permuted to "wal+VERB+INF", "wal+VERB+PAST", "wal+VERB+GER", and "wal+VERB+PRES"; likewise with any prefixes. 
         All of these constructions are then walked over the FST to see if we end at an accepting state. If so, the generated forms 
         (i.e., walk, walked, walking, walks) will be added to a list and returned.
