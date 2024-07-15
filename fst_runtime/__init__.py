@@ -11,8 +11,6 @@ Note
 ----
 Epsilon in this AT&T format is represented by the string '@0@'.
 
-Usage
------
 This package is used via the `Fst` object. This object requires a path to the AT&T-compiled FST, e.g., `fst = Fst('/path/to/file.att')`.
 You can get the multi-character symbols used in the FST via `fst.multichar_symbols`.
 
