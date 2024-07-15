@@ -1,4 +1,4 @@
-'''
+"""
 fst-runtime
 
 This package acts as a lightweight runtime for querying finite-state transducers (FSTs) stored in the AT&T `.att` format.
@@ -21,7 +21,7 @@ direction of "generation" (i.e., creating forms from some tagged word form). For
 possible affixes of `prefixes = [['de', 'un']]` and `suffixes = [['+VERB'], ['+GER', '+INF', '+PAST']]`,
 the call would be `fst.down_generation([['un']], 'do', [['+VERB'], ['+GER', '+INF', '+PAST']])`.
 This would return `['do', 'doing', 'did', 'undo', 'undoing', 'undid']`.
-'''
+"""
 
 import logging
 
