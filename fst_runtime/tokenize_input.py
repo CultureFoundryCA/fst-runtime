@@ -1,4 +1,4 @@
-"""
+'''
 This module holds a tokenization function that splits an input string into its constituent parts,
 while considering the set of provided multi-character symbols.
 
@@ -6,12 +6,12 @@ Functions
 ---------
 tokenize_input_string
     Tokenizes the input string while respecting the multichar_symbols.
-"""
+'''
 
 from . import logger
 
 def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
-    """
+    '''
     Returns a list containing the individual tokens that make up the `input_string`.
 
     Parameters
@@ -32,7 +32,7 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
     the multi-character symbols specified in the `multichar_symbols` set. It ensures that
     the multi-character symbols are recognized as single tokens rather than being split
     into multiple tokens.
-    """
+    '''
 
     # This gets the character lengs of all the multicharacter symbols and sorts them from highest to lowest.
     # Note lengths are distinct from use of set comprehension.

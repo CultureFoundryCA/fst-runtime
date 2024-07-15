@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 
-"""
+'''
 This module tests that the traversals and queries made to the FST are correct.
 
 These tests cover many different possible breaking points, such as epsilon loops resulting in infinite recursion,
@@ -32,7 +32,7 @@ test_up_traversal_fst5
     Tests traversal up for fst5_epsilon_cycles.att.
 test_up_analysis_fst6
     Tests traversal up for fst6_waabam.att.
-"""
+'''
 
 from pathlib import Path
 import pytest
@@ -41,14 +41,14 @@ from fst_runtime.fst import Fst
 
 @pytest.fixture(scope="module")
 def _data_dir():
-    """
+    '''
     Provides the path to the data directory.
 
     Returns
     -------
     pathlib.Path
         Path to the data directory.
-    """
+    '''
 
     return Path(__file__).parent / "data"
 
@@ -56,7 +56,7 @@ def _data_dir():
 #region Down/Generation Tests
 
 def test_down_traversal_fst1(_data_dir):
-    """
+    '''
     Tests traversal down for fst1.att.
 
     This is a very basic test that tests input to an FST gives the expected output. It also checks that an incorrect form is rejected.
@@ -65,7 +65,7 @@ def test_down_traversal_fst1(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst1.att')
 
@@ -86,7 +86,7 @@ def test_down_traversal_fst1(_data_dir):
 
 
 def test_down_traversal_fst2(_data_dir):
-    """
+    '''
     Tests traversal down for fst2.att.
 
     This is a very basic test that input to an FST gives the expected output. It also checks that an incorrect form is rejected.
@@ -95,7 +95,7 @@ def test_down_traversal_fst2(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst2.att')
 
@@ -107,7 +107,7 @@ def test_down_traversal_fst2(_data_dir):
 
 
 def test_down_traversal_fst3(_data_dir):
-    """
+    '''
     Tests traversal down for fst3.att.
 
     This also tests the `down_generations` function, which can take multiple queries at once.
@@ -116,7 +116,7 @@ def test_down_traversal_fst3(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst3.att')
 
@@ -135,7 +135,7 @@ def test_down_traversal_fst3(_data_dir):
 
 
 def test_down_traversal_fst4(_data_dir):
-    """
+    '''
     Tests traversal down for fst4.att.
 
     This test tests that adding suffixes to queries produces the correct and expected forms.
@@ -144,7 +144,7 @@ def test_down_traversal_fst4(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst4.att')
 
@@ -160,7 +160,7 @@ def test_down_traversal_fst4(_data_dir):
 
 
 def test_down_traversal_fst5(_data_dir):
-    """
+    '''
     Tests traversal down for fst5_epsilon_cycles.att.
 
     Tests the traversal down through an FST that can fall into an infinite loop during generation via an epsilon cycle.
@@ -169,7 +169,7 @@ def test_down_traversal_fst5(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst5_epsilon_cycle.att', recursion_limit=100)
 
@@ -182,7 +182,7 @@ def test_down_traversal_fst5(_data_dir):
 
 
 def test_down_traversal_fst6(_data_dir):
-    """
+    '''
     Tests traversal down for fst6_waabam.att.
 
     Tests the traversal down through the complicated "waabam" FST, and tests the use of both prefixes and suffixes robustly.
@@ -191,7 +191,7 @@ def test_down_traversal_fst6(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst6_waabam.att')
 
@@ -230,7 +230,7 @@ def test_down_traversal_fst6(_data_dir):
 #region Up/Analysis Tests
 
 def test_up_traversal_fst1(_data_dir):
-    """
+    '''
     Tests traversal up for fst1.att.
 
     This is a simple test that just gives the FST a form that should be accepted with a single output and checks that it gets that.
@@ -239,7 +239,7 @@ def test_up_traversal_fst1(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst1.att')
 
@@ -252,7 +252,7 @@ def test_up_traversal_fst1(_data_dir):
 
 
 def test_up_traversal_fst2(_data_dir):
-    """
+    '''
     Tests traversal up for fst2.att.
 
     This is a simple test that just gives the FST a form that should be accepted with a single output and checks that it gets that.
@@ -261,7 +261,7 @@ def test_up_traversal_fst2(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst2.att')
 
@@ -274,7 +274,7 @@ def test_up_traversal_fst2(_data_dir):
 
 
 def test_up_traversal_fst3(_data_dir):
-    """
+    '''
     Tests traversal up for fst3.att.
 
     This test checks that forms you expect to get accepted are and that the output of that is correct,
@@ -286,7 +286,7 @@ def test_up_traversal_fst3(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst3.att')
 
@@ -308,7 +308,7 @@ def test_up_traversal_fst3(_data_dir):
 
 
 def test_up_traversal_fst4(_data_dir):
-    """
+    '''
     Tests traversal up for fst4.att.
 
     This test checks that forms employing multi-character symbols come out correctly and as expected.
@@ -319,7 +319,7 @@ def test_up_traversal_fst4(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst4.att')
 
@@ -338,7 +338,7 @@ def test_up_traversal_fst4(_data_dir):
 
 
 def test_up_traversal_fst5(_data_dir):
-    """
+    '''
     Tests traversal up for fst5.att.
 
     fst5.att contains epsilon cycles, and this test is basically just a sanity check that epsilon cycles don't break the logic.
@@ -349,7 +349,7 @@ def test_up_traversal_fst5(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst5_epsilon_cycle.att')
 
@@ -374,7 +374,7 @@ def test_up_traversal_fst5(_data_dir):
 
 
 def test_up_analysis_fst6(_data_dir):
-    """
+    '''
     Tests traversal up for fst6.att.
 
     This tests the navigation of a complex FST and confirms the correct output given a real wordform.
@@ -383,7 +383,7 @@ def test_up_analysis_fst6(_data_dir):
     ----------
     _data_dir : pathlib.Path
         Path to the data directory. Provided automatically by Pytest.
-    """
+    '''
 
     graph = Fst(_data_dir / 'fst6_waabam.att')
 
