@@ -22,5 +22,6 @@ This would return `['do', 'doing', 'did', 'undo', 'undoing', 'undid']`.
 """
 
 import logging
+from .fst import Fst
 
 logger = logging.getLogger(__name__)
