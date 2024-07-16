@@ -6,6 +6,10 @@ There are also methods for bulk querying, `down_generations` and `up_analyses`.
 
 Documentation for this project can be found at [https://culturefoundryca.github.io/fst-runtime/](https://culturefoundryca.github.io/fst-runtime/).
 
+## Installation Instructions
+
+This package is published on PyPI and can be installed via `pip install fst_runtime` or `poetry add fst_runtime`, etc.
+
 ## Example Usage
 
 ```python
