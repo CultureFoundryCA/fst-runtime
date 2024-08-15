@@ -571,7 +571,6 @@ class Fst:
         for prefix in head:
             for suffix in tail:
                 if prefix == EPSILON:
-                    # TODO Should this also check if suffix != EPSILON?
                     result.append(suffix)
                 else:
                     result.append(prefix + suffix)
