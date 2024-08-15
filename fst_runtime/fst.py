@@ -591,7 +591,7 @@ class Fst:
         This function walks through the FST, recursively finding matches that it builds up through the traversal.
         """
 
-        current_token = input_tokens[0] if input_tokens else ''
+        current_token = input_tokens[0] if input_tokens else None
 
         for edge in current_node.out_transitions:
 
