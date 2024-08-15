@@ -73,9 +73,9 @@ def test_down_traversal_fst1(_data_dir):
     lemma2 = 'c'
     lemma3 = 'aaaac'
 
-    lemma1_results = graph.down_generation(lemma1)
-    lemma2_results = graph.down_generation(lemma2)
-    lemma3_results = graph.down_generation(lemma3)
+    lemma1_results = list(graph.down_generation(lemma1))
+    lemma2_results = list(graph.down_generation(lemma2))
+    lemma3_results = list(graph.down_generation(lemma3))
 
     assert len(lemma1_results) == 0  # <- Incorrect form supplied, so there should be zero results.
     assert len(lemma2_results) == 1
@@ -100,7 +100,7 @@ def test_down_traversal_fst2(_data_dir):
     graph = Fst(_data_dir / 'fst2.att')
 
     lemma = 'acccccccd'
-    results = graph.down_generation(lemma)
+    results = list(graph.down_generation(lemma))
 
     assert len(results) == 1
     assert 'bccccccce' in results
@@ -125,13 +125,16 @@ def test_down_traversal_fst3(_data_dir):
     lemma3 = 'aac'
 
     results_dict = graph.down_generations([lemma1, lemma2, lemma3])
+    results1 = list(results_dict[lemma1])
+    results2 = list(results_dict[lemma2])
+    results3 = list(results_dict[lemma3])
 
-    assert len(results_dict[lemma1]) == 0
-    assert len(results_dict[lemma2]) == 1
-    assert len(results_dict[lemma3]) == 1
+    assert len(results1) == 0
+    assert len(results2) == 1
+    assert len(results3) == 1
 
-    assert lemma2 in results_dict[lemma2]
-    assert lemma3 in results_dict[lemma3]
+    assert lemma2 in results2
+    assert lemma3 in results3
 
 
 def test_down_traversal_fst4(_data_dir):

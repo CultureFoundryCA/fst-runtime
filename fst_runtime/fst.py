@@ -35,6 +35,7 @@ from __future__ import annotations
 from collections import defaultdict
 import sys
 import os
+from typing import Generator
 from dataclasses import dataclass, field
 from . import logger
 from .att_format_error import AttFormatError
@@ -441,13 +442,14 @@ class Fst:
 
     # region Down/Generation Methods
 
+    # TODO Update docstring and comments.
     def down_generations(
         self,
         lemmas: list[str],
         *,
         prefixes: list[list[str]] = None,
         suffixes: list[list[str]] = None,
-    ) -> dict[str, list[str]]:
+    ) -> dict[str, Generator[str]]:
         """
         Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma.
 
@@ -489,7 +491,7 @@ class Fst:
         *,
         prefixes: list[list[str]] = None,
         suffixes: list[list[str]] = None,
-    ) -> list[str]:
+    ) -> Generator[str]:
         """
         Queries the FST in the down/generation direction.
 
@@ -524,10 +526,11 @@ class Fst:
         queries: list[str] = Fst._permute_tags(permutations)
         logger.debug('Queries created: %s', queries)
 
-        return self._traverse_down(queries)
+        yield from self._traverse_down(queries)
 
     
-    def _traverse_down(self, queries: list[str]) -> list[str]:
+    # TODO Update docstring and comments.
+    def _traverse_down(self, queries: list[str]) -> Generator[str]:
         """
         Handles all the queries down the FST and returns all the resulting outputs that were found.
 
@@ -542,8 +545,6 @@ class Fst:
             A list of all the resulting outputs that were found.
         """
 
-        generated_results: list[str] = []
-            
         original_recursion_limit = 0
         recursion_limit_set = self.recursion_limit > 0
         
@@ -553,25 +554,23 @@ class Fst:
             sys.setrecursionlimit(self.recursion_limit)
 
         for query in queries:
-            # This function call is potentially parallelizable in the future, though I'm not sure the queries take long enough for the cost.
             results = Fst.__traverse_down(
                 current_node=self._start_state,
                 input_tokens=tokenize_input_string(query, self._multichar_symbols)
             )
 
-            results = [result.replace(EPSILON, '') for result in results]
-
-            logger.debug('Query: %s\tResults: %s', query, results)
-            generated_results.extend(results)
+            for result in results:
+                logger.debug(f'Result found: {result}')
+                yield result.replace(EPSILON, '')
 
         # Reset recursion limit before exiting the function.
         if recursion_limit_set:
             sys.setrecursionlimit(original_recursion_limit)
 
-        return generated_results
 
+    # TODO Update docstring and comments.
     @staticmethod
-    def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> list[str]:
+    def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> Generator[str]:
         """
         Traverses down the FST beginning at an initial provided node.
 
@@ -592,9 +591,8 @@ class Fst:
         This function walks through the FST, recursively finding matches that it builds up through the traversal.
         """
 
-        matches: list[str] = []
-
         current_token = input_tokens[0] if input_tokens else ''
+        logger.debug(f'Current input token: {current_token}')
 
         for edge in current_node.out_transitions:
 
@@ -606,15 +604,15 @@ class Fst:
                 # then add the output of this transition to the matches and continue to the recursive step,
                 # since there could be further epsilon transitions to follow.
                 if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
-                    matches.append(edge.output_symbol)
+                    yield edge.output_symbol
+
+                recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
 
                 try:
-                    recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
+                    for result in recursive_results:
+                        yield edge.output_symbol + result
                 except RecursionError:
-                    recursive_results = []
-
-                for result in recursive_results:
-                    matches.append(edge.output_symbol + result)
+                    pass
 
             # If we have found an explicit match of the current token with the edge's input token, then we are going
             # to want to create the new input symbols for the next level of recursion by chopping off the current token,
@@ -625,17 +623,18 @@ class Fst:
                 new_input_tokens = input_tokens[1:]
 
                 if not new_input_tokens and edge.target_node.is_accepting_state:
-                    matches.append(edge.output_symbol)
+                    yield edge.output_symbol
 
                 try:
                     recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
                 except RecursionError:
                     recursive_results = []
 
-                for result in recursive_results:
-                    matches.append(edge.output_symbol + result)
-
-        return matches
+                try:
+                    for result in recursive_results:
+                        yield edge.output_symbol + result
+                except RecursionError:
+                    pass
 
     @staticmethod
     def _permute_tags(parts: list[list[str]]) -> list[str]:
@@ -680,6 +679,7 @@ class Fst:
         for prefix in head:
             for suffix in tail:
                 if prefix == EPSILON:
+                    # TODO Should this also check if suffix != EPSILON?
                     result.append(suffix)
                 else:
                     result.append(prefix + suffix)
