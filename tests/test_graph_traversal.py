@@ -110,7 +110,7 @@ def test_down_traversal_fst3(_data_dir):
     """
     Tests traversal down for fst3.att.
 
-    This also tests the``own_generation``function, which can take multiple queries at once.
+    This also tests the ``down_generations`` function, which can take multiple queries at once.
 
     Parameters
     ----------
@@ -283,7 +283,7 @@ def test_up_traversal_fst3(_data_dir):
     This test checks that forms you expect to get accepted are and that the output of that is correct,
     as well as testing to make sure an invalid form is rejected by the FST.
 
-    This also tests the``p_analyse``function, which allows for querying multiple wordforms at once.
+    This also tests the ``up_analyses`` function, which allows for querying multiple wordforms at once.
 
     Parameters
     ----------
@@ -350,7 +350,7 @@ def test_up_traversal_fst5(_data_dir):
 
     fst5.att contains epsilon cycles, and this test is basically just a sanity check that epsilon cycles don't break the logic.
     It also tests some more complicated forms where epsilon loops will be followed in order to get to the output. You can see,
-    for example, that``b``can generate wordforms 1 through 4, where an arbitrary number of y's can be inserted.
+    for example, that ``abc`` can generate wordforms 1 through 4, where an arbitrary number of y's can be inserted.
 
     Parameters
     ----------
