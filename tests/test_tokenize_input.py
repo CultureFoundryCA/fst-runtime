@@ -3,7 +3,7 @@
 """
 test_tokenize_input
 
-This test module tests the functioning of the``okenize_input_strin``function from``okenize_input.p``
+This test module tests the functioning of the ``tokenize_input_string`` function from ``tokenize_input.py``.
 
 Fixtures
 --------
