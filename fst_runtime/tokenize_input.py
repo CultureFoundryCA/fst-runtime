@@ -12,7 +12,7 @@ from . import logger
 
 def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
     """
-    Returns a list containing the individual tokens that make up the `input_string`.
+    Returns a list containing the individual tokens that make up the ``input_string``.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
     Notes
     -----
     This function tokenizes the input string into individual tokens, taking into account
-    the multi-character symbols specified in the `multichar_symbols` set. It ensures that
+    the multi-character symbols specified in the ``multichar_symbols`` set. It ensures that
     the multi-character symbols are recognized as single tokens rather than being split
     into multiple tokens.
     """
