@@ -1,5 +1,5 @@
 """
-This module provides the main class `Fst` which defines a finite-state transducer (FST) in-memory as a directed graph.
+This module provides the main class ``Fst`` which defines a finite-state transducer (FST) in-memory as a directed graph.
 
 Classes
 -------
@@ -9,7 +9,7 @@ Fst
 Constants
 ---------
 EPSILON : str
-    The epsilon character as encoded in the AT&T `.att` FST format.
+    The epsilon character as encoded in the AT&T ``.att`` FST format.
 
 Functions
 ---------
@@ -17,15 +17,15 @@ None
 
 Notes
 -----
-The `Fst` class exposes several public members:
-    - `multichar_symbols`
-    - `recursion_limit`
-    - `down_generation`
-    - `down_generations`
-    - `up_analysis`
-    - `up_analyses`
+The ``Fst`` class exposes several public members:
+    - ``multichar_symbols``
+    - ``recursion_limit``
+    - ``down_generation``
+    - ``down_generations``
+    - ``up_analysis``
+    - ``up_analyses``
 
-It also exposes a constant called `EPSILON`, which defines epsilon as `@0@` according to the AT&T format standard.
+It also exposes a constant called ``EPSILON``, which defines epsilon as ``@0@`` according to the AT&T format standard.
 """
 
 
@@ -42,7 +42,7 @@ from .att_format_error import AttFormatError
 from .tokenize_input import tokenize_input_string
 
 EPSILON: str = "@0@"
-"""This is the epsilon character as encoded in the AT&T `.att` FST format."""
+"""This is the epsilon character as encoded in the AT&T ``.att`` FST format."""
 
 #endregion
 
@@ -52,7 +52,7 @@ EPSILON: str = "@0@"
 @dataclass
 class _AttInputInfo:
     """
-    Represents input information from the AT&T file format (`.att`) for a transition to a new state.
+    Represents input information from the AT&T file format (``.att``) for a transition to a new state.
 
     Attributes
     ----------
@@ -163,7 +163,7 @@ class _FstEdge:
     """
 
     NO_WEIGHT: float = 0.0 # pylint: disable=invalid-name
-    """This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge."""
+    """This value is set as the value of ``weight`` when no weight has been set for the edge. This is the default value for an edge."""
 
 #endregion
 
@@ -185,38 +185,38 @@ class Fst:
 
     _STARTING_STATE = 0
     """
-    The starting state in the `.att` format is represented by `0`.
+    The starting state in the ``.att`` format is represented by ``0`.
     This is the "top" of the graph, so when you query down, you start here and go down.
     Down is like walk+GER -> walking.
     """
 
     _ATT_DEFINES_ACCEPTING_STATE = 1
-    """One input value on a line means that that line represents an accepting state in the `.att` file."""
+    """One input value on a line means that that line represents an accepting state in the ``.att`` file."""
 
     _ATT_DEFINES_UNWEIGHTED_TRANSITION = 4
-    """Four input values on a line mean that the line represents an unweighted transition in the `.att` file."""
+    """Four input values on a line mean that the line represents an unweighted transition in the ``.att`` file."""
 
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
-    """Five input values on a line mean that the line represents a weighted transition in the `.att` file."""
+    """Five input values on a line mean that the line represents a weighted transition in the ``.att`` file."""
 
     def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
         """
-        Initializes the FST via the provided `.att` file.
+        Initializes the FST via the provided ``.att`` file.
 
         Parameters
         ----------
         att_file_path : str
-            The path to the `.att` file containing the FST description.
+            The path to the ``.att`` file containing the FST description.
         recursion_limit : int, optional
             The recursion limit for the generation/analysis functionality. Default is 0.
         """
 
         if not att_file_path:
-            logger.error("Failed to provide valid path to input file. Example: `/path/to/fst.att`.")
+            logger.error("Failed to provide valid path to input file. Example: ``/path/to/fst.att``.")
             sys.exit(1)
 
         if not str(att_file_path).endswith('.att'):
-            logger.error("Provided file path does not point to a `.att` file. Example: `/path/to/fst.att`.")
+            logger.error("Provided file path does not point to a ``.att`` file. Example: ``/path/to/fst.att``.")
             sys.exit(1)
 
         self._start_state: _FstNode = None
@@ -308,25 +308,25 @@ class Fst:
 
     def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
         """
-        Reads in all the transition and state information from the file into the `transitions` object,
+        Reads in all the transition and state information from the file into the ``transitions`` object,
         and also saves the accepting states of the FST.
 
         Parameters
         ----------
         att_file_path : str
-            The path to the `.att` file containing the FST description.
+            The path to the ``.att`` file containing the FST description.
 
         Returns
         -------
         tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]
             A tuple containing:
-            - `transitions` : dict[int, dict[str, list[_AttInputInfo]]]
-                The dictionary of transitions read from the `.att` file, keyed by state ID and input symbol.
-            - `accepting_states` : set[int]
+            - ``transitions`` : dict[int, dict[str, list[_AttInputInfo]]]
+                The dictionary of transitions read from the ``.att`` file, keyed by state ID and input symbol.
+            - ``accepting_states`` : set[int]
                 The set of accepting state IDs.
         """
 
-        # See comment in `_create_graph` for what this object is.
+        # See comment in ``_create_graph`` for what this object is.
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
         accepting_states: set[int] = set()
 
@@ -389,7 +389,7 @@ class Fst:
     # This function is easier to read when not split up into more parts. Too many locals disabled for this reason.
     def _create_graph(self, att_file_path: str) -> None: # pylint: disable=too-many-locals
         """
-        Create the graph that represents the FST from reading in the provided `.att` file.
+        Create the graph that represents the FST from reading in the provided ``.att`` file.
 
         This method initializes the FST by reading transitions and accepting states from the
         specified file, creating all nodes and transitions, and setting the start state.
@@ -397,13 +397,13 @@ class Fst:
         Parameters
         ----------
         att_file_path
-            The path to the `.att` file containing the FST description.
+            The path to the ``.att`` file containing the FST description.
 
         Notes
         -----
-        `transitions` is a dictionary whose key is the source state number as read in from the `.att` file
+        ``transitions`` is a dictionary whose key is the source state number as read in from the ``.att`` file
         (e.g., 22), and whose value is a dictionary. This child dictionary is keyed to the input symbol from 
-        the `.att` file (e.g., 'k' or '+PLURAL'), and whose value is a class that contains the target state 
+        the ``.att`` file (e.g., 'k' or '+PLURAL'), and whose value is a class that contains the target state 
         number, the output of the transition, and the weight of that transition.
         """
 
@@ -435,7 +435,7 @@ class Fst:
         try:
             self._start_state = nodes[Fst._STARTING_STATE]
         except KeyError as key_error:
-            raise AttFormatError("There must be a start state specified that has state number `0` in the input `.att` file.") from key_error
+            raise AttFormatError("There must be a start state specified that has state number ``0` in the input ``.att`` file.") from key_error
 
     #endregion
 
@@ -450,7 +450,7 @@ class Fst:
         suffixes: list[list[str]] = None,
     ) -> dict[str, Generator[str]]:
         """
-        Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma.
+        Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
 
         The values in the dictionary are generators of wordforms returned by the FST.
 
@@ -511,7 +511,7 @@ class Fst:
         Notes
         -----
         When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes. 
-        For example, the lemma "wal" in English (for the lemma "walk"), with prefix tags `[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]`. 
+        For example, the lemma "wal" in English (for the lemma "walk"), with prefix tags ``[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]``. 
         Then, these would be fully permuted to "wal+VERB+INF", "wal+VERB+PAST", "wal+VERB+GER", and "wal+VERB+PRES"; likewise with any prefixes. 
         All of these constructions are then walked over the FST to see if we end at an accepting state. If so, the generated forms 
         (i.e., walk, walked, walking, walks) will be added to a list and returned.
@@ -662,7 +662,7 @@ class Fst:
             # If we have found an explicit match of the current token with the edge's input token, then we are going
             # to want to create the new input symbols for the next level of recursion by chopping off the current token,
             # and getting the resulting output of that recursion. Then, we'll want to loop over that result, and, since
-            # we consumed an input token over this current transition, we add `edge.output_symbol + result` to the matches.
+            # we consumed an input token over this current transition, we add ``edge.output_symbol + result`` to the matches.
             elif current_token == edge.input_symbol:
 
                 new_input_tokens = input_tokens[1:]
@@ -688,7 +688,7 @@ class Fst:
 
     def up_analyses(self, wordforms: list[str]) -> dict[str, Generator[str]]:
         """
-        Calls `up_analysis` for each wordform and returns a dictionary keyed on each wordform.
+        Calls ``up_analysis`` for each wordform and returns a dictionary keyed on each wordform.
 
         The values in the dictionary are generators of tagged forms returned by the FST.
 
@@ -733,8 +733,8 @@ class Fst:
         -----
         This function queries the FST in the direction of analysis by starting at the accepting states. Instead of looking at 
         the input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. 
-        In this way, the FST becomes reversed. For example, `walking -> wal+GER`. There can be several tagged forms that lead to 
-        a single word. For instance, the word `walk` can have forms like `wal+VERB+1Sg+Pres`, `wal+VERB+2Sg+Pres`, etc., that lead 
+        In this way, the FST becomes reversed. For example, ``walking -> wal+GER``. There can be several tagged forms that lead to 
+        a single word. For instance, the word ``walk`` can have forms like ``wal+VERB+1Sg+Pres``, ``wal+VERB+2Sg+Pres``, etc., that lead 
         to its generation. All these tagged forms are aggregated and returned.
 
         This method starts at the accepting states and looks at the output symbols of the node and the in transitions,
