@@ -33,13 +33,14 @@ It also exposes a constant called ``EPSILON``, which defines epsilon as ``@0@`` 
 
 from __future__ import annotations
 from collections import defaultdict
-import sys
-import os
-from typing import Generator
 from dataclasses import dataclass, field
-from . import logger
-from .att_format_error import AttFormatError
-from .tokenize_input import tokenize_input_string
+import os
+import sys
+from typing import Generator
+
+from fst_runtime import logger
+from fst_runtime.att_format_error import AttFormatError
+from fst_runtime.tokenize_input import tokenize_input_string
 
 EPSILON: str = "@0@"
 """This is the epsilon character as encoded in the AT&T ``.att`` FST format."""
