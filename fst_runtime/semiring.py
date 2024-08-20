@@ -12,7 +12,7 @@ Wikipedia discussion on semirings:
 See this paper for a more in-depth and technical weighted FST design discussion:
     https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf
 '''
-# TODO Better docstring notes.
+# TODO Better docstring notes. Also add Lothaire page 211.
 
 from abc import ABC, abstractmethod
 import math
@@ -166,9 +166,14 @@ class BooleanSemiring(Semiring[bool]):
     The boolean semiring defines ``add`` as the ``or`` operator and ``multiply`` as the ``and`` operator.
     The additive identity of the semiring is ``False``, and the multiplicative idenity is ``True``.
 
+    This is also apparently the smallest semiring that is not a ring.
+
     See Also
     --------
-    For the base class API, please see Semiring[T].
+    For the base class API, please see ``Semiring[T]``.
+
+    Wikipedia article on two-element boolean algebra:
+        https://en.wikipedia.org/wiki/Two-element_Boolean_algebra
     """
 
     def __init__(self):
@@ -260,17 +265,37 @@ class BooleanSemiring(Semiring[bool]):
         
         return converted_values
             
-# TODO Add better description of what the add function is doing here.
 class LogSemiring(Semiring[float]):
     """
-    A semiring where addition is the log-sum-exp function and multiplication is standard addition.
+    A semiring whose underlying set of values are the reals with +/- infinity.
 
     Notes
     -----
+    For the base class API, please see ``Semiring[T]``.
+
     This is also known as the minimum logarithmic semiring, given the negation of the log and the exponents of e.
 
     This semiring defines ``add`` as ``-math.log(math.exp(-a) + math.exp(-b))`` and ``multiply`` as ``a + b``.
     It defines the additive identity as ``float('inf')``, and the multiplicative identity as ``0.0``.
+
+    This ``add`` function is a smooth approximation of the minimum of the values ``a`` and ``b``. This sort of operation
+    is known as the log-sum-exp trick, which allows for higher precision when doing floating-point arithmetic on large or small
+    values by shifting the values into a domain that's better suited for floating-point precision. This sort of equation is often
+    used in probability theory, as logarithms can have a bunch of benefits for calculations.
+
+    This "smooth minimum" means that when values are close to each other, the value returned will be a kind of interpolation between the two.
+    But, when values are far apart, the value returned will be much closer to the minimum value. That is, when ``a`` and ``b`` are far apart,
+    then ``-ln(e^(-a) + e^(-b)) ≈ min{a, b}``.
+
+    See Also
+    --------
+    For the base class API, please see ``Semiring[T]``.
+
+    Wikipedia article on the LogSumExp function:
+        https://en.wikipedia.org/wiki/LogSumExp
+
+    Wikipedia article on the log semiring:
+        https://en.wikipedia.org/wiki/Log_semiring
     """
 
     def __init__(self):
@@ -303,11 +328,17 @@ class LogSemiring(Semiring[float]):
                 raise ValueError("The log semiring only supports the real numbers and +/- infinity.") from e
 
 
-# TODO Notes
 class ProbabilitySemiring(Semiring[float]):
     """
-    A semiring where addition is standard addition and multiplication is standard multiplication,
-    typically used for probabilities.
+    This is the probability semiring that is defined on the non-negative reals.
+
+    Notes
+    -----
+    This semiring uses standard addition and multiplication, and is meant for managing weights that are probabilities.
+    
+    See Also
+    --------
+    For the base class API, please see ``Semiring[T]``.
     """
 
     def __init__(self):
@@ -354,6 +385,15 @@ class TropicalSemiring(Semiring[float]):
     Notes
     -----
     This is also known as the minimum tropical semiring for its use of ``min``, instead of ``max``, as the addition function.
+    
+    As mentioned, ``add`` is defined as ``min{a, b}``. Multiplication is defined as standard addition. The additive identity is ``float('inf')``.
+
+    See Also
+    --------
+    For the base class API, please see ``Semiring[T]``.
+
+    The Wikipedia article on tropical semirings:
+        https://en.wikipedia.org/wiki/Tropical_semiring
     """
 
     def __init__(self):
