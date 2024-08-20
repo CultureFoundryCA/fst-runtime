@@ -1,7 +1,20 @@
-from typing import Callable
-import math
+'''
+This module defines a semiring as well as several commonly used semirings weighted FSTs.
 
-class Semiring[T]:
+Notes
+-----
+See this paper for a discussion on weighted FSTs and semirings:
+    https://www.openfst.org/twiki/pub/FST/FstBackground/ciaa.pdf
+
+See this paper for a more in-depth and technical weighted FST design discussion:
+    https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf
+'''
+
+from abc import ABC, abstractmethod
+import math
+from typing import Callable
+
+class Semiring[T](ABC):
 
     def __init__(
             self,
@@ -30,12 +43,26 @@ class Semiring[T]:
     def multiply(self, a: T, b: T) -> T:
         return self._multiply(a, b)
     
+    @abstractmethod
+    def check_membership(self, *values: any) -> None:
+        '''
+        Checks that the given values are members of the underlying set of the semiring.
 
-class CommutativeSemiring[T](Semiring[T]):
-    ...
+        Parameters
+        ----------
+        *values : any
+            The values that will be checked to guarantee they are of the type of the underlying set of the semiring.
+
+        Raises
+        ------
+        ValueError
+            A value error is raised if any of the provided values don't belong to the underlying set of the semiring.
+        '''
+
+        raise ValueError("Cannot use abstract method directly.")
     
 
-class BooleanSemiring(CommutativeSemiring[bool]):
+class BooleanSemiring(Semiring[bool]):
 
     def __init__(self):
 
@@ -46,9 +73,35 @@ class BooleanSemiring(CommutativeSemiring[bool]):
             multiplicative_identity=True,
         )
 
+    def check_membership(self, *values: any) -> None:
 
-class LogSemiring(CommutativeSemiring[float]):
-    '''Logarithmic Semiring'''
+        for value in values:
+            if not isinstance(value, bool):
+                raise ValueError("The boolean semiring only supports boolean values.")
+    
+    @staticmethod
+    def convert_value_to_boolean(value: int | float) -> bool:
+        if value == 1:
+            return True
+        elif value == 0:
+            return False
+        else:
+            raise ValueError("Only 0 and 1 are valid stand-ins for a boolean value.")
+            
+    @staticmethod
+    def convert_values_to_boolean(*values: int | float) -> list[bool]:
+
+        converted_values: list[bool] = []
+
+        for value in values:
+            converted_value = BooleanSemiring.convert_value_to_boolean(value)
+            converted_values.append(converted_value)
+        
+        return converted_values
+            
+
+class LogSemiring(Semiring[float]):
+    '''Min Logarithmic Semiring'''
 
     def __init__(self):
 
@@ -59,8 +112,16 @@ class LogSemiring(CommutativeSemiring[float]):
             multiplicative_identity= 0.0,
         )
 
+    def check_membership(self, *values: any) -> None:
 
-class ProbabilitySemiring(CommutativeSemiring[float]):
+        for value in values:
+            try:
+                _ = float(value)
+            except ValueError as e:
+                raise ValueError("The log semiring only supports the real numbers and +/- infinity.") from e
+
+
+class ProbabilitySemiring(Semiring[float]):
 
     def __init__(self):
 
@@ -70,23 +131,22 @@ class ProbabilitySemiring(CommutativeSemiring[float]):
             additive_identity=0.0,
             multiplicative_identity=1.0
         )
-    
-    def add(self, a: float, b: float) -> float:
 
-        if a < 0 or b < 0:
-            raise ValueError("Negative number found when only non-negative real numbers are in the underlying set of the probability semiring.")
-
-        return super().add(a, b)
-    
-    def multiply(self, a: float, b: float) -> float:
-
-        if a < 0 or b < 0:
-            raise ValueError("Negative number found when only non-negative real numbers are in the underlying set of the probability semiring.")
+    def check_membership(self, *values: any) -> None:
         
-        return super().multiply(a, b)
+        error = ValueError("The probability semiring only supports the non-negative reals.")
 
+        for value in values:
+            try:
+                value = float(value)
+            except ValueError as e:
+                raise error from e
 
-class TropicalSemiring(CommutativeSemiring[float]):
+            if value < 0 or value == float('inf'):
+                raise error
+    
+
+class TropicalSemiring(Semiring[float]):
     '''Min Tropical Semiring'''
 
     def __init__(self):
@@ -98,7 +158,10 @@ class TropicalSemiring(CommutativeSemiring[float]):
             multiplicative_identity=0.0,
         )
 
+    def check_membership(self, *values: any) -> None:
 
-
-
-
+        for value in values:
+            try:
+                _ = float(value)
+            except ValueError as e:
+                raise ValueError("The tropical semiring only supports the real numbers and +/- infinity.")
