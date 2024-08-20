@@ -400,6 +400,11 @@ class Fst:
         att_file_path
             The path to the ``.att`` file containing the FST description.
 
+        Raises
+        ------
+        AttFormatError
+            This error is raised if the FST is ill-defined according to the AT&T format.
+
         Notes
         -----
         ``transitions`` is a dictionary whose key is the source state number as read in from the ``.att`` file
