@@ -11,8 +11,11 @@ Wikipedia discussion on semirings:
 
 See this paper for a more in-depth and technical weighted FST design discussion:
     https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf
+
+See this textbook for the definitions of the different semirings used here, as well as the general
+mathematical underpinning of them, and their uses in/for FSTs:
+    Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 200.
 '''
-# TODO Better docstring notes. Also add Lothaire page 211.
 
 from abc import ABC, abstractmethod
 import math
@@ -39,8 +42,7 @@ class Semiring[T](ABC):
     Abstract Methods
     ----------------
     def check_membership(self, *values: any) -> None:
-        This method 
-
+        This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
 
     Examples
     --------
@@ -115,6 +117,11 @@ class Semiring[T](ABC):
         -------
         T
             The result of the addition.
+
+        Notes
+        -----
+        Please note that this addition is not the standard "+" operation, but could be any associative, commutative binary operation
+        that has an identity element **0**.
         """
 
         return self._add(a, b)
@@ -134,9 +141,93 @@ class Semiring[T](ABC):
         -------
         T
             The result of the multiplication.
+
+        Notes
+        -----
+        Please note that this multiplication is not the standard "*" operation, but could be any associative binary operation
+        that distributes over the defined addition with identity element **1** and that has **0** as an annhilator. Multiplication
+        retains higher precedence over the defined addition.
         """
 
         return self._multiply(a, b)
+
+    def get_path_weight(self, path_weights: list[T]) -> T:
+        """
+        Computes the overall weight of a single path by multiplying the weights of all edges in the path.
+
+        Parameters
+        ----------
+        path_weights : list[T]
+            A list of weights corresponding to the edges in a path.
+
+        Returns
+        -------
+        T
+            The overall weight of the path, computed as the product of the individual edge weights.
+
+        See Also
+        --------
+        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
+        """
+
+        overall_path_weight = self.multiplicative_identity
+
+        for path_weight in path_weights:
+            overall_path_weight = self.multiply(overall_path_weight, path_weight)
+
+        return overall_path_weight
+
+
+    def get_weight_of_set_of_path_weights(self, set_of_path_weights: list[T]) -> T:
+        """
+        Computes the overall weight of a set of paths by adding the weights of individual paths.
+
+        Parameters
+        ----------
+        set_of_path_weights : list[T]
+            A list of weights corresponding to individual paths.
+
+        Returns
+        -------
+        T
+            The overall weight of the set of paths, computed as the sum of the individual path weights.
+
+        See Also
+        --------
+        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
+        """
+
+        overall_set_weight = self.additive_identity
+
+        for path_weight in set_of_path_weights:
+            overall_set_weight = self.add(overall_set_weight, path_weight)
+
+        return overall_set_weight
+
+
+    def get_weight_of_set_of_paths(self, set_of_paths: list[list[T]]) -> T:
+        """
+        Computes the overall weight of a set of paths by first calculating the weight of each path and then 
+        summing these weights.
+
+        Parameters
+        ----------
+        set_of_paths : list[list[T]]
+            A list of paths, where each path is represented as a list of weights.
+
+        Returns
+        -------
+        T
+            The overall weight of the set of paths.
+
+        See Also
+        --------
+        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
+        """
+
+        set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
+        return self.get_weight_of_set_of_path_weights(set_of_path_weights)
+
     
     @abstractmethod
     def check_membership(self, *values: any) -> None:
