@@ -446,8 +446,8 @@ class Fst:
         self,
         lemmas: list[str],
         *,
-        prefixes: list[list[str]] = [],
-        suffixes: list[list[str]] = []
+        prefixes: list[list[str]] | None = None,
+        suffixes: list[list[str]] | None = None
     ) -> dict[str, Generator[str]]:
         """
         Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
@@ -488,8 +488,8 @@ class Fst:
         self,
         lemma: str,
         *,
-        prefixes: list[list[str]] = [],
-        suffixes: list[list[str]] = []
+        prefixes: list[list[str]] | None = None,
+        suffixes: list[list[str]] | None = None
     ) -> Generator[str]:
         """
         Queries the FST in the down/generation direction.

@@ -139,10 +139,10 @@ def test_directed_graph_initialization_weighted(_att_file_path_weighted):
     assert edge0.target_node == node1
     assert edge0.input_symbol == 'a'
     assert edge0.output_symbol == 'b'
-    assert edge0.penalty_weight == '0.5'
+    assert edge0.penalty_weight == 0.5
 
     assert edge1.source_node == node1
     assert edge1.target_node == node2
     assert edge1.input_symbol == 'b'
     assert edge1.output_symbol == 'c'
-    assert edge1.penalty_weight == '1.0'
+    assert edge1.penalty_weight == 1.0
