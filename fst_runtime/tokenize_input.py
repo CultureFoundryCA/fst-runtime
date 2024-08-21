@@ -8,7 +8,7 @@ tokenize_input_string
     Tokenizes the input string while respecting the multichar_symbols.
 """
 
-from . import logger
+from fst_runtime import logger
 
 def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> list[str]:
     """

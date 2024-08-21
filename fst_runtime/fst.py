@@ -9,23 +9,7 @@ Fst
 Constants
 ---------
 EPSILON : str
-    The epsilon character as encoded in the AT&T ``.att`` FST format.
-
-Functions
----------
-None
-
-Notes
------
-The ``Fst`` class exposes several public members:
-    - ``multichar_symbols``
-    - ``recursion_limit``
-    - ``down_generation``
-    - ``down_generations``
-    - ``up_analysis``
-    - ``up_analyses``
-
-It also exposes a constant called ``EPSILON``, which defines epsilon as ``@0@`` according to the AT&T format standard.
+    The epsilon character as encoded in the AT&T ``.att`` FST format; this representation is the string: ``@0@``.
 """
 
 
@@ -33,13 +17,14 @@ It also exposes a constant called ``EPSILON``, which defines epsilon as ``@0@`` 
 
 from __future__ import annotations
 from collections import defaultdict
-import sys
-import os
-from typing import Generator
 from dataclasses import dataclass, field
-from . import logger
-from .att_format_error import AttFormatError
-from .tokenize_input import tokenize_input_string
+import os
+import sys
+from typing import Generator, Iterator
+
+from fst_runtime import logger
+from fst_runtime.att_format_error import AttFormatError
+from fst_runtime.tokenize_input import tokenize_input_string
 
 EPSILON: str = "@0@"
 """This is the epsilon character as encoded in the AT&T ``.att`` FST format."""
@@ -73,7 +58,7 @@ class _AttInputInfo:
     transition_weight: float = 0
     """The penalty weight of the transition. Default is zero."""
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int | str | float]:
         """
         Defines an iterable for this object to allow for object unpacking.
 
@@ -86,7 +71,9 @@ class _AttInputInfo:
         float
             The penalty weight of the transition.
         """
-        return iter((self.target_state_id, self.transition_output_symbol, self.transition_weight))
+        yield self.target_state_id
+        yield self.transition_output_symbol
+        yield self.transition_weight
 
 
 @dataclass
@@ -178,6 +165,14 @@ class Fst:
         Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.
     multichar_symbols : set[str]
         A copy of the set of multi-character symbols defined in the FST.
+    down_generation : method
+        Generates wordforms from a lemma and sets of prefix and suffix tags.
+    down_generations : method
+        Generates wordforms from many lemmas and common sets of prefix and suffix tags.
+    up_analysis : method
+        Analyzes a wordform and returns any associated tagged lemmas of the wordform.
+    up_analyses : method
+        Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.
     """
 
 
@@ -199,7 +194,7 @@ class Fst:
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
     """Five input values on a line mean that the line represents a weighted transition in the ``.att`` file."""
 
-    def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
+    def __init__(self, att_file_path: str, *, recursion_limit: int = 0) -> None:
         """
         Initializes the FST via the provided ``.att`` file.
 
@@ -219,7 +214,7 @@ class Fst:
             logger.error("Provided file path does not point to a ``.att`` file. Example: ``/path/to/fst.att``.")
             sys.exit(1)
 
-        self._start_state: _FstNode = None
+        self._start_state: _FstNode = _FstNode(-1, False, [], [])
         """This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree)."""
 
         self._accepting_states: dict[int, _FstNode] = {}
@@ -371,7 +366,7 @@ class Fst:
                 if len(output_symbol) > 1:
                     self._multichar_symbols.add(output_symbol)
 
-                info = _AttInputInfo(int(next_state), output_symbol, weight)
+                info = _AttInputInfo(int(next_state), output_symbol, float(weight))
 
                 try:
                     transitions[int(current_state)][input_symbol].append(info)
@@ -396,8 +391,13 @@ class Fst:
 
         Parameters
         ----------
-        att_file_path
+        att_file_path : str
             The path to the ``.att`` file containing the FST description.
+
+        Raises
+        ------
+        AttFormatError
+            This error is raised if the FST is ill-defined according to the AT&T format.
 
         Notes
         -----
@@ -424,9 +424,9 @@ class Fst:
                 for att_input in att_inputs:
 
                     next_state, output_symbol, weight = att_input
-                    next_node = self._get_or_create_node(next_state, nodes, accepting_states)
+                    next_node = self._get_or_create_node(next_state, nodes, accepting_states) # pyright: ignore
 
-                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight) # pyright: ignore
 
                     current_node.out_transitions.append(directed_edge)
                     next_node.in_transitions.append(directed_edge)
@@ -446,8 +446,8 @@ class Fst:
         self,
         lemmas: list[str],
         *,
-        prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None,
+        prefixes: list[list[str]] | None = None,
+        suffixes: list[list[str]] | None = None
     ) -> dict[str, Generator[str]]:
         """
         Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
@@ -488,8 +488,8 @@ class Fst:
         self,
         lemma: str,
         *,
-        prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None,
+        prefixes: list[list[str]] | None = None,
+        suffixes: list[list[str]] | None = None
     ) -> Generator[str]:
         """
         Queries the FST in the down/generation direction.

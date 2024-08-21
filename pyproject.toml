@@ -11,13 +11,14 @@ license = "MIT"
 packages = [{include = "fst_runtime"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
-pylint = "^3.2.3"
 sphinx = "^7.4.3"
 sphinx-rtd-theme = "^2.0.0"
+pylint = "^3.2.6"
+pyright = "^1.1.377"
 
 [build-system]
 requires = ["poetry-core"]

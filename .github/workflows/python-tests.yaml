@@ -1,4 +1,7 @@
-name: Run Pytest and Pylint
+# Pytest: unit testing framework
+# Pylint: code quality checker
+# Pyright: type checker
+name: Run Pytest, Pylint, and Pyright
 
 # These tests only run when a pull-request is opened from any branch into main.
 on:
@@ -18,6 +21,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
@@ -36,6 +44,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
 
@@ -47,3 +60,28 @@ jobs:
       - name: Run pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
+
+  # This job runs pyright, which runs type checking on the code based on the type hints provided.
+  pyright:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+
+      # Runs pyright to check code for typing errors.
+      - name: Run pyright
+        run: |
+          poetry run pyright
+
