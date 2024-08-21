@@ -25,7 +25,7 @@ class AttFormatError(Exception):
         The error message to be displayed.
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message: str) -> None:
         """
         Initializes the AttFormatError with a given error message.
 
