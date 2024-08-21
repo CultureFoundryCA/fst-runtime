@@ -81,13 +81,13 @@
 <span class="sd">    Tokenizes the input string while respecting the multichar_symbols.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">fst_runtime</span> <span class="kn">import</span> <span class="n">logger</span>
 
 <div class="viewcode-block" id="tokenize_input_string">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.tokenize_input.tokenize_input_string">[docs]</a>
 <span class="k">def</span> <span class="nf">tokenize_input_string</span><span class="p">(</span><span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">multichar_symbols</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns a list containing the individual tokens that make up the `input_string`.</span>
+<span class="sd">    Returns a list containing the individual tokens that make up the ``input_string``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -104,7 +104,7 @@
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    This function tokenizes the input string into individual tokens, taking into account</span>
-<span class="sd">    the multi-character symbols specified in the `multichar_symbols` set. It ensures that</span>
+<span class="sd">    the multi-character symbols specified in the ``multichar_symbols`` set. It ensures that</span>
 <span class="sd">    the multi-character symbols are recognized as single tokens rather than being split</span>
 <span class="sd">    into multiple tokens.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -164,7 +164,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, CultureFoundry Inc., Scott Parkhill.</p>
+    <p>&#169; Copyright 2024, CultureFoundry Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

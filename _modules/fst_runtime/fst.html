@@ -72,7 +72,7 @@
              
   <h1>Source code for fst_runtime.fst</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module provides the main class `Fst` which defines a finite-state transducer (FST) in-memory as a directed graph.</span>
+<span class="sd">This module provides the main class ``Fst`` which defines a finite-state transducer (FST) in-memory as a directed graph.</span>
 
 <span class="sd">Classes</span>
 <span class="sd">-------</span>
@@ -82,23 +82,7 @@
 <span class="sd">Constants</span>
 <span class="sd">---------</span>
 <span class="sd">EPSILON : str</span>
-<span class="sd">    The epsilon character as encoded in the AT&amp;T `.att` FST format.</span>
-
-<span class="sd">Functions</span>
-<span class="sd">---------</span>
-<span class="sd">None</span>
-
-<span class="sd">Notes</span>
-<span class="sd">-----</span>
-<span class="sd">The `Fst` class exposes several public members:</span>
-<span class="sd">    - `multichar_symbols`</span>
-<span class="sd">    - `recursion_limit`</span>
-<span class="sd">    - `down_generation`</span>
-<span class="sd">    - `down_generations`</span>
-<span class="sd">    - `up_analysis`</span>
-<span class="sd">    - `up_analyses`</span>
-
-<span class="sd">It also exposes a constant called `EPSILON`, which defines epsilon as `@0@` according to the AT&amp;T format standard.</span>
+<span class="sd">    The epsilon character as encoded in the AT&amp;T ``.att`` FST format; this representation is the string: ``@0@``.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -106,15 +90,17 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">.att_format_error</span> <span class="kn">import</span> <span class="n">AttFormatError</span>
-<span class="kn">from</span> <span class="nn">.tokenize_input</span> <span class="kn">import</span> <span class="n">tokenize_input_string</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterator</span>
+
+<span class="kn">from</span> <span class="nn">fst_runtime</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">fst_runtime.att_format_error</span> <span class="kn">import</span> <span class="n">AttFormatError</span>
+<span class="kn">from</span> <span class="nn">fst_runtime.tokenize_input</span> <span class="kn">import</span> <span class="n">tokenize_input_string</span>
 
 <span class="n">EPSILON</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;@0@&quot;</span>
-<span class="sd">&quot;&quot;&quot;This is the epsilon character as encoded in the AT&amp;T `.att` FST format.&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;This is the epsilon character as encoded in the AT&amp;T ``.att`` FST format.&quot;&quot;&quot;</span>
 
 <span class="c1">#endregion</span>
 
@@ -124,7 +110,7 @@
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">_AttInputInfo</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Represents input information from the AT&amp;T file format (`.att`) for a transition to a new state.</span>
+<span class="sd">    Represents input information from the AT&amp;T file format (``.att``) for a transition to a new state.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -145,7 +131,7 @@
     <span class="n">transition_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The penalty weight of the transition. Default is zero.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Defines an iterable for this object to allow for object unpacking.</span>
 
@@ -158,7 +144,9 @@
 <span class="sd">        float</span>
 <span class="sd">            The penalty weight of the transition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">iter</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">target_state_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_output_symbol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_weight</span><span class="p">))</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_state_id</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_output_symbol</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition_weight</span>
 
 
 <span class="nd">@dataclass</span>
@@ -235,7 +223,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">NO_WEIGHT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># pylint: disable=invalid-name</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This value is set as the value of `weight` when no weight has been set for the edge. This is the default value for an edge.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This value is set as the value of ``weight`` when no weight has been set for the edge. This is the default value for an edge.&quot;&quot;&quot;</span>
 
 <span class="c1">#endregion</span>
 
@@ -252,6 +240,14 @@
 <span class="sd">        Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.</span>
 <span class="sd">    multichar_symbols : set[str]</span>
 <span class="sd">        A copy of the set of multi-character symbols defined in the FST.</span>
+<span class="sd">    down_generation : method</span>
+<span class="sd">        Generates wordforms from a lemma and sets of prefix and suffix tags.</span>
+<span class="sd">    down_generations : method</span>
+<span class="sd">        Generates wordforms from many lemmas and common sets of prefix and suffix tags.</span>
+<span class="sd">    up_analysis : method</span>
+<span class="sd">        Analyzes a wordform and returns any associated tagged lemmas of the wordform.</span>
+<span class="sd">    up_analyses : method</span>
+<span class="sd">        Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 
@@ -259,41 +255,41 @@
 
     <span class="n">_STARTING_STATE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The starting state in the `.att` format is represented by `0`.</span>
+<span class="sd">    The starting state in the ``.att`` format is represented by ``0`.</span>
 <span class="sd">    This is the &quot;top&quot; of the graph, so when you query down, you start here and go down.</span>
 <span class="sd">    Down is like walk+GER -&gt; walking.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_ATT_DEFINES_ACCEPTING_STATE</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;One input value on a line means that that line represents an accepting state in the `.att` file.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One input value on a line means that that line represents an accepting state in the ``.att`` file.&quot;&quot;&quot;</span>
 
     <span class="n">_ATT_DEFINES_UNWEIGHTED_TRANSITION</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Four input values on a line mean that the line represents an unweighted transition in the `.att` file.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Four input values on a line mean that the line represents an unweighted transition in the ``.att`` file.&quot;&quot;&quot;</span>
 
     <span class="n">_ATT_DEFINES_WEIGHTED_TRANSITION</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Five input values on a line mean that the line represents a weighted transition in the `.att` file.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Five input values on a line mean that the line represents a weighted transition in the ``.att`` file.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">att_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">recursion_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">att_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">recursion_limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializes the FST via the provided `.att` file.</span>
+<span class="sd">        Initializes the FST via the provided ``.att`` file.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        att_file_path : str</span>
-<span class="sd">            The path to the `.att` file containing the FST description.</span>
+<span class="sd">            The path to the ``.att`` file containing the FST description.</span>
 <span class="sd">        recursion_limit : int, optional</span>
 <span class="sd">            The recursion limit for the generation/analysis functionality. Default is 0.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">att_file_path</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to provide valid path to input file. Example: `/path/to/fst.att`.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to provide valid path to input file. Example: ``/path/to/fst.att``.&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">att_file_path</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.att&#39;</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provided file path does not point to a `.att` file. Example: `/path/to/fst.att`.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provided file path does not point to a ``.att`` file. Example: ``/path/to/fst.att``.&quot;</span><span class="p">)</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_start_state</span><span class="p">:</span> <span class="n">_FstNode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start_state</span><span class="p">:</span> <span class="n">_FstNode</span> <span class="o">=</span> <span class="n">_FstNode</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[])</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree).&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_accepting_states</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_FstNode</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -382,25 +378,25 @@
 
     <span class="k">def</span> <span class="nf">_read_att_file_into_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">att_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">_AttInputInfo</span><span class="p">]]],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reads in all the transition and state information from the file into the `transitions` object,</span>
+<span class="sd">        Reads in all the transition and state information from the file into the ``transitions`` object,</span>
 <span class="sd">        and also saves the accepting states of the FST.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        att_file_path : str</span>
-<span class="sd">            The path to the `.att` file containing the FST description.</span>
+<span class="sd">            The path to the ``.att`` file containing the FST description.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]</span>
 <span class="sd">            A tuple containing:</span>
-<span class="sd">            - `transitions` : dict[int, dict[str, list[_AttInputInfo]]]</span>
-<span class="sd">                The dictionary of transitions read from the `.att` file, keyed by state ID and input symbol.</span>
-<span class="sd">            - `accepting_states` : set[int]</span>
+<span class="sd">            - ``transitions`` : dict[int, dict[str, list[_AttInputInfo]]]</span>
+<span class="sd">                The dictionary of transitions read from the ``.att`` file, keyed by state ID and input symbol.</span>
+<span class="sd">            - ``accepting_states`` : set[int]</span>
 <span class="sd">                The set of accepting state IDs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c1"># See comment in `_create_graph` for what this object is.</span>
+        <span class="c1"># See comment in ``_create_graph`` for what this object is.</span>
         <span class="n">transitions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">_AttInputInfo</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
         <span class="n">accepting_states</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
@@ -445,7 +441,7 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_symbol</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_multichar_symbols</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">output_symbol</span><span class="p">)</span>
 
-                <span class="n">info</span> <span class="o">=</span> <span class="n">_AttInputInfo</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">next_state</span><span class="p">),</span> <span class="n">output_symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">_AttInputInfo</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">next_state</span><span class="p">),</span> <span class="n">output_symbol</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">weight</span><span class="p">))</span>
 
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">transitions</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">current_state</span><span class="p">)][</span><span class="n">input_symbol</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
@@ -463,21 +459,26 @@
     <span class="c1"># This function is easier to read when not split up into more parts. Too many locals disabled for this reason.</span>
     <span class="k">def</span> <span class="nf">_create_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">att_file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># pylint: disable=too-many-locals</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create the graph that represents the FST from reading in the provided `.att` file.</span>
+<span class="sd">        Create the graph that represents the FST from reading in the provided ``.att`` file.</span>
 
 <span class="sd">        This method initializes the FST by reading transitions and accepting states from the</span>
 <span class="sd">        specified file, creating all nodes and transitions, and setting the start state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        att_file_path</span>
-<span class="sd">            The path to the `.att` file containing the FST description.</span>
+<span class="sd">        att_file_path : str</span>
+<span class="sd">            The path to the ``.att`` file containing the FST description.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        AttFormatError</span>
+<span class="sd">            This error is raised if the FST is ill-defined according to the AT&amp;T format.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        `transitions` is a dictionary whose key is the source state number as read in from the `.att` file</span>
+<span class="sd">        ``transitions`` is a dictionary whose key is the source state number as read in from the ``.att`` file</span>
 <span class="sd">        (e.g., 22), and whose value is a dictionary. This child dictionary is keyed to the input symbol from </span>
-<span class="sd">        the `.att` file (e.g., &#39;k&#39; or &#39;+PLURAL&#39;), and whose value is a class that contains the target state </span>
+<span class="sd">        the ``.att`` file (e.g., &#39;k&#39; or &#39;+PLURAL&#39;), and whose value is a class that contains the target state </span>
 <span class="sd">        number, the output of the transition, and the weight of that transition.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -498,9 +499,9 @@
                 <span class="k">for</span> <span class="n">att_input</span> <span class="ow">in</span> <span class="n">att_inputs</span><span class="p">:</span>
 
                     <span class="n">next_state</span><span class="p">,</span> <span class="n">output_symbol</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">att_input</span>
-                    <span class="n">next_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_create_node</span><span class="p">(</span><span class="n">next_state</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">accepting_states</span><span class="p">)</span>
+                    <span class="n">next_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_or_create_node</span><span class="p">(</span><span class="n">next_state</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">accepting_states</span><span class="p">)</span> <span class="c1"># pyright: ignore</span>
 
-                    <span class="n">directed_edge</span> <span class="o">=</span> <span class="n">_FstEdge</span><span class="p">(</span><span class="n">current_node</span><span class="p">,</span> <span class="n">next_node</span><span class="p">,</span> <span class="n">input_symbol</span><span class="p">,</span> <span class="n">output_symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span>
+                    <span class="n">directed_edge</span> <span class="o">=</span> <span class="n">_FstEdge</span><span class="p">(</span><span class="n">current_node</span><span class="p">,</span> <span class="n">next_node</span><span class="p">,</span> <span class="n">input_symbol</span><span class="p">,</span> <span class="n">output_symbol</span><span class="p">,</span> <span class="n">weight</span><span class="p">)</span> <span class="c1"># pyright: ignore</span>
 
                     <span class="n">current_node</span><span class="o">.</span><span class="n">out_transitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">directed_edge</span><span class="p">)</span>
                     <span class="n">next_node</span><span class="o">.</span><span class="n">in_transitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">directed_edge</span><span class="p">)</span>
@@ -509,7 +510,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_start_state</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">Fst</span><span class="o">.</span><span class="n">_STARTING_STATE</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">key_error</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AttFormatError</span><span class="p">(</span><span class="s2">&quot;There must be a start state specified that has state number `0` in the input `.att` file.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">key_error</span>
+            <span class="k">raise</span> <span class="n">AttFormatError</span><span class="p">(</span><span class="s2">&quot;There must be a start state specified that has state number ``0` in the input ``.att`` file.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">key_error</span>
 
     <span class="c1">#endregion</span>
 
@@ -522,13 +523,13 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">lemmas</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">suffixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+        <span class="n">prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">suffixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calls `down_generation` for each lemma and returns a dictionary keyed on each lemma.</span>
+<span class="sd">        Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.</span>
 
-<span class="sd">        The values in the dictionary are a list of the wordforms returned by the FST.</span>
+<span class="sd">        The values in the dictionary are generators of wordforms returned by the FST.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -541,8 +542,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, list[str]]</span>
-<span class="sd">            A dictionary where each key is a lemma and the value is a list of wordforms generated by the FST.</span>
+<span class="sd">        dict[str, Generator[str]]</span>
+<span class="sd">            A dictionary where each key is a lemma and the value is a generator of wordforms generated by the FST.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -567,9 +568,9 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">lemma</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>
-        <span class="n">prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">suffixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="n">prefixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">suffixes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Queries the FST in the down/generation direction.</span>
 
@@ -584,13 +585,13 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list[str]</span>
-<span class="sd">            A list of generated forms that are accepted by the FST.</span>
+<span class="sd">        Generator[str]</span>
+<span class="sd">            A generator of generated forms that are accepted by the FST.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes. </span>
-<span class="sd">        For example, the lemma &quot;wal&quot; in English (for the lemma &quot;walk&quot;), with prefix tags `[[&quot;+VERB&quot;], [&quot;+INF&quot;, &quot;+PAST&quot;, &quot;+GER&quot;, &quot;+PRES&quot;]]`. </span>
+<span class="sd">        For example, the lemma &quot;wal&quot; in English (for the lemma &quot;walk&quot;), with prefix tags ``[[&quot;+VERB&quot;], [&quot;+INF&quot;, &quot;+PAST&quot;, &quot;+GER&quot;, &quot;+PRES&quot;]]``. </span>
 <span class="sd">        Then, these would be fully permuted to &quot;wal+VERB+INF&quot;, &quot;wal+VERB+PAST&quot;, &quot;wal+VERB+GER&quot;, and &quot;wal+VERB+PRES&quot;; likewise with any prefixes. </span>
 <span class="sd">        All of these constructions are then walked over the FST to see if we end at an accepting state. If so, the generated forms </span>
 <span class="sd">        (i.e., walk, walked, walking, walks) will be added to a list and returned.</span>
@@ -604,119 +605,9 @@
         <span class="n">queries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_permute_tags</span><span class="p">(</span><span class="n">permutations</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Queries created: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">queries</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traverse_down</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span></div>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_traverse_down</span><span class="p">(</span><span class="n">queries</span><span class="p">)</span></div>
 
 
-    
-    <span class="k">def</span> <span class="nf">_traverse_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Handles all the queries down the FST and returns all the resulting outputs that were found.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        queries : list[str]</span>
-<span class="sd">            The list of queries to process down the FST.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list[str]</span>
-<span class="sd">            A list of all the resulting outputs that were found.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">generated_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-            
-        <span class="n">original_recursion_limit</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">recursion_limit_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recursion_limit</span> <span class="o">&gt;</span> <span class="mi">0</span>
-        
-        <span class="c1"># If the recursion limit has been set, the save the original value, and set it to the specified one.</span>
-        <span class="k">if</span> <span class="n">recursion_limit_set</span><span class="p">:</span>
-            <span class="n">original_recursion_limit</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getrecursionlimit</span><span class="p">()</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recursion_limit</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">queries</span><span class="p">:</span>
-            <span class="c1"># This function call is potentially parallelizable in the future, though I&#39;m not sure the queries take long enough for the cost.</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span>
-                <span class="n">current_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_state</span><span class="p">,</span>
-                <span class="n">input_tokens</span><span class="o">=</span><span class="n">tokenize_input_string</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multichar_symbols</span><span class="p">)</span>
-            <span class="p">)</span>
-
-            <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">EPSILON</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
-
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Query: </span><span class="si">%s</span><span class="se">\t</span><span class="s1">Results: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
-            <span class="n">generated_results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-
-        <span class="c1"># Reset recursion limit before exiting the function.</span>
-        <span class="k">if</span> <span class="n">recursion_limit_set</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="n">original_recursion_limit</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">generated_results</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">__traverse_down</span><span class="p">(</span><span class="n">current_node</span><span class="p">:</span> <span class="n">_FstNode</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Traverses down the FST beginning at an initial provided node.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        current_node : _FstNode</span>
-<span class="sd">            The current node in the recursion. Provide the FST&#39;s start state if calling this for the first time.</span>
-<span class="sd">        input_tokens : list[str]</span>
-<span class="sd">            The list of input tokens to process through the FST.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list[str]</span>
-<span class="sd">            A list of matches found during the traversal.</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-<span class="sd">        This function walks through the FST, recursively finding matches that it builds up through the traversal.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">matches</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="n">current_token</span> <span class="o">=</span> <span class="n">input_tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">input_tokens</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-
-        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">current_node</span><span class="o">.</span><span class="n">out_transitions</span><span class="p">:</span>
-
-            <span class="c1"># If the current transition is an epsilon transition, then consume no input and recurse.</span>
-            <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span> <span class="o">==</span> <span class="n">EPSILON</span><span class="p">:</span>
-
-                <span class="c1"># Case: there are no more input tokens, but you have an epsilon transition to follow.</span>
-                <span class="c1"># In this case, you follow the epsilon, and see if you&#39;re in an accepting state. If so,</span>
-                <span class="c1"># then add the output of this transition to the matches and continue to the recursive step,</span>
-                <span class="c1"># since there could be further epsilon transitions to follow.</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">current_token</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="o">.</span><span class="n">is_accepting_state</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span><span class="p">)</span>
-
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
-
-                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
-
-            <span class="c1"># If we have found an explicit match of the current token with the edge&#39;s input token, then we are going</span>
-            <span class="c1"># to want to create the new input symbols for the next level of recursion by chopping off the current token,</span>
-            <span class="c1"># and getting the resulting output of that recursion. Then, we&#39;ll want to loop over that result, and, since</span>
-            <span class="c1"># we consumed an input token over this current transition, we add `edge.output_symbol + result` to the matches.</span>
-            <span class="k">elif</span> <span class="n">current_token</span> <span class="o">==</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">:</span>
-
-                <span class="n">new_input_tokens</span> <span class="o">=</span> <span class="n">input_tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">new_input_tokens</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="o">.</span><span class="n">is_accepting_state</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span><span class="p">)</span>
-
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="p">,</span> <span class="n">new_input_tokens</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
-
-                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">matches</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_permute_tags</span><span class="p">(</span><span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
@@ -767,6 +658,110 @@
 
         <span class="k">return</span> <span class="n">result</span>
 
+    
+    <span class="k">def</span> <span class="nf">_traverse_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handles all the queries down the FST and returns all the resulting outputs that were found.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        queries : list[str]</span>
+<span class="sd">            The list of queries to process down the FST.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Generator[str]</span>
+<span class="sd">            A generator of all the resulting outputs that were found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">original_recursion_limit</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">recursion_limit_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recursion_limit</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        
+        <span class="c1"># If the recursion limit has been set, the save the original value, and set it to the specified one.</span>
+        <span class="k">if</span> <span class="n">recursion_limit_set</span><span class="p">:</span>
+            <span class="n">original_recursion_limit</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getrecursionlimit</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recursion_limit</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">queries</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span>
+                <span class="n">current_node</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_state</span><span class="p">,</span>
+                <span class="n">input_tokens</span><span class="o">=</span><span class="n">tokenize_input_string</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multichar_symbols</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">EPSILON</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Reset recursion limit before exiting the function.</span>
+        <span class="k">if</span> <span class="n">recursion_limit_set</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="n">original_recursion_limit</span><span class="p">)</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__traverse_down</span><span class="p">(</span><span class="n">current_node</span><span class="p">:</span> <span class="n">_FstNode</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Traverses down the FST beginning at an initial provided node.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        current_node : _FstNode</span>
+<span class="sd">            The current node in the recursion. Provide the FST&#39;s start state if calling this for the first time.</span>
+<span class="sd">        input_tokens : list[str]</span>
+<span class="sd">            The list of input tokens to process through the FST.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Generator[str]</span>
+<span class="sd">            A generator of matches found during the traversal.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This function walks through the FST, recursively finding matches that it builds up through the traversal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">current_token</span> <span class="o">=</span> <span class="n">input_tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">input_tokens</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">current_node</span><span class="o">.</span><span class="n">out_transitions</span><span class="p">:</span>
+
+            <span class="c1"># If the current transition is an epsilon transition, then consume no input and recurse.</span>
+            <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span> <span class="o">==</span> <span class="n">EPSILON</span><span class="p">:</span>
+
+                <span class="c1"># Case: there are no more input tokens, but you have an epsilon transition to follow.</span>
+                <span class="c1"># In this case, you follow the epsilon, and see if you&#39;re in an accepting state. If so,</span>
+                <span class="c1"># then add the output of this transition to the matches and continue to the recursive step,</span>
+                <span class="c1"># since there could be further epsilon transitions to follow.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">current_token</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="o">.</span><span class="n">is_accepting_state</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span>
+
+                <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="p">,</span> <span class="n">input_tokens</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span> <span class="o">+</span> <span class="n">result</span>
+                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="c1"># If we have found an explicit match of the current token with the edge&#39;s input token, then we are going</span>
+            <span class="c1"># to want to create the new input symbols for the next level of recursion by chopping off the current token,</span>
+            <span class="c1"># and getting the resulting output of that recursion. Then, we&#39;ll want to loop over that result, and, since</span>
+            <span class="c1"># we consumed an input token over this current transition, we add ``edge.output_symbol + result`` to the matches.</span>
+            <span class="k">elif</span> <span class="n">current_token</span> <span class="o">==</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">:</span>
+
+                <span class="n">new_input_tokens</span> <span class="o">=</span> <span class="n">input_tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">new_input_tokens</span> <span class="ow">and</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="o">.</span><span class="n">is_accepting_state</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">__traverse_down</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">target_node</span><span class="p">,</span> <span class="n">new_input_tokens</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
+                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span> <span class="o">+</span> <span class="n">result</span>
+                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
     <span class="c1">#endregion</span>
 
 
@@ -774,11 +769,11 @@
 
 <div class="viewcode-block" id="Fst.up_analyses">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.fst.Fst.up_analyses">[docs]</a>
-    <span class="k">def</span> <span class="nf">up_analyses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wordforms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="nf">up_analyses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wordforms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calls `up_analysis` for each wordform and returns a dictionary keyed on each wordform.</span>
+<span class="sd">        Calls ``up_analysis`` for each wordform and returns a dictionary keyed on each wordform.</span>
 
-<span class="sd">        The values in the dictionary are a list of the tagged forms returned by the FST.</span>
+<span class="sd">        The values in the dictionary are generators of tagged forms returned by the FST.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -787,8 +782,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, list[str]]</span>
-<span class="sd">            A dictionary where each key is a wordform and the value is a list of tagged forms generated by the FST.</span>
+<span class="sd">        dict[str, Generator[str]]</span>
+<span class="sd">            A dictionary where each key is a wordform and the value is a generator of tagged forms generated by the FST.</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -806,7 +801,7 @@
 
 <div class="viewcode-block" id="Fst.up_analysis">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.fst.Fst.up_analysis">[docs]</a>
-    <span class="k">def</span> <span class="nf">up_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wordform</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">up_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wordform</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Queries the FST up, or in the direction of analysis.</span>
 
@@ -817,23 +812,21 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list[str]</span>
-<span class="sd">            A list of tagged forms that could lead to the provided wordform.</span>
+<span class="sd">        Generator[str]</span>
+<span class="sd">            A generator of tagged forms that could lead to the provided wordform.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        This function queries the FST in the direction of analysis by starting at the accepting states. Instead of looking at </span>
 <span class="sd">        the input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. </span>
-<span class="sd">        In this way, the FST becomes reversed. For example, `walking -&gt; wal+GER`. There can be several tagged forms that lead to </span>
-<span class="sd">        a single word. For instance, the word `walk` can have forms like `wal+VERB+1Sg+Pres`, `wal+VERB+2Sg+Pres`, etc., that lead </span>
+<span class="sd">        In this way, the FST becomes reversed. For example, ``walking -&gt; wal+GER``. There can be several tagged forms that lead to </span>
+<span class="sd">        a single word. For instance, the word ``walk`` can have forms like ``wal+VERB+1Sg+Pres``, ``wal+VERB+2Sg+Pres``, etc., that lead </span>
 <span class="sd">        to its generation. All these tagged forms are aggregated and returned.</span>
 
 <span class="sd">        This method starts at the accepting states and looks at the output symbols of the node and the in transitions,</span>
 <span class="sd">        effectively reversing the FST. While down/generation generates forms from a lemma plus some tags, the up/analysis </span>
 <span class="sd">        direction takes a word form and generates the tagged forms that could lead to that particular word form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">tagged_forms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="n">original_recursion_limit</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">recursion_limit_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recursion_limit</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -845,17 +838,18 @@
 
         <span class="k">for</span> <span class="n">accepting_state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_accepting_states</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">accepting_state</span><span class="p">,</span> <span class="n">wordform</span><span class="p">)</span>
-            <span class="n">tagged_forms</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">recursive_results</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">result</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">EPSILON</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
         <span class="c1"># Reset recursion limit before exiting the function.</span>
         <span class="k">if</span> <span class="n">recursion_limit_set</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="n">original_recursion_limit</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="p">[</span><span class="n">tagged_form</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">EPSILON</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">tagged_form</span> <span class="ow">in</span> <span class="n">tagged_forms</span><span class="p">]</span></div>
+            <span class="n">sys</span><span class="o">.</span><span class="n">setrecursionlimit</span><span class="p">(</span><span class="n">original_recursion_limit</span><span class="p">)</span></div>
 
-    
+        
+
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_traverse_up</span><span class="p">(</span><span class="n">current_state</span><span class="p">:</span> <span class="n">_FstNode</span><span class="p">,</span> <span class="n">wordform</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_traverse_up</span><span class="p">(</span><span class="n">current_state</span><span class="p">:</span> <span class="n">_FstNode</span><span class="p">,</span> <span class="n">wordform</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Handles the recursive walk through the FST.</span>
 
@@ -865,13 +859,17 @@
 <span class="sd">            The current state node to start the traversal from.</span>
 <span class="sd">        wordform : str</span>
 <span class="sd">            The wordform to be processed during the traversal.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Generator[str]</span>
+<span class="sd">            A generator of symbols outputted from the FST during the walk.</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        This function recursively walks through the FST starting from the given state node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="n">matches</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">current_char</span> <span class="o">=</span> <span class="n">wordform</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">wordform</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">current_state</span><span class="o">.</span><span class="n">in_transitions</span><span class="p">:</span>
@@ -882,40 +880,38 @@
                 <span class="n">new_wordform</span> <span class="o">=</span> <span class="n">wordform</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">new_wordform</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">new_wordform</span><span class="p">)</span>
 
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">new_wordform</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span>
                 <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
-
-                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
+                    <span class="k">pass</span>
 
             <span class="c1"># Otherwise, output symbol is epsilon, then consume no characters and recurse.</span>
             <span class="k">elif</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span> <span class="o">==</span> <span class="n">EPSILON</span><span class="p">:</span>
 
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">wordform</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">wordform</span><span class="p">)</span>
 
-                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span>
+                <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
+                    <span class="k">pass</span>
 
             <span class="c1"># Otherwise, current character matches output character, so chop off the current character and recurse.</span>
             <span class="k">elif</span> <span class="n">current_char</span> <span class="o">==</span> <span class="n">edge</span><span class="o">.</span><span class="n">output_symbol</span><span class="p">:</span>
                 <span class="n">new_wordform</span> <span class="o">=</span> <span class="n">wordform</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
+                <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">new_wordform</span><span class="p">)</span>
+
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="n">Fst</span><span class="o">.</span><span class="n">_traverse_up</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">source_node</span><span class="p">,</span> <span class="n">new_wordform</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span>
                 <span class="k">except</span> <span class="ne">RecursionError</span><span class="p">:</span>
-                    <span class="n">recursive_results</span> <span class="o">=</span> <span class="p">[]</span>
-
-                <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">recursive_results</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="o">.</span><span class="n">input_symbol</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">result</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">matches</span></div>
+                    <span class="k">pass</span></div>
 
 
     <span class="c1">#endregion</span>
@@ -928,7 +924,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, CultureFoundry Inc., Scott Parkhill.</p>
+    <p>&#169; Copyright 2024, CultureFoundry Inc.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

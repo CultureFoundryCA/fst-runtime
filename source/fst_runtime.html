@@ -59,23 +59,26 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-fst_runtime.fst">fst_runtime.fst module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Classes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#constants">Constants</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fst_runtime.fst.EPSILON"><code class="docutils literal notranslate"><span class="pre">EPSILON</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fst_runtime.fst.Fst"><code class="docutils literal notranslate"><span class="pre">Fst</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.recursion_limit"><code class="docutils literal notranslate"><span class="pre">Fst.recursion_limit</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.multichar_symbols"><code class="docutils literal notranslate"><span class="pre">Fst.multichar_symbols</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.down_generation"><code class="docutils literal notranslate"><span class="pre">Fst.down_generation()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.down_generations"><code class="docutils literal notranslate"><span class="pre">Fst.down_generations()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Fst.multichar_symbols</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Fst.recursion_limit</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.up_analyses"><code class="docutils literal notranslate"><span class="pre">Fst.up_analyses()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.up_analysis"><code class="docutils literal notranslate"><span class="pre">Fst.up_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.down_generation"><code class="docutils literal notranslate"><span class="pre">Fst.down_generation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.down_generations"><code class="docutils literal notranslate"><span class="pre">Fst.down_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.up_analysis"><code class="docutils literal notranslate"><span class="pre">Fst.up_analysis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fst_runtime.fst.Fst.up_analyses"><code class="docutils literal notranslate"><span class="pre">Fst.up_analyses</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Fst.down_generation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Fst.down_generations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">Fst.multichar_symbols</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Fst.recursion_limit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Fst.up_analyses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Fst.up_analysis()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-fst_runtime.tokenize_input">fst_runtime.tokenize_input module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fst_runtime.tokenize_input.tokenize_input_string"><code class="docutils literal notranslate"><span class="pre">tokenize_input_string()</span></code></a></li>
 </ul>
 </li>
@@ -112,20 +115,20 @@
 <section id="module-fst_runtime">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fst_runtime" title="Link to this heading"></a></h2>
 <p>fst-runtime</p>
-<p>This package acts as a lightweight runtime for querying finite-state transducers (FSTs) stored in the AT&amp;T <cite>.att</cite> format.</p>
+<p>This package acts as a lightweight runtime for querying finite-state transducers (FSTs) stored in the AT&amp;T <code class="docutils literal notranslate"><span class="pre">.att</span></code> format.</p>
 <p>The development of this package was motivated by the need for a lightweight way to run FSTs compiled with foma or other toolkits in Python,
 separate from the compilation technology. Previously, installing all of foma into a Docker container and compiling by source was necessary
 to query the FST during deployment. This package provides a solution to that.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Epsilon in this AT&amp;T format is represented by the string ‘&#64;0&#64;’.</p>
-<p>This package is used via the <cite>Fst</cite> object. This object requires a path to the AT&amp;T-compiled FST, e.g., <cite>fst = Fst(‘/path/to/file.att’)</cite>.
-You can get the multi-character symbols used in the FST via <cite>fst.multichar_symbols</cite>.</p>
-<p>The <cite>Fst</cite> object has a public method named <cite>down_generation</cite>, which follows the FST convention of the “down” direction being the
+<p>This package is used via the <code class="docutils literal notranslate"><span class="pre">Fst</span></code> object. This object requires a path to the AT&amp;T-compiled FST, e.g., <code class="docutils literal notranslate"><span class="pre">fst</span> <span class="pre">=</span> <span class="pre">Fst('/path/to/file.att')</span></code>.
+You can get the multi-character symbols used in the FST via <code class="docutils literal notranslate"><span class="pre">fst.multichar_symbols</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Fst</span></code> object has a public method named <code class="docutils literal notranslate"><span class="pre">down_generation</span></code>, which follows the FST convention of the “down” direction being the
 direction of “generation” (i.e., creating forms from some tagged word form). For example, in English, for the lemma “do” with
-possible affixes of <cite>prefixes = [[‘de’, ‘un’]]</cite> and <cite>suffixes = [[‘+VERB’], [‘+GER’, ‘+INF’, ‘+PAST’]]</cite>,
-the call would be <cite>fst.down_generation([[‘un’]], ‘do’, [[‘+VERB’], [‘+GER’, ‘+INF’, ‘+PAST’]])</cite>.
-This would return <cite>[‘do’, ‘doing’, ‘did’, ‘undo’, ‘undoing’, ‘undid’]</cite>.</p>
+possible affixes of <code class="docutils literal notranslate"><span class="pre">prefixes</span> <span class="pre">=</span> <span class="pre">[['de',</span> <span class="pre">'un']]</span></code> and <code class="docutils literal notranslate"><span class="pre">suffixes</span> <span class="pre">=</span> <span class="pre">[['+VERB'],</span> <span class="pre">['+GER',</span> <span class="pre">'+INF',</span> <span class="pre">'+PAST']]</span></code>,
+the call would be <code class="docutils literal notranslate"><span class="pre">fst.down_generation([['un']],</span> <span class="pre">'do',</span> <span class="pre">[['+VERB'],</span> <span class="pre">['+GER',</span> <span class="pre">'+INF',</span> <span class="pre">'+PAST']])</span></code>.
+This would return <code class="docutils literal notranslate"><span class="pre">['do',</span> <span class="pre">'doing',</span> <span class="pre">'did',</span> <span class="pre">'undo',</span> <span class="pre">'undoing',</span> <span class="pre">'undid']</span></code>.</p>
 </div>
 </section>
 <section id="submodules">
@@ -168,7 +171,7 @@ This would return <cite>[‘do’, ‘doing’, ‘did’, ‘undo’, ‘undoin
 </section>
 <section id="module-fst_runtime.fst">
 <span id="fst-runtime-fst-module"></span><h2>fst_runtime.fst module<a class="headerlink" href="#module-fst_runtime.fst" title="Link to this heading"></a></h2>
-<p>This module provides the main class <cite>Fst</cite> which defines a finite-state transducer (FST) in-memory as a directed graph.</p>
+<p>This module provides the main class <code class="docutils literal notranslate"><span class="pre">Fst</span></code> which defines a finite-state transducer (FST) in-memory as a directed graph.</p>
 <section id="id1">
 <h3>Classes<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <dl class="simple">
@@ -179,31 +182,14 @@ This would return <cite>[‘do’, ‘doing’, ‘did’, ‘undo’, ‘undoin
 <section id="constants">
 <h3>Constants<a class="headerlink" href="#constants" title="Link to this heading"></a></h3>
 <dl class="simple">
-<dt>EPSILON<span class="classifier">str</span></dt><dd><p>The epsilon character as encoded in the AT&amp;T <cite>.att</cite> FST format.</p>
+<dt>EPSILON<span class="classifier">str</span></dt><dd><p>The epsilon character as encoded in the AT&amp;T <code class="docutils literal notranslate"><span class="pre">.att</span></code> FST format; this representation is the string: <code class="docutils literal notranslate"><span class="pre">&#64;0&#64;</span></code>.</p>
 </dd>
 </dl>
-</section>
-<section id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
-<p>None</p>
-<p class="rubric">Notes</p>
-<dl class="simple">
-<dt>The <cite>Fst</cite> class exposes several public members:</dt><dd><ul class="simple">
-<li><p><cite>multichar_symbols</cite></p></li>
-<li><p><cite>recursion_limit</cite></p></li>
-<li><p><cite>down_generation</cite></p></li>
-<li><p><cite>down_generations</cite></p></li>
-<li><p><cite>up_analysis</cite></p></li>
-<li><p><cite>up_analyses</cite></p></li>
-</ul>
-</dd>
-</dl>
-<p>It also exposes a constant called <cite>EPSILON</cite>, which defines epsilon as <cite>&#64;0&#64;</cite> according to the AT&amp;T format standard.</p>
 </section>
 <dl class="py data">
 <dt class="sig sig-object py" id="fst_runtime.fst.EPSILON">
 <span class="sig-prename descclassname"><span class="pre">fst_runtime.fst.</span></span><span class="sig-name descname"><span class="pre">EPSILON</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&#64;0&#64;'</span></em><a class="headerlink" href="#fst_runtime.fst.EPSILON" title="Link to this definition"></a></dt>
-<dd><p>This is the epsilon character as encoded in the AT&amp;T <cite>.att</cite> FST format.</p>
+<dd><p>This is the epsilon character as encoded in the AT&amp;T <code class="docutils literal notranslate"><span class="pre">.att</span></code> FST format.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -233,9 +219,53 @@ This would return <cite>[‘do’, ‘doing’, ‘did’, ‘undo’, ‘undoin
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
 <dt class="sig sig-object py" id="fst_runtime.fst.Fst.down_generation">
-<span class="sig-name descname"><span class="pre">down_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lemma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.down_generation" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">down_generation</span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.down_generation" title="Link to this definition"></a></dt>
+<dd><p>Generates wordforms from a lemma and sets of prefix and suffix tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fst_runtime.fst.Fst.down_generations">
+<span class="sig-name descname"><span class="pre">down_generations</span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.down_generations" title="Link to this definition"></a></dt>
+<dd><p>Generates wordforms from many lemmas and common sets of prefix and suffix tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fst_runtime.fst.Fst.up_analysis">
+<span class="sig-name descname"><span class="pre">up_analysis</span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.up_analysis" title="Link to this definition"></a></dt>
+<dd><p>Analyzes a wordform and returns any associated tagged lemmas of the wordform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fst_runtime.fst.Fst.up_analyses">
+<span class="sig-name descname"><span class="pre">up_analyses</span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analyses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.up_analyses" title="Link to this definition"></a></dt>
+<dd><p>Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">down_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lemma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
 <dd><p>Queries the FST in the down/generation direction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -246,25 +276,25 @@ This would return <cite>[‘do’, ‘doing’, ‘did’, ‘undo’, ‘undoin
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of generated forms that are accepted by the FST.</p>
+<dd class="field-even"><p>A generator of generated forms that are accepted by the FST.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[str]</p>
+<dd class="field-odd"><p>Generator[str]</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes.
-For example, the lemma “wal” in English (for the lemma “walk”), with prefix tags <cite>[[“+VERB”], [“+INF”, “+PAST”, “+GER”, “+PRES”]]</cite>.
+For example, the lemma “wal” in English (for the lemma “walk”), with prefix tags <code class="docutils literal notranslate"><span class="pre">[[&quot;+VERB&quot;],</span> <span class="pre">[&quot;+INF&quot;,</span> <span class="pre">&quot;+PAST&quot;,</span> <span class="pre">&quot;+GER&quot;,</span> <span class="pre">&quot;+PRES&quot;]]</span></code>.
 Then, these would be fully permuted to “wal+VERB+INF”, “wal+VERB+PAST”, “wal+VERB+GER”, and “wal+VERB+PRES”; likewise with any prefixes.
 All of these constructions are then walked over the FST to see if we end at an accepting state. If so, the generated forms
 (i.e., walk, walked, walking, walks) will be added to a list and returned.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fst_runtime.fst.Fst.down_generations">
-<span class="sig-name descname"><span class="pre">down_generations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lemmas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.down_generations" title="Link to this definition"></a></dt>
-<dd><p>Calls <cite>down_generation</cite> for each lemma and returns a dictionary keyed on each lemma.</p>
-<p>The values in the dictionary are a list of the wordforms returned by the FST.</p>
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">down_generations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lemmas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffixes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.down_generations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd><p>Calls <code class="docutils literal notranslate"><span class="pre">down_generation</span></code> for each lemma and returns a dictionary keyed on each lemma.</p>
+<p>The values in the dictionary are generators of wordforms returned by the FST.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -274,24 +304,24 @@ All of these constructions are then walked over the FST to see if we end at an a
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary where each key is a lemma and the value is a list of wordforms generated by the FST.</p>
+<dd class="field-even"><p>A dictionary where each key is a lemma and the value is a generator of wordforms generated by the FST.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict[str, list[str]]</p>
+<dd class="field-odd"><p>dict[str, Generator[str]]</p>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#fst_runtime.fst.Fst.down_generation" title="fst_runtime.fst.Fst.down_generation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">down_generation</span></code></a></dt><dd><p>For more information on how each lemma is processed.</p>
+<dt><a class="reference internal" href="#id0" title="fst_runtime.fst.Fst.down_generation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">down_generation</span></code></a></dt><dd><p>For more information on how each lemma is processed.</p>
 </dd>
 </dl>
 </div>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id0">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">multichar_symbols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id3">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">multichar_symbols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
 <dd><p>Public getter for the multichar_symbols variable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -304,8 +334,8 @@ All of these constructions are then walked over the FST to see if we end at an a
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="id2">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">recursion_limit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id4">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">recursion_limit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
 <dd><p>Public getter for the recursion_limit variable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -319,50 +349,50 @@ and so the current system recursion limit will be used (default for Python appli
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fst_runtime.fst.Fst.up_analyses">
-<span class="sig-name descname"><span class="pre">up_analyses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wordforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analyses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.up_analyses" title="Link to this definition"></a></dt>
-<dd><p>Calls <cite>up_analysis</cite> for each wordform and returns a dictionary keyed on each wordform.</p>
-<p>The values in the dictionary are a list of the tagged forms returned by the FST.</p>
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">up_analyses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wordforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analyses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd><p>Calls <code class="docutils literal notranslate"><span class="pre">up_analysis</span></code> for each wordform and returns a dictionary keyed on each wordform.</p>
+<p>The values in the dictionary are generators of tagged forms returned by the FST.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>wordforms</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – The list of wordforms to process.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary where each key is a wordform and the value is a list of tagged forms generated by the FST.</p>
+<dd class="field-even"><p>A dictionary where each key is a wordform and the value is a generator of tagged forms generated by the FST.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict[str, list[str]]</p>
+<dd class="field-odd"><p>dict[str, Generator[str]]</p>
 </dd>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <dl class="simple">
-<dt><a class="reference internal" href="#fst_runtime.fst.Fst.up_analysis" title="fst_runtime.fst.Fst.up_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">up_analysis</span></code></a></dt><dd><p>For more information on how each wordform is processed.</p>
+<dt><a class="reference internal" href="#id6" title="fst_runtime.fst.Fst.up_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">up_analysis</span></code></a></dt><dd><p>For more information on how each wordform is processed.</p>
 </dd>
 </dl>
 </div>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fst_runtime.fst.Fst.up_analysis">
-<span class="sig-name descname"><span class="pre">up_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wordform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.fst.Fst.up_analysis" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">up_analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wordform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/fst.html#Fst.up_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
 <dd><p>Queries the FST up, or in the direction of analysis.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>wordform</strong> (<em>str</em>) – The wordform to process.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of tagged forms that could lead to the provided wordform.</p>
+<dd class="field-even"><p>A generator of tagged forms that could lead to the provided wordform.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list[str]</p>
+<dd class="field-odd"><p>Generator[str]</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>This function queries the FST in the direction of analysis by starting at the accepting states. Instead of looking at
 the input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions.
-In this way, the FST becomes reversed. For example, <cite>walking -&gt; wal+GER</cite>. There can be several tagged forms that lead to
-a single word. For instance, the word <cite>walk</cite> can have forms like <cite>wal+VERB+1Sg+Pres</cite>, <cite>wal+VERB+2Sg+Pres</cite>, etc., that lead
+In this way, the FST becomes reversed. For example, <code class="docutils literal notranslate"><span class="pre">walking</span> <span class="pre">-&gt;</span> <span class="pre">wal+GER</span></code>. There can be several tagged forms that lead to
+a single word. For instance, the word <code class="docutils literal notranslate"><span class="pre">walk</span></code> can have forms like <code class="docutils literal notranslate"><span class="pre">wal+VERB+1Sg+Pres</span></code>, <code class="docutils literal notranslate"><span class="pre">wal+VERB+2Sg+Pres</span></code>, etc., that lead
 to its generation. All these tagged forms are aggregated and returned.</p>
 <p>This method starts at the accepting states and looks at the output symbols of the node and the in transitions,
 effectively reversing the FST. While down/generation generates forms from a lemma plus some tags, the up/analysis
@@ -376,8 +406,8 @@ direction takes a word form and generates the tagged forms that could lead to th
 <span id="fst-runtime-tokenize-input-module"></span><h2>fst_runtime.tokenize_input module<a class="headerlink" href="#module-fst_runtime.tokenize_input" title="Link to this heading"></a></h2>
 <p>This module holds a tokenization function that splits an input string into its constituent parts,
 while considering the set of provided multi-character symbols.</p>
-<section id="id3">
-<h3>Functions<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <dl class="simple">
 <dt>tokenize_input_string</dt><dd><p>Tokenizes the input string while respecting the multichar_symbols.</p>
 </dd>
@@ -386,7 +416,7 @@ while considering the set of provided multi-character symbols.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="fst_runtime.tokenize_input.tokenize_input_string">
 <span class="sig-prename descclassname"><span class="pre">fst_runtime.tokenize_input.</span></span><span class="sig-name descname"><span class="pre">tokenize_input_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multichar_symbols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/fst_runtime/tokenize_input.html#tokenize_input_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fst_runtime.tokenize_input.tokenize_input_string" title="Link to this definition"></a></dt>
-<dd><p>Returns a list containing the individual tokens that make up the <cite>input_string</cite>.</p>
+<dd><p>Returns a list containing the individual tokens that make up the <code class="docutils literal notranslate"><span class="pre">input_string</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -403,7 +433,7 @@ while considering the set of provided multi-character symbols.</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>This function tokenizes the input string into individual tokens, taking into account
-the multi-character symbols specified in the <cite>multichar_symbols</cite> set. It ensures that
+the multi-character symbols specified in the <code class="docutils literal notranslate"><span class="pre">multichar_symbols</span></code> set. It ensures that
 the multi-character symbols are recognized as single tokens rather than being split
 into multiple tokens.</p>
 </dd></dl>
