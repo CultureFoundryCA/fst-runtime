@@ -36,3 +36,11 @@ fst\_runtime.tokenize\_input module
    :members:
    :undoc-members:
    :show-inheritance:
+
+fst\_runtime.semiring module
+----------------------------
+
+.. automodule:: fst_runtime.semiring
+   :members:
+   :undoc-members:
+   :show-inheritance:
