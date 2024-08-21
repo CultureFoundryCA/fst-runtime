@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 import os
 import sys
-from typing import Generator, Iterable
+from typing import Generator, Iterator
 
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
@@ -58,7 +58,7 @@ class _AttInputInfo:
     transition_weight: float = 0
     """The penalty weight of the transition. Default is zero."""
 
-    def __iter__(self) -> Iterable[tuple[int, str, float]]:
+    def __iter__(self) -> Iterator[int | str | float]:
         """
         Defines an iterable for this object to allow for object unpacking.
 
@@ -71,7 +71,9 @@ class _AttInputInfo:
         float
             The penalty weight of the transition.
         """
-        return iter((self.target_state_id, self.transition_output_symbol, self.transition_weight))
+        yield self.target_state_id
+        yield self.transition_output_symbol
+        yield self.transition_weight
 
 
 @dataclass
@@ -212,7 +214,7 @@ class Fst:
             logger.error("Provided file path does not point to a ``.att`` file. Example: ``/path/to/fst.att``.")
             sys.exit(1)
 
-        self._start_state: _FstNode = None
+        self._start_state: _FstNode = _FstNode(-1, False, [], [])
         """This is the entry point into the FST. This is functionally like the root of a tree (even though this is a graph, not a tree)."""
 
         self._accepting_states: dict[int, _FstNode] = {}
@@ -364,7 +366,7 @@ class Fst:
                 if len(output_symbol) > 1:
                     self._multichar_symbols.add(output_symbol)
 
-                info = _AttInputInfo(int(next_state), output_symbol, weight)
+                info = _AttInputInfo(int(next_state), output_symbol, float(weight))
 
                 try:
                     transitions[int(current_state)][input_symbol].append(info)
@@ -422,9 +424,9 @@ class Fst:
                 for att_input in att_inputs:
 
                     next_state, output_symbol, weight = att_input
-                    next_node = self._get_or_create_node(next_state, nodes, accepting_states)
+                    next_node = self._get_or_create_node(next_state, nodes, accepting_states) # pyright: ignore
 
-                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight) # pyright: ignore
 
                     current_node.out_transitions.append(directed_edge)
                     next_node.in_transitions.append(directed_edge)
@@ -444,8 +446,8 @@ class Fst:
         self,
         lemmas: list[str],
         *,
-        prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None
+        prefixes: list[list[str]] = [],
+        suffixes: list[list[str]] = []
     ) -> dict[str, Generator[str]]:
         """
         Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
@@ -486,8 +488,8 @@ class Fst:
         self,
         lemma: str,
         *,
-        prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None
+        prefixes: list[list[str]] = [],
+        suffixes: list[list[str]] = []
     ) -> Generator[str]:
         """
         Queries the FST in the down/generation direction.
