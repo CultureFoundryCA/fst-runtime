@@ -9,19 +9,7 @@ Fst
 Constants
 ---------
 EPSILON : str
-    The epsilon character as encoded in the AT&T ``.att`` FST format.
-
-Notes
------
-The ``Fst`` class exposes several public members:
-    - ``multichar_symbols``
-    - ``recursion_limit``
-    - ``down_generation``
-    - ``down_generations``
-    - ``up_analysis``
-    - ``up_analyses``
-
-It also exposes a constant called ``EPSILON``, which defines epsilon as ``@0@`` according to the AT&T format standard.
+    The epsilon character as encoded in the AT&T ``.att`` FST format; this representation is the string: ``@0@``.
 """
 
 
@@ -169,26 +157,20 @@ class Fst:
     """
     Represents a finite-state transducer as a directed graph.
 
-    Methods
-    ---------
-    down_generation(lemma: str, *, prefixes: list[list[str]] = None, suffixes: list[list[str]] = None) -> Generator[str]
-        Generates wordforms from a lemma and sets of prefix and suffix tags.
-
-    def down_generations(lemmas: list[str], *, prefixes: list[list[str]] = None, suffixes: list[list[str]] = None) -> dict[str, Generator[str]]
-        Generates wordforms from many lemmas and common sets of prefix and suffix tags.
-
-    up_analysis(wordform: str) -> Generator[str]
-        Analyzes a wordform and returns any associated tagged lemmas of the wordform.
-
-    up_analyses(wordforms: list[str]) -> dict[str, Generator[str]]
-        Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.
-
     Attributes
     ----------
     recursion_limit : int
         Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.
     multichar_symbols : set[str]
         A copy of the set of multi-character symbols defined in the FST.
+    down_generation : method
+        Generates wordforms from a lemma and sets of prefix and suffix tags.
+    down_generations : method
+        Generates wordforms from many lemmas and common sets of prefix and suffix tags.
+    up_analysis : method
+        Analyzes a wordform and returns any associated tagged lemmas of the wordform.
+    up_analyses : method
+        Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.
     """
 
 
