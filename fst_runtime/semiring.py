@@ -40,7 +40,7 @@ mathematical underpinning of them, and their uses in/for FSTs:
 
 from abc import ABC, abstractmethod
 import math
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Any
 
 class Semiring[T](ABC):
     """
@@ -272,7 +272,7 @@ class Semiring[T](ABC):
         return self.get_path_set_weight(set_of_path_weights)
 
     @abstractmethod
-    def check_membership(self, *values: any) -> None:
+    def check_membership(self, *values: Any) -> None:
         """
         Checks that the given values are members of the underlying set of the semiring.
 
@@ -329,7 +329,7 @@ class BooleanSemiring(Semiring[bool]):
             multiplicative_identity=True,
         )
 
-    def check_membership(self, *values: any) -> None:
+    def check_membership(self, *values: Any) -> None:
         """
         Checks that all provided values are boolean.
 
@@ -459,7 +459,7 @@ class LogSemiring(Semiring[float]):
             multiplicative_identity=0.0,
         )
 
-    def check_membership(self, *values: any) -> None:
+    def check_membership(self, *values: Any) -> None:
         """
         Checks that all provided values are real numbers or +/- infinity.
 
@@ -507,7 +507,7 @@ class ProbabilitySemiring(Semiring[float]):
             multiplicative_identity=1.0
         )
 
-    def check_membership(self, *values: any) -> None:
+    def check_membership(self, *values: Any) -> None:
         """
         Checks that all provided values are non-negative real numbers.
 
@@ -572,7 +572,7 @@ class TropicalSemiring(Semiring[float]):
             multiplicative_identity=0.0,
         )
 
-    def check_membership(self, *values: any) -> None:
+    def check_membership(self, *values: Any) -> None:
         """
         Checks that all provided values are real numbers or +/- infinity.
 
