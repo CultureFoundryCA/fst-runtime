@@ -15,9 +15,9 @@ python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
-pylint = "^3.2.3"
 sphinx = "^7.4.3"
 sphinx-rtd-theme = "^2.0.0"
+pylint = "^3.2.6"
 
 [build-system]
 requires = ["poetry-core"]
