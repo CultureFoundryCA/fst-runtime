@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 import os
 import sys
-from typing import Generator
+from typing import Generator, Iterable
 
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
@@ -58,7 +58,7 @@ class _AttInputInfo:
     transition_weight: float = 0
     """The penalty weight of the transition. Default is zero."""
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[tuple[int, str, float]]:
         """
         Defines an iterable for this object to allow for object unpacking.
 
@@ -192,7 +192,7 @@ class Fst:
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
     """Five input values on a line mean that the line represents a weighted transition in the ``.att`` file."""
 
-    def __init__(self, att_file_path: str, *, recursion_limit: int = 0):
+    def __init__(self, att_file_path: str, *, recursion_limit: int = 0) -> None:
         """
         Initializes the FST via the provided ``.att`` file.
 
