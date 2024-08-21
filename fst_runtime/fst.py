@@ -11,10 +11,6 @@ Constants
 EPSILON : str
     The epsilon character as encoded in the AT&T ``.att`` FST format.
 
-Functions
----------
-None
-
 Notes
 -----
 The ``Fst`` class exposes several public members:
@@ -172,6 +168,20 @@ class _FstEdge:
 class Fst:
     """
     Represents a finite-state transducer as a directed graph.
+
+    Methods
+    ---------
+    down_generation(lemma: str, *, prefixes: list[list[str]] = None, suffixes: list[list[str]] = None) -> Generator[str]
+        Generates wordforms from a lemma and sets of prefix and suffix tags.
+
+    def down_generations(lemmas: list[str], *, prefixes: list[list[str]] = None, suffixes: list[list[str]] = None) -> dict[str, Generator[str]]
+        Generates wordforms from many lemmas and common sets of prefix and suffix tags.
+
+    up_analysis(wordform: str) -> Generator[str]
+        Analyzes a wordform and returns any associated tagged lemmas of the wordform.
+
+    up_analyses(wordforms: list[str]) -> dict[str, Generator[str]]
+        Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.
 
     Attributes
     ----------
@@ -453,7 +463,7 @@ class Fst:
         lemmas: list[str],
         *,
         prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None,
+        suffixes: list[list[str]] = None
     ) -> dict[str, Generator[str]]:
         """
         Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
@@ -495,7 +505,7 @@ class Fst:
         lemma: str,
         *,
         prefixes: list[list[str]] = None,
-        suffixes: list[list[str]] = None,
+        suffixes: list[list[str]] = None
     ) -> Generator[str]:
         """
         Queries the FST in the down/generation direction.
