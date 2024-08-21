@@ -1,5 +1,23 @@
 '''
-This module defines a semiring as well as several commonly used semirings weighted FSTs.
+This module defines a semiring as well as several semirings commonly used with weighted FSTs.
+
+Classes
+-------
+Semiring[T]
+    An abstract class that defines a semiring.
+
+BooleanSemiring[bool]
+    A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.
+
+LogSemiring[float]
+    A semiring whose underlying set of values are the reals with +/- infinity, with addition as logadd and
+    multiplication as standard addition.
+
+ProbabilitySemiring[float]
+    This is the probability semiring that is defined on the non-negative reals and standard additiona and multiplication.
+
+Tropical Semiring[float]
+    The tropical semiring is defined on the reals with +/- infinity, where addition is the minimum and multiplication is standard addition.
 
 See Also
 --------
@@ -19,7 +37,7 @@ mathematical underpinning of them, and their uses in/for FSTs:
 
 from abc import ABC, abstractmethod
 import math
-from typing import Callable
+from typing import Callable, Iterable
 
 class Semiring[T](ABC):
     """
@@ -28,20 +46,28 @@ class Semiring[T](ABC):
     Attributes
     ----------
     additive_identity : T
-        The identity element for addition in the semiring.
-    multiplicative_identity : T
-        The identity element for multiplication in the semiring.
+        The additive identity of the semiring.
 
-    Methods
-    -------
-    add : Callable[[T, T], T]
+    multiplicative_identity : T
+        The multiplicative identity of the semiring.
+
+    add : method
         The addition operation for the semiring.
-    multiply : Callable[[T, T], T]
+
+    multiply : method
         The multiplication operation for the semiring.
 
-    Abstract Methods
-    ----------------
-    def check_membership(self, *values: any) -> None:
+    get_path_weight : method
+        Computes the overall weight of a single path by multiplying the weights of all edges in the path.
+
+    get_path_set_weight : method
+        Computes the overall weight of a set of paths by adding the weights of individual paths.
+
+    get_path_set_weight_for_uncomputed_path_weights : method
+        Computes the overall weight of a set of paths by first calculating the weight of each path and then 
+        summing these weights.
+
+    check_membership : abstract method
         This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
 
     Examples
@@ -151,13 +177,13 @@ class Semiring[T](ABC):
 
         return self._multiply(a, b)
 
-    def get_path_weight(self, path_weights: list[T]) -> T:
+    def get_path_weight(self, path_weights: Iterable[T]) -> T:
         """
         Computes the overall weight of a single path by multiplying the weights of all edges in the path.
 
         Parameters
         ----------
-        path_weights : list[T]
+        path_weights : Iterable[T]
             A list of weights corresponding to the edges in a path.
 
         Returns
@@ -177,14 +203,13 @@ class Semiring[T](ABC):
 
         return overall_path_weight
 
-
-    def get_weight_of_set_of_path_weights(self, set_of_path_weights: list[T]) -> T:
+    def get_path_set_weight(self, set_of_path_weights: Iterable[T]) -> T:
         """
         Computes the overall weight of a set of paths by adding the weights of individual paths.
 
         Parameters
         ----------
-        set_of_path_weights : list[T]
+        set_of_path_weights : Iterable[T]
             A list of weights corresponding to individual paths.
 
         Returns
@@ -204,15 +229,14 @@ class Semiring[T](ABC):
 
         return overall_set_weight
 
-
-    def get_weight_of_set_of_paths(self, set_of_paths: list[list[T]]) -> T:
+    def get_path_set_weight_for_uncomputed_path_weights(self, set_of_paths: Iterable[Iterable[T]]) -> T:
         """
         Computes the overall weight of a set of paths by first calculating the weight of each path and then 
         summing these weights.
 
         Parameters
         ----------
-        set_of_paths : list[list[T]]
+        set_of_paths : Iterable[Iterable[T]]
             A list of paths, where each path is represented as a list of weights.
 
         Returns
@@ -228,7 +252,6 @@ class Semiring[T](ABC):
         set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
         return self.get_weight_of_set_of_path_weights(set_of_path_weights)
 
-    
     @abstractmethod
     def check_membership(self, *values: any) -> None:
         """
@@ -251,6 +274,17 @@ class Semiring[T](ABC):
 class BooleanSemiring(Semiring[bool]):
     """
     A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.
+
+    Attributes
+    ----------
+    check_membership : method
+        Checks that all provided values are boolean.
+
+    convert_value_to_boolean : static method
+        Converts an integer or float to a boolean if it is 0 or 1.
+
+    convert values_to_boolean : static method
+        Converts multiple integers or floats to boolean values.
 
     Notes
     -----
@@ -356,9 +390,16 @@ class BooleanSemiring(Semiring[bool]):
         
         return converted_values
             
+
 class LogSemiring(Semiring[float]):
     """
-    A semiring whose underlying set of values are the reals with +/- infinity.
+    A semiring whose underlying set of values are the reals with +/- infinity, with addition as logadd and
+    multiplication as standard addition.
+
+    Attributes
+    ----------
+    check_membership : method
+        Checks that all provided values are real numbers or +/- infinity.
 
     Notes
     -----
@@ -421,7 +462,12 @@ class LogSemiring(Semiring[float]):
 
 class ProbabilitySemiring(Semiring[float]):
     """
-    This is the probability semiring that is defined on the non-negative reals.
+    This is the probability semiring that is defined on the non-negative reals and standard additiona and multiplication.
+
+    Attributes
+    ----------
+    check_membership : method
+        Checks that all provided values are non-negative real numbers.
 
     Notes
     -----
@@ -468,16 +514,26 @@ class ProbabilitySemiring(Semiring[float]):
                 raise error
     
 
-# TODO Notes
 class TropicalSemiring(Semiring[float]):
     """
-    A semiring where addition is the minimum operation and multiplication is standard addition.
+    The tropical semiring is defined on the reals with +/- infinity, where addition is the minimum and multiplication is standard addition.
+
+    Attributes
+    ----------
+    check_membership : method
+        Checks that all provided values are real numbers or +/- infinity.
 
     Notes
     -----
     This is also known as the minimum tropical semiring for its use of ``min``, instead of ``max``, as the addition function.
     
     As mentioned, ``add`` is defined as ``min{a, b}``. Multiplication is defined as standard addition. The additive identity is ``float('inf')``.
+
+    The way this works is that for a given output form, you may end up with a bunch of different paths that got you there. Each of those paths
+    will have its own weight, and, because addition is ``min``, that means when you sum the paths together, the result you get is the lowest
+    weight among paths that led to the output. This can be useful because some paths may be penalized for having maybe non-standard forms, etc.,
+    but which lead to a perfectly valid output. We therefore only care about the minimum weight which is therefore the determiner of the
+    validity/order of the output form. The rest of the weights can be thought of as superfluous.
 
     See Also
     --------
@@ -515,4 +571,4 @@ class TropicalSemiring(Semiring[float]):
             try:
                 _ = float(value)
             except ValueError as e:
-                raise ValueError("The tropical semiring only supports the real numbers and +/- infinity.")
+                raise ValueError("The tropical semiring only supports the real numbers and +/- infinity.") from e
