@@ -1,3 +1,6 @@
+# pylint: disable=undefined-variable
+# This is disabled because pylint isn't recognize the new generic syntax for python yet and can't figure out what "T" is.
+
 '''
 This module defines a semiring as well as several semirings commonly used with weighted FSTs.
 
@@ -76,7 +79,7 @@ class Semiring[T](ABC):
     
     ```
     class TropicalSemiring(Semiring[float]):
-        def __init__():
+        def __init__(self) -> None:
             super().__init__(
                 add=min,
                 multiply=lambda a, b: a + b,
@@ -96,14 +99,30 @@ class Semiring[T](ABC):
             multiply: Callable[[T, T], T],
             additive_identity: T,
             multiplicative_identity: T
-        ):
+        ) -> None:
+        """
+        Initializes the semiring with the specified operations and identity elements.
+
+        Parameters
+        ----------
+        add : Callable[[T, T], T]
+            A function that defines the addition operation for the semiring.
+        multiply : Callable[[T, T], T]
+            A function that defines the multiplication operation for the semiring.
+        additive_identity : T
+            The identity element for the addition operation.
+        multiplicative_identity : T
+            The identity element for the multiplication operation.
+
+        """
+
         self._add = add
         self._multiply = multiply
         self._additive_identity = additive_identity
         self._multiplicative_identity = multiplicative_identity
         
     @property
-    def additive_identity(self):
+    def additive_identity(self) -> T:
         """
         The additive identity of the semiring.
 
@@ -116,7 +135,7 @@ class Semiring[T](ABC):
         return self._additive_identity
     
     @property
-    def multiplicative_identity(self):
+    def multiplicative_identity(self) -> T:
         """
         The multiplicative identity of the semiring.
 
@@ -250,7 +269,7 @@ class Semiring[T](ABC):
         """
 
         set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
-        return self.get_weight_of_set_of_path_weights(set_of_path_weights)
+        return self.get_path_set_weight(set_of_path_weights)
 
     @abstractmethod
     def check_membership(self, *values: any) -> None:
@@ -301,7 +320,7 @@ class BooleanSemiring(Semiring[bool]):
         https://en.wikipedia.org/wiki/Two-element_Boolean_algebra
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         super().__init__(
             add=lambda a, b: a or b,
@@ -352,10 +371,11 @@ class BooleanSemiring(Semiring[bool]):
 
         if value == 1:
             return True
-        elif value == 0:
+        
+        if value == 0:
             return False
-        else:
-            raise ValueError("Only 0 and 1 are valid stand-ins for a boolean value.")
+        
+        raise ValueError("Only 0/0.0 and 1/1.0 are valid stand-ins for a boolean value.")
             
     @staticmethod
     def convert_values_to_boolean(*values: int | float) -> list[bool]:
@@ -430,7 +450,7 @@ class LogSemiring(Semiring[float]):
         https://en.wikipedia.org/wiki/Log_semiring
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         
         super().__init__(
             add=lambda a, b: -math.log(math.exp(-a) + math.exp(-b)),
@@ -478,7 +498,7 @@ class ProbabilitySemiring(Semiring[float]):
     For the base class API, please see ``Semiring[T]``.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         
         super().__init__(
             add=lambda a, b: a + b,
@@ -543,7 +563,7 @@ class TropicalSemiring(Semiring[float]):
         https://en.wikipedia.org/wiki/Tropical_semiring
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         super().__init__(
             add=min,
