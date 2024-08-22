@@ -75,9 +75,9 @@
 <span class="sd">This module holds a tokenization function that splits an input string into its constituent parts,</span>
 <span class="sd">while considering the set of provided multi-character symbols.</span>
 
-<span class="sd">Functions</span>
-<span class="sd">---------</span>
-<span class="sd">tokenize_input_string</span>
+<span class="sd">Attributes</span>
+<span class="sd">----------</span>
+<span class="sd">tokenize_input_string : function</span>
 <span class="sd">    Tokenizes the input string while respecting the multichar_symbols.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -93,6 +93,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    input_string : str</span>
 <span class="sd">        The input string to be tokenized.</span>
+<span class="sd">        </span>
 <span class="sd">    multichar_symbols : set[str]</span>
 <span class="sd">        A set of multi-character symbols that need to be recognized as single tokens.</span>
 
@@ -101,7 +102,7 @@
 <span class="sd">    list[str]</span>
 <span class="sd">        A list of individual tokens that make up the input string.</span>
 
-<span class="sd">    Notes</span>
+<span class="sd">    Note</span>
 <span class="sd">    -----</span>
 <span class="sd">    This function tokenizes the input string into individual tokens, taking into account</span>
 <span class="sd">    the multi-character symbols specified in the ``multichar_symbols`` set. It ensures that</span>
