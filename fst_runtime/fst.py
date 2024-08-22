@@ -1,13 +1,11 @@
 """
 This module provides the main class ``Fst`` which defines a finite-state transducer (FST) in-memory as a directed graph.
 
-Classes
+Attributes
 -------
-Fst
+Fst : class
     Defines an FST in-memory as a directed graph.
 
-Constants
----------
 EPSILON : str
     The epsilon character as encoded in the AT&T ``.att`` FST format; this representation is the string: ``@0@``.
 """
@@ -43,8 +41,10 @@ class _AttInputInfo:
     ----------
     target_state_id : int
         The ID of the state in the FST that is being transitioned to.
+
     transition_output_symbol : str
         The symbol that is outputted over the transition.
+
     transition_weight : float, optional
         The penalty weight of the transition. Default is zero.
     """
@@ -85,10 +85,13 @@ class _FstNode:
     ----------
     id : int
         A unique ID given to each node for easier lookup.
+
     is_accepting_state : bool
         Indicates whether the current node is an accepting state of the FST.
+
     in_transitions : list[_FstEdge]
         Holds all the edges that lead to this node.
+
     out_transitions : list[_FstEdge]
         Holds all the edges that lead out of this node.
     """
@@ -119,14 +122,19 @@ class _FstEdge:
     ----------
     source_node : _FstNode
         The source node where the edge starts.
+
     target_node : _FstNode
         The target node where the edge ends.
+
     input_symbol : str
         The input symbol consumed by this edge in the FST.
+
     output_symbol : str
         The output symbol produced by this edge in the FST.
+
     penalty_weight : float, optional
         The weight that penalizes traversing this edge. Default is 0.
+
     NO_WEIGHT : float
         A constant representing no weight. Default is 0.
     """
@@ -163,14 +171,19 @@ class Fst:
     ----------
     recursion_limit : int
         Sets the recursion limit for the generation/analysis functionality, to prevent epsilon cycles from running amok.
+
     multichar_symbols : set[str]
         A copy of the set of multi-character symbols defined in the FST.
+
     down_generation : method
         Generates wordforms from a lemma and sets of prefix and suffix tags.
+
     down_generations : method
         Generates wordforms from many lemmas and common sets of prefix and suffix tags.
+
     up_analysis : method
         Analyzes a wordform and returns any associated tagged lemmas of the wordform.
+
     up_analyses : method
         Analyzes many wordforms and returns their associated tagged lemmas of each wordform in a dictionary keyed to the wordform.
     """
@@ -202,6 +215,7 @@ class Fst:
         ----------
         att_file_path : str
             The path to the ``.att`` file containing the FST description.
+
         recursion_limit : int, optional
             The recursion limit for the generation/analysis functionality. Default is 0.
         """
@@ -278,8 +292,10 @@ class Fst:
         ----------
         state_id : int
             The unique identifier for the state.
+
         nodes : dict[int, _FstNode]
             The dictionary containing all the nodes, keyed by their state IDs.
+
         accepting_states : set[int]
             The set of accepting state IDs.
 
@@ -399,7 +415,7 @@ class Fst:
         AttFormatError
             This error is raised if the FST is ill-defined according to the AT&T format.
 
-        Notes
+        Note
         -----
         ``transitions`` is a dictionary whose key is the source state number as read in from the ``.att`` file
         (e.g., 22), and whose value is a dictionary. This child dictionary is keyed to the input symbol from 
@@ -458,8 +474,10 @@ class Fst:
         ----------
         lemmas : list[str]
             The list of lemmas to process.
+
         prefixes : list[list[str]], optional
             A list of lists containing prefix sequences. Default is None.
+
         suffixes : list[list[str]], optional
             A list of lists containing suffix sequences. Default is None.
 
@@ -498,8 +516,10 @@ class Fst:
         ----------
         lemma : str
             The lemma to process.
+
         prefixes : list[list[str]], optional
             A list of lists containing prefix sequences. Default is None.
+
         suffixes : list[list[str]], optional
             A list of lists containing suffix sequences. Default is None.
 
@@ -508,7 +528,7 @@ class Fst:
         Generator[str]
             A generator of generated forms that are accepted by the FST.
 
-        Notes
+        Note
         -----
         When provided lists of prefixes and suffixes as well as the lemma, it fully permutes the tags based on the slots of the affixes. 
         For example, the lemma "wal" in English (for the lemma "walk"), with prefix tags ``[["+VERB"], ["+INF", "+PAST", "+GER", "+PRES"]]``. 
@@ -543,7 +563,7 @@ class Fst:
         list[str]
             A list of all permutations of the given tags in the given order.
 
-        Notes
+        Note
         -----
         This method generates all possible permutations of the tags by recursively descending through the provided lists of tags.
         """
@@ -624,6 +644,7 @@ class Fst:
         ----------
         current_node : _FstNode
             The current node in the recursion. Provide the FST's start state if calling this for the first time.
+
         input_tokens : list[str]
             The list of input tokens to process through the FST.
 
@@ -632,7 +653,7 @@ class Fst:
         Generator[str]
             A generator of matches found during the traversal.
 
-        Notes
+        Note
         -----
         This function walks through the FST, recursively finding matches that it builds up through the traversal.
         """
@@ -729,7 +750,7 @@ class Fst:
         Generator[str]
             A generator of tagged forms that could lead to the provided wordform.
 
-        Notes
+        Note
         -----
         This function queries the FST in the direction of analysis by starting at the accepting states. Instead of looking at 
         the input symbols for a node and the out transitions, it looks at the output symbols of the node and the in transitions. 
@@ -770,6 +791,7 @@ class Fst:
         ----------
         current_state : _FstNode
             The current state node to start the traversal from.
+            
         wordform : str
             The wordform to be processed during the traversal.
         
@@ -778,7 +800,7 @@ class Fst:
         Generator[str]
             A generator of symbols outputted from the FST during the walk.
 
-        Notes
+        Note
         -----
         This function recursively walks through the FST starting from the given state node.
         """

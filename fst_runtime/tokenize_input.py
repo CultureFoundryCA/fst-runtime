@@ -2,9 +2,9 @@
 This module holds a tokenization function that splits an input string into its constituent parts,
 while considering the set of provided multi-character symbols.
 
-Functions
----------
-tokenize_input_string
+Attributes
+----------
+tokenize_input_string : function
     Tokenizes the input string while respecting the multichar_symbols.
 """
 
@@ -18,6 +18,7 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
     ----------
     input_string : str
         The input string to be tokenized.
+        
     multichar_symbols : set[str]
         A set of multi-character symbols that need to be recognized as single tokens.
 
@@ -26,7 +27,7 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
     list[str]
         A list of individual tokens that make up the input string.
 
-    Notes
+    Note
     -----
     This function tokenizes the input string into individual tokens, taking into account
     the multi-character symbols specified in the ``multichar_symbols`` set. It ensures that

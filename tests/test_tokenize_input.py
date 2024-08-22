@@ -5,24 +5,27 @@ test_tokenize_input
 
 This test module tests the functioning of the ``tokenize_input_string`` function from ``tokenize_input.py``.
 
-Fixtures
---------
-multichar_symbols
+Attributes
+----------
+multichar_symbols : function
     Defines the multi-character symbols to use for the tests.
 
-Functions
----------
-test_tokenize_input_string_match_all_multichar_symbols
+test_tokenize_input_string_match_all_multichar_symbols : function
     Tests that all symbols are multichar symbols.
-test_tokenize_input_string_no_multichar_symbols
+
+test_tokenize_input_string_no_multichar_symbols : function
     Tests that no symbols are multichar symbols.
-test_tokenize_input_string_partial_multichar_symbol_match
+
+test_tokenize_input_string_partial_multichar_symbol_match : function
     Tests that partial symbol match doesn't get treated as a full multichar symbol match.
-test_tokenize_input_string_partial_overlapping_match
+
+test_tokenize_input_string_partial_overlapping_match : function
     Tests that a partially overlapping match doesn't get treated as a full match.
-test_tokenize_input_string_longer_multichar_symbol
+
+test_tokenize_input_string_longer_multichar_symbol : function
     Tests that the longest multichar symbol gets chosen over the shorter when they have overlapping characters.
-test_tokenize_input_string_empty_input
+
+test_tokenize_input_string_empty_input : function
     Tests how the tokenize method responds to empty input.
 """
 

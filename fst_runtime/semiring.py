@@ -4,38 +4,23 @@
 '''
 This module defines a semiring as well as several semirings commonly used with weighted FSTs.
 
-Classes
--------
-Semiring[T]
+Attributes
+----------
+Semiring[T] : class
     An abstract class that defines a semiring.
 
-BooleanSemiring[bool]
+BooleanSemiring[bool] : class
     A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.
 
-LogSemiring[float]
+LogSemiring[float] : class
     A semiring whose underlying set of values are the reals with +/- infinity, with addition as logadd and
     multiplication as standard addition.
 
-ProbabilitySemiring[float]
+ProbabilitySemiring[float] : class
     This is the probability semiring that is defined on the non-negative reals and standard additiona and multiplication.
 
-Tropical Semiring[float]
+TropicalSemiring[float] : class
     The tropical semiring is defined on the reals with +/- infinity, where addition is the minimum and multiplication is standard addition.
-
-See Also
---------
-See this OpenFST paper for a relatively high-level discussion of weighted FSTs and semirings.
-    https://www.openfst.org/twiki/pub/FST/FstBackground/ciaa.pdf
-
-Wikipedia discussion on semirings:
-    https://en.wikipedia.org/wiki/Semiring
-
-See this paper for a more in-depth and technical weighted FST design discussion:
-    https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf
-
-See this textbook for the definitions of the different semirings used here, as well as the general
-mathematical underpinning of them, and their uses in/for FSTs:
-    Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 200.
 '''
 
 from abc import ABC, abstractmethod
@@ -75,22 +60,31 @@ class Semiring[T](ABC):
 
     Examples
     --------
-    An example of initializing this object for the tropical semiring would be:
+    An example of initializing this object for the tropical semiring would be::
     
-    ```
-    class TropicalSemiring(Semiring[float]):
-        def __init__(self) -> None:
-            super().__init__(
-                add=min,
-                multiply=lambda a, b: a + b,
-                additive_identity=float('inf'),
-                multiplicative_identity=0.0
-            )
-    ```
+        class TropicalSemiring(Semiring[float]):
+            def __init__(self) -> None:
+                super().__init__(
+                    add=min,
+                    multiply=lambda a, b: a + b,
+                    additive_identity=float('inf'),
+                    multiplicative_identity=0.0
+                )
         
-    See Also
-    --------
-    See module-level documentation for a list of resources on semirings and weighted FSTs.
+    References
+    ----------
+    See this OpenFST paper for a relatively high-level discussion of weighted FSTs and semirings.
+        https://www.openfst.org/twiki/pub/FST/FstBackground/ciaa.pdf
+
+    Wikipedia discussion on semirings:
+        https://en.wikipedia.org/wiki/Semiring
+
+    See this paper for a more in-depth and technical weighted FST design discussion:
+        https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf
+
+    See this textbook for the definitions of the different semirings used here, as well as the general
+    mathematical underpinning of them, and their uses in/for FSTs:
+        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 200.
     """
 
     def __init__(
@@ -107,10 +101,13 @@ class Semiring[T](ABC):
         ----------
         add : Callable[[T, T], T]
             A function that defines the addition operation for the semiring.
+
         multiply : Callable[[T, T], T]
             A function that defines the multiplication operation for the semiring.
+
         additive_identity : T
             The identity element for the addition operation.
+
         multiplicative_identity : T
             The identity element for the multiplication operation.
 
@@ -155,6 +152,7 @@ class Semiring[T](ABC):
         ----------
         a : T
             The first operand.
+
         b : T
             The second operand.
 
@@ -163,7 +161,7 @@ class Semiring[T](ABC):
         T
             The result of the addition.
 
-        Notes
+        Note
         -----
         Please note that this addition is not the standard "+" operation, but could be any associative, commutative binary operation
         that has an identity element **0**.
@@ -179,6 +177,7 @@ class Semiring[T](ABC):
         ----------
         a : T
             The first operand.
+            
         b : T
             The second operand.
 
@@ -187,7 +186,7 @@ class Semiring[T](ABC):
         T
             The result of the multiplication.
 
-        Notes
+        Note
         -----
         Please note that this multiplication is not the standard "*" operation, but could be any associative binary operation
         that distributes over the defined addition with identity element **1** and that has **0** as an annhilator. Multiplication
@@ -210,8 +209,8 @@ class Semiring[T](ABC):
         T
             The overall weight of the path, computed as the product of the individual edge weights.
 
-        See Also
-        --------
+        References
+        ----------
         Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
         """
 
@@ -236,8 +235,8 @@ class Semiring[T](ABC):
         T
             The overall weight of the set of paths, computed as the sum of the individual path weights.
 
-        See Also
-        --------
+        References
+        ----------
         Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
         """
 
@@ -263,8 +262,8 @@ class Semiring[T](ABC):
         T
             The overall weight of the set of paths.
 
-        See Also
-        --------
+        References
+        ----------
         Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
         """
 
@@ -277,7 +276,7 @@ class Semiring[T](ABC):
         Checks that the given values are members of the underlying set of the semiring.
 
         Parameters
-        ----------
+        ---------
         *values : any
             The values that will be checked to guarantee they are of the type of the underlying set of the semiring.
 
@@ -302,10 +301,10 @@ class BooleanSemiring(Semiring[bool]):
     convert_value_to_boolean : static method
         Converts an integer or float to a boolean if it is 0 or 1.
 
-    convert values_to_boolean : static method
+    convert_values_to_boolean : static method
         Converts multiple integers or floats to boolean values.
 
-    Notes
+    Note
     -----
     The boolean semiring defines ``add`` as the ``or`` operator and ``multiply`` as the ``and`` operator.
     The additive identity of the semiring is ``False``, and the multiplicative idenity is ``True``.
@@ -314,8 +313,10 @@ class BooleanSemiring(Semiring[bool]):
 
     See Also
     --------
-    For the base class API, please see ``Semiring[T]``.
+    Semiring : The base class of the ``BooleanSemiring`` with ``T = bool``.
 
+    References
+    ----------
     Wikipedia article on two-element boolean algebra:
         https://en.wikipedia.org/wiki/Two-element_Boolean_algebra
     """
@@ -421,10 +422,8 @@ class LogSemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
 
-    Notes
+    Note
     -----
-    For the base class API, please see ``Semiring[T]``.
-
     This is also known as the minimum logarithmic semiring, given the negation of the log and the exponents of e.
 
     This semiring defines ``add`` as ``-math.log(math.exp(-a) + math.exp(-b))`` and ``multiply`` as ``a + b``.
@@ -441,8 +440,10 @@ class LogSemiring(Semiring[float]):
 
     See Also
     --------
-    For the base class API, please see ``Semiring[T]``.
+    Semiring : The base class of the ``LogSemiring`` with ``T = float``.
 
+    References
+    ----------
     Wikipedia article on the LogSumExp function:
         https://en.wikipedia.org/wiki/LogSumExp
 
@@ -489,13 +490,14 @@ class ProbabilitySemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are non-negative real numbers.
 
-    Notes
+    Note
     -----
     This semiring uses standard addition and multiplication, and is meant for managing weights that are probabilities.
     
     See Also
     --------
-    For the base class API, please see ``Semiring[T]``.
+    Semiring : The base class of the ``ProbabilitySemiring`` with ``T = float``.
+
     """
 
     def __init__(self) -> None:
@@ -543,7 +545,7 @@ class TropicalSemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
 
-    Notes
+    Note
     -----
     This is also known as the minimum tropical semiring for its use of ``min``, instead of ``max``, as the addition function.
     
@@ -557,8 +559,10 @@ class TropicalSemiring(Semiring[float]):
 
     See Also
     --------
-    For the base class API, please see ``Semiring[T]``.
+    Semiring : The base class of the ``TropicalSemiring`` with ``T = float``.
 
+    References
+    ----------
     The Wikipedia article on tropical semirings:
         https://en.wikipedia.org/wiki/Tropical_semiring
     """

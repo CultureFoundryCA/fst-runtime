@@ -3,11 +3,12 @@
 """
 This module tests the graph creation process.
 
-Functions
----------
-test_directed_graph_initialization_unweighted
+Attributes
+----------
+test_directed_graph_initialization_unweighted : function
     Tests that all initialization of the graph from the file is done correctly for an unweighted FST.
-test_directed_graph_initialization_weighted
+    
+test_directed_graph_initialization_weighted : function
     Tests that all initialization of the graph from the file is done correctly for a weighted FST.
 """
 

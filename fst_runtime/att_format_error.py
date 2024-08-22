@@ -3,9 +3,9 @@ att_format_error
 
 This module defines custom exceptions used for handling errors specific to the AT&T file format (.att file) processing.
 
-Classes
--------
-AttFormatError
+Attributes
+----------
+AttFormatError : class
     Exception raised for errors in the input AT&T file format (.att file).
 """
 

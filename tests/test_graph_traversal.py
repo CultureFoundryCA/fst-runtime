@@ -6,31 +6,42 @@ This module tests that the traversals and queries made to the FST are correct.
 These tests cover many different possible breaking points, such as epsilon loops resulting in infinite recursion,
 handling multiple outputted forms, following epsilon cycles successfully, etc.
 
-Functions
----------
-test_down_traversal_fst1
+Attributes
+----------
+test_down_traversal_fst1 : function
     Tests traversal down for fst1.att.
-test_down_traversal_fst2
+
+test_down_traversal_fst2 : function
     Tests traversal down for fst2.att.
-test_down_traversal_fst3
+
+test_down_traversal_fst3 : function
     Tests traversal down for fst3.att.
-test_down_traversal_fst4
+
+test_down_traversal_fst4 : function
     Tests traversal down for fst4.att.
-test_down_traversal_fst5
+
+test_down_traversal_fst5 : function
     Tests traversal down for fst5_epsilon_cycles.att.
-test_down_traversal_fst6
+
+test_down_traversal_fst6 : function
     Tests traversal down for fst6_waabam.att.
-test_up_traversal_fst1
+
+test_up_traversal_fst1 : function
     Tests traversal up for fst1.att.
-test_up_traversal_fst2
+
+test_up_traversal_fst2 : function
     Tests traversal up for fst2.att.
-test_up_traversal_fst3
+
+test_up_traversal_fst3 : function
     Tests traversal up for fst3.att.
-test_up_traversal_fst4
+
+test_up_traversal_fst4 : function
     Tests traversal up for fst4.att.
-test_up_traversal_fst5
+
+test_up_traversal_fst5 : function
     Tests traversal up for fst5_epsilon_cycles.att.
-test_up_analysis_fst6
+    
+test_up_analysis_fst6 : function
     Tests traversal up for fst6_waabam.att.
 """
 
