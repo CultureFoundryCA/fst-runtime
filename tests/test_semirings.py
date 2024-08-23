@@ -75,8 +75,8 @@ def test_log_semiring():
     # Recall that this log add is associative.
     # 1. ``-ln(e^(-(-0.6340067520000001)) + e^(-1.30383)) = -0.7685509`` <- plug this value into (2).
     # 2. ``-ln(e^(-(-0.7685509)) + e^(-0.6)) = -0.99526841``.
-    log_add_expected_value = -math.log(math.exp(-path_set_weight1) + math.exp(-path_weight2))
-    log_add_expected_value = -math.log(math.exp(-log_add_expected_value) + math.exp(-path_set_weight3))
+    log_add_expected_value = -math.log(math.exp(-path_weight1) + math.exp(-path_weight2))
+    log_add_expected_value = -math.log(math.exp(-log_add_expected_value) + math.exp(-path_weight3))
     
     assert path_set_weight1 == log_add_expected_value
 
@@ -98,8 +98,8 @@ def test_probability_semiring():
     path_weight1 = semiring.get_path_weight(transition_weights_of_path1)
     path_weight2 = semiring.get_path_weight(transition_weights_of_path2)
     path_weight3 = semiring.get_path_weight(transition_weights_of_path3)
-    positive_values_in_semiring_domain = semiring.check_membership(transition_weights_of_path1)
-    negative_value_in_semiring_domain = semiring.check_membership(transition_negative_weight)
+    positive_values_in_semiring_domain = semiring.check_membership(*transition_weights_of_path1)
+    negative_value_in_semiring_domain = semiring.check_membership(*transition_negative_weight)
 
     assert path_weight1 == math.prod(transition_weights_of_path1)
     assert path_weight2 == math.prod(transition_weights_of_path2)
