@@ -363,7 +363,7 @@
 <div class="viewcode-block" id="Semiring.check_membership">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.check_membership">[docs]</a>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that the given values are members of the underlying set of the semiring.</span>
 
@@ -372,13 +372,13 @@
 <span class="sd">        *values : any</span>
 <span class="sd">            The values that will be checked to guarantee they are of the type of the underlying set of the semiring.</span>
 
-<span class="sd">        Raises</span>
+<span class="sd">        Returns</span>
 <span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            A value error is raised if any of the provided values don&#39;t belong to the underlying set of the semiring.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use abstract method directly.&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
 </div>
 
     
@@ -428,7 +428,7 @@
 
 <div class="viewcode-block" id="BooleanSemiring.check_membership">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.BooleanSemiring.check_membership">[docs]</a>
-    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that all provided values are boolean.</span>
 
@@ -437,15 +437,17 @@
 <span class="sd">        *values : any</span>
 <span class="sd">            The values to check for boolean membership.</span>
 
-<span class="sd">        Raises</span>
+<span class="sd">        Returns</span>
 <span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            Raised if any value is not a boolean.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The boolean semiring only supports boolean values.&quot;</span><span class="p">)</span></div>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
 
     
 <div class="viewcode-block" id="BooleanSemiring.convert_value_to_boolean">
@@ -557,6 +559,9 @@
 
 <span class="sd">    Wikipedia article on the log semiring:</span>
 <span class="sd">        https://en.wikipedia.org/wiki/Log_semiring</span>
+
+<span class="sd">    Numpy has the maximum version of this function, see this and the Wikipedia article on the log semiring:</span>
+<span class="sd">        https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -570,7 +575,7 @@
 
 <div class="viewcode-block" id="LogSemiring.check_membership">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.LogSemiring.check_membership">[docs]</a>
-    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
 
@@ -579,16 +584,18 @@
 <span class="sd">        *values : any</span>
 <span class="sd">            The values to check for real number membership.</span>
 
-<span class="sd">        Raises</span>
+<span class="sd">        Returns</span>
 <span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If any value is not a real number or +/- infinity.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The log semiring only supports the real numbers and +/- infinity.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span></div>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
 </div>
 
 
@@ -625,7 +632,7 @@
 
 <div class="viewcode-block" id="ProbabilitySemiring.check_membership">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.ProbabilitySemiring.check_membership">[docs]</a>
-    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that all provided values are non-negative real numbers.</span>
 
@@ -634,22 +641,22 @@
 <span class="sd">        *values : any</span>
 <span class="sd">            The values to check for membership in the non-negative reals.</span>
 
-<span class="sd">        Raises</span>
+<span class="sd">        Returns</span>
 <span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If any value is not a non-negative real number.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">error</span> <span class="o">=</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The probability semiring only supports the non-negative reals.&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">error</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
 
             <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">error</span></div>
+                <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">return</span> <span class="kc">True</span></div>
 </div>
 
     
@@ -698,7 +705,7 @@
 
 <div class="viewcode-block" id="TropicalSemiring.check_membership">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.TropicalSemiring.check_membership">[docs]</a>
-    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
 
@@ -706,18 +713,20 @@
 <span class="sd">        ----------</span>
 <span class="sd">        *values : any</span>
 <span class="sd">            The values to check for real number membership.</span>
-
-<span class="sd">        Raises</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
 <span class="sd">        ------</span>
-<span class="sd">        ValueError</span>
-<span class="sd">            If any value is not a real number or +/- infinity.</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The tropical semiring only supports the real numbers and +/- infinity.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span></div>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
 </div>
 
 </pre></div>

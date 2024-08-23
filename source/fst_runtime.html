@@ -629,14 +629,17 @@ The additive identity of the semiring is <code class="docutils literal notransla
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="id11">
-<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#BooleanSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#BooleanSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
 <dd><p>Checks that all provided values are boolean.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*values</strong> (<em>any</em>) – The values to check for boolean membership.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – Raised if any value is not a boolean.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether or not every provided value is in the underlying set or not.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -726,17 +729,22 @@ then <code class="docutils literal notranslate"><span class="pre">-ln(e^(-a)</sp
 </dd>
 <dt>Wikipedia article on the log semiring:</dt><dd><p><a class="reference external" href="https://en.wikipedia.org/wiki/Log_semiring">https://en.wikipedia.org/wiki/Log_semiring</a></p>
 </dd>
+<dt>Numpy has the maximum version of this function, see this and the Wikipedia article on the log semiring:</dt><dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html">https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html</a></p>
+</dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="id15">
-<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#LogSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#LogSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
 <dd><p>Checks that all provided values are real numbers or +/- infinity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*values</strong> (<em>any</em>) – The values to check for real number membership.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If any value is not a real number or +/- infinity.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether or not every provided value is in the underlying set or not.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -772,14 +780,17 @@ then <code class="docutils literal notranslate"><span class="pre">-ln(e^(-a)</sp
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="id17">
-<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#ProbabilitySemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#ProbabilitySemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
 <dd><p>Checks that all provided values are non-negative real numbers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*values</strong> (<em>any</em>) – The values to check for membership in the non-negative reals.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If any value is not a non-negative real number.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether or not every provided value is in the underlying set or not.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -947,14 +958,17 @@ that has an identity element <strong>0</strong>.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="id21">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#Semiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#Semiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
 <dd><p>Checks that the given values are members of the underlying set of the semiring.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*values</strong> (<em>any</em>) – The values that will be checked to guarantee they are of the type of the underlying set of the semiring.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – A value error is raised if any of the provided values don’t belong to the underlying set of the semiring.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether or not every provided value is in the underlying set or not.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1099,14 +1113,17 @@ validity/order of the output form. The rest of the weights can be thought of as 
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="id28">
-<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#TropicalSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id28" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">check_membership</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/fst_runtime/semiring.html#TropicalSemiring.check_membership"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id28" title="Link to this definition"></a></dt>
 <dd><p>Checks that all provided values are real numbers or +/- infinity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>*values</strong> (<em>any</em>) – The values to check for real number membership.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If any value is not a real number or +/- infinity.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether or not every provided value is in the underlying set or not.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>

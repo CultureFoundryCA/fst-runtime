@@ -205,7 +205,7 @@
 <span class="sd">    output_symbol : str</span>
 <span class="sd">        The output symbol produced by this edge in the FST.</span>
 
-<span class="sd">    penalty_weight : float, optional</span>
+<span class="sd">    weight : float, optional</span>
 <span class="sd">        The weight that penalizes traversing this edge. Default is 0.</span>
 
 <span class="sd">    NO_WEIGHT : float</span>
@@ -224,7 +224,7 @@
     <span class="n">output_symbol</span><span class="p">:</span> <span class="nb">str</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This edge is in an FST, and so it consumes input symbols and outputs output symbols.&quot;&quot;&quot;</span>
 
-    <span class="n">penalty_weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">weight</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This represents a weight that penalizes walks through the FST. That is, if there&#39;s an edge with 0 weight and another with 1 weight,</span>
 <span class="sd">    the edge without weight will be prioritized (walked) first.</span>
