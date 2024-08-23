@@ -465,7 +465,7 @@ class LogSemiring(Semiring[float]):
             multiplicative_identity=0.0,
         )
 
-    def check_membership(self, *values: Any) -> None:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are real numbers or +/- infinity.
 
