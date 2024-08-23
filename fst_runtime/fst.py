@@ -23,7 +23,6 @@ from typing import Generator, Iterator
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
 from fst_runtime.tokenize_input import tokenize_input_string
-from fst_runtime.semiring import Semiring
 
 EPSILON: str = "@0@"
 """This is the epsilon character as encoded in the AT&T ``.att`` FST format."""
