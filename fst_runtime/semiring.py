@@ -271,7 +271,7 @@ class Semiring[T](ABC):
         return self.get_path_set_weight(set_of_path_weights)
 
     @abstractmethod
-    def check_membership(self, *values: Any) -> None:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that the given values are members of the underlying set of the semiring.
 
@@ -280,13 +280,13 @@ class Semiring[T](ABC):
         *values : any
             The values that will be checked to guarantee they are of the type of the underlying set of the semiring.
 
-        Raises
+        Returns
         ------
-        ValueError
-            A value error is raised if any of the provided values don't belong to the underlying set of the semiring.
+        bool
+            Whether or not every provided value is in the underlying set or not.
         """
 
-        raise ValueError("Cannot use abstract method directly.")
+        return False
     
 
 class BooleanSemiring(Semiring[bool]):
@@ -330,7 +330,7 @@ class BooleanSemiring(Semiring[bool]):
             multiplicative_identity=True,
         )
 
-    def check_membership(self, *values: Any) -> None:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are boolean.
 
@@ -339,15 +339,17 @@ class BooleanSemiring(Semiring[bool]):
         *values : any
             The values to check for boolean membership.
 
-        Raises
+        Returns
         ------
-        ValueError
-            Raised if any value is not a boolean.
+        bool
+            Whether or not every provided value is in the underlying set or not.
         """
 
         for value in values:
             if not isinstance(value, bool):
-                raise ValueError("The boolean semiring only supports boolean values.")
+                return False
+            
+        return True
     
     @staticmethod
     def convert_value_to_boolean(value: int | float) -> bool:
@@ -472,16 +474,18 @@ class LogSemiring(Semiring[float]):
         *values : any
             The values to check for real number membership.
 
-        Raises
+        Returns
         ------
-        ValueError
-            If any value is not a real number or +/- infinity.
+        bool
+            Whether or not every provided value is in the underlying set or not.
         """
         for value in values:
             try:
                 _ = float(value)
-            except ValueError as e:
-                raise ValueError("The log semiring only supports the real numbers and +/- infinity.") from e
+            except ValueError:
+                return False
+            
+        return True
 
 
 class ProbabilitySemiring(Semiring[float]):
@@ -512,7 +516,7 @@ class ProbabilitySemiring(Semiring[float]):
             multiplicative_identity=1.0
         )
 
-    def check_membership(self, *values: Any) -> None:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are non-negative real numbers.
 
@@ -521,22 +525,22 @@ class ProbabilitySemiring(Semiring[float]):
         *values : any
             The values to check for membership in the non-negative reals.
 
-        Raises
+        Returns
         ------
-        ValueError
-            If any value is not a non-negative real number.
+        bool
+            Whether or not every provided value is in the underlying set or not.
         """
-
-        error = ValueError("The probability semiring only supports the non-negative reals.")
 
         for value in values:
             try:
                 value = float(value)
-            except ValueError as e:
-                raise error from e
+            except ValueError:
+                return False
 
             if value < 0 or value == float('inf'):
-                raise error
+                return False
+        
+        return True
     
 
 class TropicalSemiring(Semiring[float]):
@@ -579,7 +583,7 @@ class TropicalSemiring(Semiring[float]):
             multiplicative_identity=0.0,
         )
 
-    def check_membership(self, *values: Any) -> None:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are real numbers or +/- infinity.
 
@@ -587,15 +591,17 @@ class TropicalSemiring(Semiring[float]):
         ----------
         *values : any
             The values to check for real number membership.
-
-        Raises
+        
+        Returns
         ------
-        ValueError
-            If any value is not a real number or +/- infinity.
+        bool
+            Whether or not every provided value is in the underlying set or not.
         """
 
         for value in values:
             try:
                 _ = float(value)
-            except ValueError as e:
-                raise ValueError("The tropical semiring only supports the real numbers and +/- infinity.") from e
+            except ValueError:
+                return False
+            
+        return True
