@@ -449,6 +449,9 @@ class LogSemiring(Semiring[float]):
 
     Wikipedia article on the log semiring:
         https://en.wikipedia.org/wiki/Log_semiring
+
+    Numpy has the maximum version of this function, see this and the Wikipedia article on the log semiring:
+        https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html
     """
 
     def __init__(self) -> None:
