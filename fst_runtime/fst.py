@@ -132,7 +132,7 @@ class _FstEdge:
     output_symbol : str
         The output symbol produced by this edge in the FST.
 
-    penalty_weight : float, optional
+    weight : float, optional
         The weight that penalizes traversing this edge. Default is 0.
 
     NO_WEIGHT : float
@@ -151,7 +151,7 @@ class _FstEdge:
     output_symbol: str
     """This edge is in an FST, and so it consumes input symbols and outputs output symbols."""
 
-    penalty_weight: float = field(default=0.0)
+    weight: float = field(default=0.0)
     """
     This represents a weight that penalizes walks through the FST. That is, if there's an edge with 0 weight and another with 1 weight,
     the edge without weight will be prioritized (walked) first.
