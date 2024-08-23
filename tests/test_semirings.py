@@ -1,5 +1,7 @@
 # pylint: disable=too-many-locals
 
+'''This module executes tests on the four pre-defined, common semirings in the application.'''
+
 import math
 from fst_runtime.semiring import BooleanSemiring, LogSemiring, ProbabilitySemiring, TropicalSemiring
 
@@ -11,6 +13,7 @@ doing floating-point arithmetic (such as getting the value 0.6000000000000001 in
 '''
 
 def test_boolean_semiring():
+    '''Runs tests on the boolean semiring.'''
 
     semiring = BooleanSemiring()
 
@@ -49,6 +52,7 @@ def test_boolean_semiring():
 
 
 def test_log_semiring():
+    '''Runs tests on the log semiring.'''
 
     semiring = LogSemiring()
 
@@ -89,6 +93,7 @@ def test_log_semiring():
 
     
 def test_probability_semiring():
+    '''Run tests on the probability semiring.'''
     
     semiring = ProbabilitySemiring()
 
@@ -125,6 +130,7 @@ def test_probability_semiring():
 
 
 def test_tropical_semiring():
+    '''Run tests on the tropical semiring.'''
     
     semiring = TropicalSemiring()
 
