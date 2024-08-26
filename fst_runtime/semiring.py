@@ -436,10 +436,6 @@ class LogSemiring(Semiring[float]):
     values by shifting the values into a domain that's better suited for floating-point precision. This sort of equation is often
     used in probability theory, as logarithms can have a bunch of benefits for calculations.
 
-    This "smooth minimum" means that when values are close to each other, the value returned will be a kind of interpolation between the two.
-    But, when values are far apart, the value returned will be much closer to the minimum value. That is, when ``a`` and ``b`` are far apart,
-    then ``-ln(e^(-a) + e^(-b)) ≈ min{a, b}``.
-
     See Also
     --------
     Semiring : The base class of the ``LogSemiring`` with ``T = float``.
