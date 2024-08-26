@@ -2,7 +2,7 @@
 This module provides the main class ``Fst`` which defines a finite-state transducer (FST) in-memory as a directed graph.
 
 Attributes
--------
+----------
 Fst : class
     Defines an FST in-memory as a directed graph.
 
