@@ -1,4 +1,6 @@
 .DS_Store
+ojibwe.att
+test_ojibwe_fst.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
