@@ -3,19 +3,19 @@ from fst_runtime.semiring import BooleanSemiring, LogSemiring, ProbabilitySemiri
 
 fst = Fst('tests/data/weighted_graph.att')
 
-def test_weighted_graph_boolean():
+def test_weighted_fst_boolean():
     semiring = BooleanSemiring()
     fst = Fst('tests/data/weighted_graph_boolean.att')
     assert True
 
-def test_weighted_graph_log():
+def test_weighted_fst_log():
     semiring = LogSemiring()
     assert True
 
-def test_weighted_graph_probability():
+def test_weighted_fst_probability():
     semiring = ProbabilitySemiring()
     assert True
 
-def test_weighted_graph_tropical():
+def test_weighted_fst_tropical():
     semiring = TropicalSemiring()
     assert True
