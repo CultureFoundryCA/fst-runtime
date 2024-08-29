@@ -55,10 +55,10 @@ class Semiring[T](ABC):
         Computes the overall weight of a set of paths by first calculating the weight of each path and then 
         summing these weights.
 
-    check_membership : static abstract method
+    check_membership : abstract method
         This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
     
-    convert_string_into_domain : static abstract method
+    convert_string_into_domain : abstract method
         This takes the string representation of a value and converts it into the underlying domain of the semiring.
 
     Examples
@@ -273,9 +273,8 @@ class Semiring[T](ABC):
         set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
         return self.get_path_set_weight(set_of_path_weights)
 
-    @staticmethod
     @abstractmethod
-    def check_membership(*values: Any) -> bool:
+    def check_membership(self, *values: Any) -> bool:
         """
         Checks that the given values are members of the underlying set of the semiring.
 
@@ -291,9 +290,8 @@ class Semiring[T](ABC):
         """
         pass
 
-    @staticmethod
     @abstractmethod
-    def convert_string_into_domain(string_representation_of_value: str) -> T:
+    def convert_string_into_domain(self, string_representation_of_value: str) -> T:
         """
         Returns the underlying value for a given string representation of a that value (i.e. as read in from a file).
 
@@ -316,10 +314,10 @@ class BooleanSemiring(Semiring[bool]):
 
     Attributes
     ----------
-    check_membership : static method
+    check_membership : method
         Checks that all provided values are boolean.
 
-    convert_string_into_domain : static method
+    convert_string_into_domain : method
         Converts the string representation of a value into the ``bool`` type.
 
     Note
@@ -348,7 +346,6 @@ class BooleanSemiring(Semiring[bool]):
             multiplicative_identity=True,
         )
 
-    @staticmethod
     def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are boolean.
@@ -370,7 +367,6 @@ class BooleanSemiring(Semiring[bool]):
             
         return True
     
-    @staticmethod
     def convert_string_into_domain(self, string_representation_of_value: str) -> bool:
         
         if string_representation_of_value == "True":
@@ -398,7 +394,7 @@ class LogSemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
     
-    convert_string_into_domain : static method
+    convert_string_into_domain : method
         Converts the string representation of a value into the ``float`` type.
 
     Note
@@ -460,8 +456,7 @@ class LogSemiring(Semiring[float]):
             
         return True
 
-    @staticmethod
-    def convert_string_into_domain(string_representation_of_value: str) -> float:
+    def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)
 
 
@@ -474,7 +469,7 @@ class ProbabilitySemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are non-negative real numbers.
     
-    convert_string_into_domain : static method
+    convert_string_into_domain : method
         Converts the string representation of a value into the ``float`` type.
 
     Note
@@ -522,8 +517,7 @@ class ProbabilitySemiring(Semiring[float]):
         
         return True
 
-    @staticmethod
-    def convert_string_into_domain(string_representation_of_value: str) -> float:
+    def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)
     
 
@@ -536,7 +530,7 @@ class TropicalSemiring(Semiring[float]):
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
     
-    convert_string_into_domain : static method
+    convert_string_into_domain : method
         Converts the string representation of a value into the ``float`` type.
 
     Note
@@ -593,6 +587,5 @@ class TropicalSemiring(Semiring[float]):
             
         return True
 
-    @staticmethod
-    def convert_string_into_domain(string_representation_of_value: str) -> float:
+    def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)
