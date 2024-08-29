@@ -55,8 +55,11 @@ class Semiring[T](ABC):
         Computes the overall weight of a set of paths by first calculating the weight of each path and then 
         summing these weights.
 
-    check_membership : abstract method
+    check_membership : static abstract method
         This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
+    
+    convert_string_into_domain : static abstract method
+        This takes the string representation of a value and converts it into the underlying domain of the semiring.
 
     Examples
     --------
@@ -270,14 +273,15 @@ class Semiring[T](ABC):
         set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
         return self.get_path_set_weight(set_of_path_weights)
 
+    @staticmethod
     @abstractmethod
-    def check_membership(self, *values: Any) -> bool:
+    def check_membership(*values: Any) -> bool:
         """
         Checks that the given values are members of the underlying set of the semiring.
 
         Parameters
         ---------
-        *values : any
+        *values : Any
             The values that will be checked to guarantee they are of the type of the underlying set of the semiring.
 
         Returns
@@ -285,8 +289,25 @@ class Semiring[T](ABC):
         bool
             Whether or not every provided value is in the underlying set or not.
         """
+        pass
 
-        return False
+    @staticmethod
+    @abstractmethod
+    def convert_string_into_domain(string_representation_of_value: str) -> T:
+        """
+        Returns the underlying value for a given string representation of a that value (i.e. as read in from a file).
+
+        Parameters
+        ----------
+        string_representation_of_value: str
+            This is the string representation of the value to be converted.
+
+        Returns
+        -------
+        T
+            The value converted into the underlying domain of the semiring.
+        """
+        pass
     
 
 class BooleanSemiring(Semiring[bool]):
@@ -295,14 +316,11 @@ class BooleanSemiring(Semiring[bool]):
 
     Attributes
     ----------
-    check_membership : method
+    check_membership : static method
         Checks that all provided values are boolean.
 
-    convert_value_to_boolean : static method
-        Converts an integer or float to a boolean if it is 0 or 1.
-
-    convert_values_to_boolean : static method
-        Converts multiple integers or floats to boolean values.
+    convert_string_into_domain : static method
+        Converts the string representation of a value into the ``bool`` type.
 
     Note
     -----
@@ -330,13 +348,14 @@ class BooleanSemiring(Semiring[bool]):
             multiplicative_identity=True,
         )
 
+    @staticmethod
     def check_membership(self, *values: Any) -> bool:
         """
         Checks that all provided values are boolean.
 
         Parameters
         ----------
-        *values : any
+        *values : Any
             The values to check for boolean membership.
 
         Returns
@@ -352,67 +371,22 @@ class BooleanSemiring(Semiring[bool]):
         return True
     
     @staticmethod
-    def convert_value_to_boolean(value: int | float) -> bool:
-        """
-        Converts an integer or float to a boolean if it is 0 or 1.
-
-        Parameters
-        ----------
-        value : int | float
-            The value to convert.
-
-        Returns
-        -------
-        bool
-            The boolean equivalent of the value.
-
-        Raises
-        ------
-        ValueError
-            Raised if the value is not 0 or 1.
-        """
-
-        if value == 1:
+    def convert_string_into_domain(self, string_representation_of_value: str) -> bool:
+        
+        if string_representation_of_value == "True":
             return True
         
-        if value == 0:
+        if string_representation_of_value == "False":
+            return 
+        
+        if value_as_num := int(string_representation_of_value) == 1:
+            return True
+        
+        if value_as_num == 0:
             return False
         
-        raise ValueError("Only 0/0.0 and 1/1.0 are valid stand-ins for a boolean value.")
-            
-    @staticmethod
-    def convert_values_to_boolean(*values: int | float) -> list[bool]:
-        """
-        Converts multiple integers or floats to boolean values.
+        raise ValueError(f"Non-boolean weight found. Offending weight: {string_representation_of_value}")
 
-        Parameters
-        ----------
-        *values : int | float
-            The values to convert.
-
-        Returns
-        -------
-        list[bool]
-            A list of boolean values converted from the input.
-
-        Raises
-        ------
-        ValueError
-            Raised if a value is not 0 or 1.
-        """
-
-        converted_values: list[bool] = []
-
-        for value in values:
-            try:
-                converted_value = BooleanSemiring.convert_value_to_boolean(value)
-            except ValueError:
-                raise
-
-            converted_values.append(converted_value)
-        
-        return converted_values
-            
 
 class LogSemiring(Semiring[float]):
     """
@@ -423,6 +397,9 @@ class LogSemiring(Semiring[float]):
     ----------
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
+    
+    convert_string_into_domain : static method
+        Converts the string representation of a value into the ``float`` type.
 
     Note
     -----
@@ -467,7 +444,7 @@ class LogSemiring(Semiring[float]):
 
         Parameters
         ----------
-        *values : any
+        *values : Any
             The values to check for real number membership.
 
         Returns
@@ -483,6 +460,10 @@ class LogSemiring(Semiring[float]):
             
         return True
 
+    @staticmethod
+    def convert_string_into_domain(string_representation_of_value: str) -> float:
+        return float(string_representation_of_value)
+
 
 class ProbabilitySemiring(Semiring[float]):
     """
@@ -492,6 +473,9 @@ class ProbabilitySemiring(Semiring[float]):
     ----------
     check_membership : method
         Checks that all provided values are non-negative real numbers.
+    
+    convert_string_into_domain : static method
+        Converts the string representation of a value into the ``float`` type.
 
     Note
     -----
@@ -518,7 +502,7 @@ class ProbabilitySemiring(Semiring[float]):
 
         Parameters
         ----------
-        *values : any
+        *values : Any
             The values to check for membership in the non-negative reals.
 
         Returns
@@ -537,6 +521,10 @@ class ProbabilitySemiring(Semiring[float]):
                 return False
         
         return True
+
+    @staticmethod
+    def convert_string_into_domain(string_representation_of_value: str) -> float:
+        return float(string_representation_of_value)
     
 
 class TropicalSemiring(Semiring[float]):
@@ -547,6 +535,9 @@ class TropicalSemiring(Semiring[float]):
     ----------
     check_membership : method
         Checks that all provided values are real numbers or +/- infinity.
+    
+    convert_string_into_domain : static method
+        Converts the string representation of a value into the ``float`` type.
 
     Note
     -----
@@ -585,7 +576,7 @@ class TropicalSemiring(Semiring[float]):
 
         Parameters
         ----------
-        *values : any
+        *values : Any
             The values to check for real number membership.
         
         Returns
@@ -601,3 +592,7 @@ class TropicalSemiring(Semiring[float]):
                 return False
             
         return True
+
+    @staticmethod
+    def convert_string_into_domain(string_representation_of_value: str) -> float:
+        return float(string_representation_of_value)
