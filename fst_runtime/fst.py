@@ -18,10 +18,11 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 import os
 import sys
-from typing import Generator, Iterator
+from typing import Generator, Iterator, Any
 
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
+from fst_runtime.semiring import Semiring
 from fst_runtime.tokenize_input import tokenize_input_string
 
 EPSILON: str = "@0@"
@@ -31,6 +32,13 @@ EPSILON: str = "@0@"
 
 
 #region Helper Classes
+
+# TODO
+
+@dataclass
+class FstOutput:
+    output_string: str
+    path_weight: Any
 
 @dataclass
 class _AttInputInfo:
@@ -45,8 +53,8 @@ class _AttInputInfo:
     transition_output_symbol : str
         The symbol that is outputted over the transition.
 
-    transition_weight : float, optional
-        The penalty weight of the transition. Default is zero.
+    transition_weight : Any, optional
+        The weight associated with a transition, should it have one.
     """
 
     target_state_id: int
@@ -55,8 +63,8 @@ class _AttInputInfo:
     transition_output_symbol: str
     """The symbol that is outputted over the transition."""
 
-    transition_weight: float = 0
-    """The penalty weight of the transition. Default is zero."""
+    transition_weight: Any = field(default=None)
+    """The weight associated with a transition, should it have one."""
 
     def __iter__(self) -> Iterator[int | str | float]:
         """
@@ -89,6 +97,9 @@ class _FstNode:
     is_accepting_state : bool
         Indicates whether the current node is an accepting state of the FST.
 
+    final_state_weight : Any
+        Represents the weight of acceptance of this state if it is an accepting state.
+
     in_transitions : list[_FstEdge]
         Holds all the edges that lead to this node.
 
@@ -105,6 +116,9 @@ class _FstNode:
     When we get to the end of our input string, if we are at an accepting state, that means
     that the input is valid according to the FST, and so it will then output a value accordingly.
     """
+
+    final_state_weight: Any = field(default=None)
+    """If this state is an accepting state, then there can be a weight to that acceptance. This value represents that weight."""
 
     in_transitions: list[_FstEdge] = field(default_factory=list)
     """This is a node in a directed graph, and this list holds all the edges that lead to this node."""
@@ -134,9 +148,6 @@ class _FstEdge:
 
     weight : float, optional
         The weight that penalizes traversing this edge. Default is 0.
-
-    NO_WEIGHT : float
-        A constant representing no weight. Default is 0.
     """
 
     source_node: _FstNode
@@ -151,14 +162,8 @@ class _FstEdge:
     output_symbol: str
     """This edge is in an FST, and so it consumes input symbols and outputs output symbols."""
 
-    weight: float = field(default=0.0)
-    """
-    This represents a weight that penalizes walks through the FST. That is, if there's an edge with 0 weight and another with 1 weight,
-    the edge without weight will be prioritized (walked) first.
-    """
-
-    NO_WEIGHT: float = 0.0 # pylint: disable=invalid-name
-    """This value is set as the value of ``weight`` when no weight has been set for the edge. This is the default value for an edge."""
+    weight: Any = field(default=None)
+    """This represents a weight on a transition in an FST. The values that this field can take are in the domain of the corresponding semiring."""
 
 #endregion
 
@@ -198,8 +203,11 @@ class Fst:
     Down is like walk+GER -> walking.
     """
 
-    _ATT_DEFINES_ACCEPTING_STATE = 1
+    _ATT_DEFINES_UNWEIGHTED_ACCEPTING_STATE = 1
     """One input value on a line means that that line represents an accepting state in the ``.att`` file."""
+
+    _ATT_DEFINES_WEIGHTED_ACCEPTING_STATE = 2
+    """Two input values on a line indicates that the line represents an accepting state with a weight in the ``.att`` file."""
 
     _ATT_DEFINES_UNWEIGHTED_TRANSITION = 4
     """Four input values on a line mean that the line represents an unweighted transition in the ``.att`` file."""
@@ -207,7 +215,7 @@ class Fst:
     _ATT_DEFINES_WEIGHTED_TRANSITION = 5
     """Five input values on a line mean that the line represents a weighted transition in the ``.att`` file."""
 
-    def __init__(self, att_file_path: str, *, recursion_limit: int = 0) -> None:
+    def __init__(self, att_file_path: str, *, semiring: Semiring | None = None, recursion_limit: int | None = None) -> None:
         """
         Initializes the FST via the provided ``.att`` file.
 
@@ -216,8 +224,11 @@ class Fst:
         att_file_path : str
             The path to the ``.att`` file containing the FST description.
 
-        recursion_limit : int, optional
-            The recursion limit for the generation/analysis functionality. Default is 0.
+        semiring: Semiring | None, optional
+            The semiring over which the weights in the FST are defined.
+
+        recursion_limit : int | None, optional
+            The recursion limit for the generation/analysis functionality. Default is ``None``, which leaves it as the python default of 1000.
         """
 
         if not att_file_path:
@@ -237,7 +248,10 @@ class Fst:
         self._multichar_symbols: set[str] = set()
         """This set represents all the multi-character symbols that have been defined in the FST."""
 
-        self._recursion_limit: int = recursion_limit
+        self._semiring: Semiring | None = semiring
+        """This holds the semiring used to perform weight arithmetic on paths in the FST."""
+
+        self._recursion_limit: int | None = recursion_limit
         """This sets the recursion limit for the generation/analysis functionality, so that epsilon cycles don't run amok."""
 
         self._create_graph(att_file_path)
@@ -284,7 +298,7 @@ class Fst:
 
     #region Graph Creation
 
-    def _get_or_create_node(self, state_id: int, nodes: dict[int, _FstNode], accepting_states: set[int]) -> _FstNode:
+    def _get_or_create_node(self, state_id: int, nodes: dict[int, _FstNode], accepting_states: dict[int, Any]) -> _FstNode:
         """
         Tries to get a node from the dictionary, and if it doesn't exist, creates it first, then returns it.
 
@@ -296,8 +310,8 @@ class Fst:
         nodes : dict[int, _FstNode]
             The dictionary containing all the nodes, keyed by their state IDs.
 
-        accepting_states : set[int]
-            The set of accepting state IDs.
+        accepting_states : dict[int, Any]
+            A dictionary whose keys are the IDs of the accepting states, and whose values are the weights of those accepting states.
 
         Returns
         -------
@@ -308,7 +322,13 @@ class Fst:
             node = nodes[state_id]
         except KeyError:
             is_accepting_state = state_id in accepting_states
-            node = _FstNode(state_id, is_accepting_state)
+
+            try:
+                weight = accepting_states[state_id]
+            except KeyError:
+                weight = self._semiring.multiplicative_identity if self._semiring else None
+
+            node = _FstNode(state_id, is_accepting_state, final_state_weight=weight)
             nodes[state_id] = node
 
             if is_accepting_state and node.id not in self._accepting_states:
@@ -317,7 +337,7 @@ class Fst:
         return node
 
 
-    def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]:
+    def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], dict[int, Any]]:
         """
         Reads in all the transition and state information from the file into the ``transitions`` object,
         and also saves the accepting states of the FST.
@@ -329,70 +349,95 @@ class Fst:
 
         Returns
         -------
-        tuple[dict[int, dict[str, list[_AttInputInfo]]], set[int]]
+        tuple[dict[int, dict[str, list[_AttInputInfo]]], dict[int, Any]]
             A tuple containing:
             - ``transitions`` : dict[int, dict[str, list[_AttInputInfo]]]
                 The dictionary of transitions read from the ``.att`` file, keyed by state ID and input symbol.
-            - ``accepting_states`` : set[int]
-                The set of accepting state IDs.
+            - ``accepting_states`` : dict[int, Any]
+                A dictionary whose keys are accepting state IDs and whose values are the weight of the accepting state.
+
+        Raises
+        ------
+        ValueError
+            This exception is raised when trying to parse the states and weights into their respective types.
         """
 
         # See comment in ``_create_graph`` for what this object is.
         transitions: dict[int, dict[str, list[_AttInputInfo]]] = defaultdict(dict)
-        accepting_states: set[int] = set()
+        accepting_states: dict[int, Any] = {}
 
         with open(att_file_path, encoding='utf-8') as att_file:
-            att_lines = att_file.readlines()
 
-        # Parse file into FST graph object.
-        for line in att_lines:
-
-            # Lines in the AT&T format are tab separated.
-            att_line_items = line.replace('\n', '').split("\t")
-            num_defined_items = len(att_line_items)
-
-            # Accepting state read in only.
-            if num_defined_items == Fst._ATT_DEFINES_ACCEPTING_STATE:
-                accepting_states.add(int(att_line_items[0]))
-
-            # Unweighted transition.
-            elif num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_TRANSITION:
-                current_state, next_state, input_symbol, output_symbol = att_line_items
-
-                if len(input_symbol) > 1:
-                    self._multichar_symbols.add(input_symbol)
-
-                if len(output_symbol) > 1:
-                    self._multichar_symbols.add(output_symbol)
-
-                info = _AttInputInfo(int(next_state), output_symbol, _FstEdge.NO_WEIGHT)
-
-                try:
-                    transitions[int(current_state)][input_symbol].append(info)
-                except KeyError:
-                    transitions[int(current_state)][input_symbol] = [info]
-
-            # Weighted transition.
-            elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
-                current_state, next_state, input_symbol, output_symbol, weight = att_line_items
-
-                if len(input_symbol) > 1:
-                    self._multichar_symbols.add(input_symbol)
+            # Parse file into FST graph object.
+            for line in att_file:
                 
-                if len(output_symbol) > 1:
-                    self._multichar_symbols.add(output_symbol)
+                # Lines in the AT&T format are tab separated.
+                # No .strip() in case whitespace character is an output. This is very important.
+                att_line_items = line.replace('\n', '').split('\t')
+                num_defined_items = len(att_line_items)
 
-                info = _AttInputInfo(int(next_state), output_symbol, float(weight))
+                # Unweighted accepting state read in only.
+                if num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_ACCEPTING_STATE:
+                    state_id = att_line_items[0]
+                    weight = None if self._semiring is None else self._semiring.multiplicative_identity
+                    accepting_states[state_id] = weight
 
-                try:
-                    transitions[int(current_state)][input_symbol].append(info)
-                except KeyError:
-                    transitions[int(current_state)][input_symbol] = [info]
+                # Unweighted transition.
+                elif num_defined_items == Fst._ATT_DEFINES_UNWEIGHTED_TRANSITION:
+                    current_state, next_state, input_symbol, output_symbol = att_line_items
 
-            # Invalid input line.
-            else:
-                logger.error("Invalid line in %s. Offending line: %s", os.path.basename(att_file_path), line)
-                sys.exit(1)
+                    if len(input_symbol) > 1:
+                        self._multichar_symbols.add(input_symbol)
+
+                    if len(output_symbol) > 1:
+                        self._multichar_symbols.add(output_symbol)
+
+                    try:
+                        next_state = int(next_state)
+                    except ValueError:
+                        logger.debug("This weird next state error '%s' in file %s", next_state, att_file_path)
+                        raise
+
+                    weight = None if self._semiring is None else self._semiring.multiplicative_identity
+                    info = _AttInputInfo(next_state, output_symbol, weight)
+
+                    try:
+                        transitions[int(current_state)][input_symbol].append(info)
+                    except KeyError:
+                        transitions[int(current_state)][input_symbol] = [info]
+
+                # Weighted accepting state.
+                elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_ACCEPTING_STATE:
+                    state_id, weight = att_line_items
+
+                    state_id = int(state_id)
+                    weight = self._semiring.convert_string_into_domain(weight)
+
+                    accepting_states[state_id] = weight
+
+                # Weighted transition.
+                elif num_defined_items == Fst._ATT_DEFINES_WEIGHTED_TRANSITION:
+                    current_state, next_state, input_symbol, output_symbol, weight = att_line_items
+
+                    if len(input_symbol) > 1:
+                        self._multichar_symbols.add(input_symbol)
+                    
+                    if len(output_symbol) > 1:
+                        self._multichar_symbols.add(output_symbol)
+
+                    next_state = int(next_state)
+                    weight = self._semiring.convert_string_into_domain(weight)
+                    info = _AttInputInfo(next_state, output_symbol, weight)
+
+                    try:
+                        transitions[int(current_state)][input_symbol].append(info)
+                    except KeyError:
+                        transitions[int(current_state)][input_symbol] = [info]
+
+                # Invalid input line.
+                else:
+                    logger.error("Invalid line in %s. Offending line: %s", os.path.basename(att_file_path), line)
+                    sys.exit(1)
 
         return transitions, accepting_states
 
@@ -423,11 +468,12 @@ class Fst:
         number, the output of the transition, and the weight of that transition.
         """
 
-        transitions: dict[int, dict[str, list[_AttInputInfo]]]
-        accepting_states: set[int]
         transitions, accepting_states = self._read_att_file_into_transitions(att_file_path)
 
-        all_state_ids: list[int] = list(set(transitions.keys()).union(accepting_states))
+        accepting_state_ids: set[int] = set(accepting_states.keys())
+        transition_state_ids: set[int] = set(transitions.keys())
+        all_state_ids: set[int] = set.union(accepting_state_ids, transition_state_ids)
+
         nodes: dict[int, _FstNode] = {}
 
         # For every state in the FST, create/get that as a _FstNode object
@@ -440,9 +486,9 @@ class Fst:
                 for att_input in att_inputs:
 
                     next_state, output_symbol, weight = att_input
-                    next_node = self._get_or_create_node(next_state, nodes, accepting_states) # pyright: ignore
+                    next_node = self._get_or_create_node(next_state, nodes, accepting_states)
 
-                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight) # pyright: ignore
+                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
 
                     current_node.out_transitions.append(directed_edge)
                     next_node.in_transitions.append(directed_edge)
@@ -508,7 +554,7 @@ class Fst:
         *,
         prefixes: list[list[str]] | None = None,
         suffixes: list[list[str]] | None = None
-    ) -> Generator[str]:
+    ) -> Generator[FstOutput]:
         """
         Queries the FST in the down/generation direction.
 
@@ -525,8 +571,8 @@ class Fst:
 
         Returns
         -------
-        Generator[str]
-            A generator of generated forms that are accepted by the FST.
+        Generator[FstOutput]
+            A generator of generated forms that are accepted by the FST along with their weights.
 
         Note
         -----
@@ -598,7 +644,7 @@ class Fst:
         return result
 
     
-    def _traverse_down(self, queries: list[str]) -> Generator[str]:
+    def _traverse_down(self, queries: list[str]) -> Generator[FstOutput]:
         """
         Handles all the queries down the FST and returns all the resulting outputs that were found.
 
@@ -609,12 +655,12 @@ class Fst:
 
         Returns
         -------
-        Generator[str]
-            A generator of all the resulting outputs that were found.
+        Generator[FstOutput]
+            A generator of all the resulting outputs that were found with their corresponding weights.
         """
 
         original_recursion_limit = 0
-        recursion_limit_set = self.recursion_limit > 0
+        recursion_limit_set = self.recursion_limit is not None
         
         # If the recursion limit has been set, the save the original value, and set it to the specified one.
         if recursion_limit_set:
@@ -635,8 +681,7 @@ class Fst:
             sys.setrecursionlimit(original_recursion_limit)
 
 
-    @staticmethod
-    def __traverse_down(current_node: _FstNode, input_tokens: list[str]) -> Generator[str]:
+    def __traverse_down(self, current_node: _FstNode, input_tokens: list[str]) -> Generator[FstOutput]:
         """
         Traverses down the FST beginning at an initial provided node.
 
@@ -650,8 +695,8 @@ class Fst:
 
         Returns
         -------
-        Generator[str]
-            A generator of matches found during the traversal.
+        Generator[FstOutput]
+            A generator of matches found during the traversal with their corresponding weights.
 
         Note
         -----
@@ -670,13 +715,25 @@ class Fst:
                 # then add the output of this transition to the matches and continue to the recursive step,
                 # since there could be further epsilon transitions to follow.
                 if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
-                    yield edge.output_symbol
+                    weight = None
+
+                    if self._semiring is not None:
+                        weight = self._semiring.get_path_weight([edge.weight, edge.target_node.final_state_weight])
+
+                    yield FstOutput(edge.output_symbol, weight)
 
                 recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
 
                 try:
                     for result in recursive_results:
-                        yield edge.output_symbol + result
+                        output_string = edge.output_symbol + result.output_string
+                        weight = None
+
+                        if self._semiring is not None:
+                            weight = self._semiring.get_path_weight([edge.weight, result.path_weight])
+                        
+                        yield FstOutput(output_string, weight)
+
                 except RecursionError:
                     pass
 
@@ -689,7 +746,12 @@ class Fst:
                 new_input_tokens = input_tokens[1:]
 
                 if not new_input_tokens and edge.target_node.is_accepting_state:
-                    yield edge.output_symbol
+                    weight = None
+
+                    if self._semiring is not None:
+                        weight = self._semiring.get_path_weight([edge.weight, edge.target_node.final_state_weight])
+
+                    yield FstOutput(edge.output_symbol, weight)
 
                 try:
                     recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
@@ -698,7 +760,14 @@ class Fst:
 
                 try:
                     for result in recursive_results:
-                        yield edge.output_symbol + result
+                        output_string = edge.output_symbol + result.output_string
+                        weight = None
+
+                        if self._semiring is not None:
+                            weight = self._semiring.get_path_weight([edge.weight, result.path_weight])
+
+                        yield FstOutput(output_string, weight)
+
                 except RecursionError:
                     pass
 
@@ -707,7 +776,7 @@ class Fst:
 
     #region Up/Analysis Methods
 
-    def up_analyses(self, wordforms: list[str]) -> dict[str, Generator[str]]:
+    def up_analyses(self, wordforms: list[str]) -> dict[str, Generator[FstOutput]]:
         """
         Calls ``up_analysis`` for each wordform and returns a dictionary keyed on each wordform.
 
@@ -720,8 +789,8 @@ class Fst:
 
         Returns
         -------
-        dict[str, Generator[str]]
-            A dictionary where each key is a wordform and the value is a generator of tagged forms generated by the FST.
+        dict[str, Generator[FstOutput]]
+            A dictionary where each key is a wordform and the value is a generator of tagged forms generated by the FST, along with their weights.
 
         See Also
         --------
@@ -736,7 +805,7 @@ class Fst:
         return tagged_forms
     
 
-    def up_analysis(self, wordform: str) -> Generator[str]:
+    def up_analysis(self, wordform: str) -> Generator[FstOutput]:
         """
         Queries the FST up, or in the direction of analysis.
 
@@ -747,8 +816,8 @@ class Fst:
 
         Returns
         -------
-        Generator[str]
-            A generator of tagged forms that could lead to the provided wordform.
+        Generator[FstOutput]
+            A generator of tagged forms that could lead to the provided wordform, along with their weights.
 
         Note
         -----
@@ -764,7 +833,7 @@ class Fst:
         """
 
         original_recursion_limit = 0
-        recursion_limit_set = self.recursion_limit > 0
+        recursion_limit_set = self.recursion_limit is not None
         
         # If the recursion limit has been set, the save the original value, and set it to the specified one.
         if recursion_limit_set:
@@ -782,8 +851,8 @@ class Fst:
             sys.setrecursionlimit(original_recursion_limit)
         
 
-    @staticmethod
-    def _traverse_up(current_state: _FstNode, wordform: str) -> Generator[str]:
+    # TODO No longer static
+    def _traverse_up(self, current_state: _FstNode, wordform: str) -> Generator[FstOutput]:
         """
         Handles the recursive walk through the FST.
 
@@ -797,8 +866,8 @@ class Fst:
         
         Returns
         -------
-        Generator[str]
-            A generator of symbols outputted from the FST during the walk.
+        Generator[FstOutput]
+            A generator of symbols outputted from the FST during the walk, along with their weights.
 
         Note
         -----
