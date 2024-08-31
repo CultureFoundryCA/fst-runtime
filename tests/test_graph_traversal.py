@@ -145,7 +145,7 @@ def test_down_traversal_fst3(_data_dir):
     assert len(results3) == 1
 
     assert lemma2 in [result.output_string for result in results2]
-    assert lemma3 in results3
+    assert lemma3 in [result.output_string for result in results3]
 
 
 def test_down_traversal_fst4(_data_dir):

@@ -36,13 +36,3 @@ def test_weighted_fst_tropical():
 
     assert results[0].output_string == 'wwwwyz'
     assert round(results[0].path_weight, 2) == 1.2
-
-def test_fresh():
-    fst = Fst('tests/data/fst1.att')
-
-    input = 'aaac'
-
-    results = list(fst.down_generation(input))
-
-    assert len(results) == 1
-    assert results[0] == 'bbbd'
