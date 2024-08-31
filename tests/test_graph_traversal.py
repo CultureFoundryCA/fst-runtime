@@ -92,8 +92,8 @@ def test_down_traversal_fst1(_data_dir):
     assert len(lemma2_results) == 1
     assert len(lemma3_results) == 1
 
-    assert 'd' in lemma2_results
-    assert 'bbbbd' in lemma3_results
+    assert 'd' in [result.output_string for result in lemma2_results]
+    assert 'bbbbd' in [result.output_string for result in lemma3_results]
 
 
 def test_down_traversal_fst2(_data_dir):
@@ -114,7 +114,7 @@ def test_down_traversal_fst2(_data_dir):
     results = list(graph.down_generation(lemma))
 
     assert len(results) == 1
-    assert 'bccccccce' in results
+    assert 'bccccccce' in [result.output_string for result in results]
 
 
 def test_down_traversal_fst3(_data_dir):
@@ -144,7 +144,7 @@ def test_down_traversal_fst3(_data_dir):
     assert len(results2) == 1
     assert len(results3) == 1
 
-    assert lemma2 in results2
+    assert lemma2 in [result.output_string for result in results2]
     assert lemma3 in results3
 
 
@@ -167,7 +167,7 @@ def test_down_traversal_fst4(_data_dir):
 
     results = graph.down_generation(lemma, suffixes=suffixes)
 
-    results = set(results)
+    results = {result.output_string for result in results}
     expected_results = {'walk', 'walks', 'walked', 'walking'}
 
     assert expected_results == results
@@ -189,7 +189,9 @@ def test_down_traversal_fst5(_data_dir):
 
     lemma = 'abc'
 
-    results = set(graph.down_generation(lemma))
+    results = graph.down_generation(lemma)
+    results = {result.output_string for result in results}
+
     expected_results = {'xwv', 'xwzv', 'xywzv', 'xyyyyyyyyyyyyyywv', 'xyyyyyyyyyyyyyywzv'}
 
     assert results.issuperset(expected_results)
@@ -219,7 +221,8 @@ def test_down_traversal_fst6(_data_dir):
                 ['+1SgSubj'],
                 ['+2SgObj', '+2PlObj']]
 
-    results = set(graph.down_generation(lemma, prefixes=prefixes, suffixes=suffixes))
+    results = graph.down_generation(lemma, prefixes=prefixes, suffixes=suffixes)
+    results = {result.output_string for result in results}
 
     expected_results = {
         "gigiiwaabamin",
@@ -262,7 +265,7 @@ def test_up_traversal_fst1(_data_dir):
     results = list(graph.up_analysis(wordform))
 
     assert len(results) == 1
-    assert 'aaaac' in results
+    assert 'aaaac' in [result.output_string for result in results]
 
 
 def test_up_traversal_fst2(_data_dir):
@@ -284,7 +287,7 @@ def test_up_traversal_fst2(_data_dir):
     results = list(graph.up_analysis(wordform))
 
     assert len(results) == 1
-    assert 'acccd' in results
+    assert 'acccd' in [result.output_string for result in results]
 
 
 def test_up_traversal_fst3(_data_dir):
@@ -320,9 +323,9 @@ def test_up_traversal_fst3(_data_dir):
     assert len(results3) == 1
     assert len(results4) == 0  # <- No valid form was sent to the FST, so result should be zero.
 
-    assert wordform1 in results1
-    assert wordform2 in results2
-    assert wordform3 in results3
+    assert wordform1 in [result.output_string for result in results1]
+    assert wordform2 in [result.output_string for result in results2]
+    assert wordform3 in [result.output_string for result in results3]
 
 
 def test_up_traversal_fst4(_data_dir):
@@ -350,9 +353,9 @@ def test_up_traversal_fst4(_data_dir):
     assert len(results1) == 1
     assert len(results2) == 2  # <- Should contain {'wal+VERB+PRES', 'wal+VERB+PRES_DUMMY'}.
 
-    assert 'wal+VERB+GER' in results1
-    assert 'wal+VERB+PRES' in results2
-    assert 'wal+VERB+PRES_DUMMY' in results2
+    assert 'wal+VERB+GER' in [result.output_string for result in results1]
+    assert 'wal+VERB+PRES' in [result.output_string for result in results2]
+    assert 'wal+VERB+PRES_DUMMY' in [result.output_string for result in results2]
 
 
 def test_up_traversal_fst5(_data_dir):
@@ -386,9 +389,9 @@ def test_up_traversal_fst5(_data_dir):
     assert len(results3) == 1
     assert len(results4) == 0
 
-    assert 'abc' in results1
-    assert 'abc' in results2
-    assert 'abc' in results3
+    assert 'abc' in [result.output_string for result in results1]
+    assert 'abc' in [result.output_string for result in results2]
+    assert 'abc' in [result.output_string for result in results3]
 
 
 def test_up_analysis_fst6(_data_dir):
@@ -425,9 +428,9 @@ def test_up_analysis_fst6(_data_dir):
     expected_result3 = "PVTense/wii'+waabam+VTA+Ind+Pos+Neu+1SgSubj+2SgObj"
     expected_result4 = "PVTense/wii'+waabam+VTA+Ind+Pos+Neu+1SgSubj+2PlObj"
 
-    assert expected_result1 in results1
-    assert expected_result2 in results2
-    assert expected_result3 in results3
-    assert expected_result4 in results4
+    assert expected_result1 in [result.output_string for result in results1]
+    assert expected_result2 in [result.output_string for result in results2]
+    assert expected_result3 in [result.output_string for result in results3]
+    assert expected_result4 in [result.output_string for result in results4]
 
 #endregion

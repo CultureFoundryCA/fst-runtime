@@ -22,9 +22,9 @@ def test_boolean_semiring():
     transition_weights_path3 = [False, False, False]
 
     # This operation will logical and the values in the list together.
-    path1_weight = semiring.get_path_weight(transition_weights_path1)
-    path2_weight = semiring.get_path_weight(transition_weights_path2)
-    path3_weight = semiring.get_path_weight(transition_weights_path3)
+    path1_weight = semiring.get_path_weight(*transition_weights_path1)
+    path2_weight = semiring.get_path_weight(*transition_weights_path2)
+    path3_weight = semiring.get_path_weight(*transition_weights_path3)
 
     # ``True and True and False and True = False``.
     assert path1_weight is False
@@ -37,18 +37,15 @@ def test_boolean_semiring():
 
     path_set1 = [path1_weight, path2_weight, path3_weight]
     path_set2 = [path1_weight, path3_weight]
-    path_set3_uncomputed_paths = [transition_weights_path1, transition_weights_path2, transition_weights_path3]
 
-    path_set_weight1 = semiring.get_path_set_weight(path_set1)
-    path_set_weight2 = semiring.get_path_set_weight(path_set2)
-    path_set_weight3 = semiring.get_path_set_weight_for_uncomputed_path_weights(path_set3_uncomputed_paths)
+    path_set_weight1 = semiring.get_path_set_weight(*path_set1)
+    path_set_weight2 = semiring.get_path_set_weight(*path_set2)
 
     # ``False or True or False = True``.
     assert path_set_weight1 is True
 
     # ``False or False = False``.
     assert path_set_weight2 is False
-    assert path_set_weight3 == path_set_weight1
 
 
 def test_log_semiring():
@@ -61,9 +58,9 @@ def test_log_semiring():
     transition_weights_path3 = [0.1, 0.2, 0.3]
 
     # This operation will be standard addition, which is the multiplication operation in the log semiring.
-    path1_weight = semiring.get_path_weight(transition_weights_path1)
-    path2_weight = semiring.get_path_weight(transition_weights_path2)
-    path3_weight = semiring.get_path_weight(transition_weights_path3)
+    path1_weight = semiring.get_path_weight(*transition_weights_path1)
+    path2_weight = semiring.get_path_weight(*transition_weights_path2)
+    path3_weight = semiring.get_path_weight(*transition_weights_path3)
 
     assert path1_weight == -0.6340067520000001
     assert path2_weight == 1.30383
@@ -71,12 +68,10 @@ def test_log_semiring():
 
     path_set1 = [path1_weight, path2_weight, path3_weight]
     path_set2 = [path1_weight, path2_weight]
-    path_set3_uncomputed_paths = [transition_weights_path1, transition_weights_path2, transition_weights_path3]
 
     # This operation will be ``f(x, y) = -ln(e^(-x) + e^(-y))`` which is the addition operation in the log semring.
-    path_set_weight1 = semiring.get_path_set_weight(path_set1)
-    path_set_weight2 = semiring.get_path_set_weight(path_set2)
-    path_set_weight3 = semiring.get_path_set_weight_for_uncomputed_path_weights(path_set3_uncomputed_paths)
+    path_set_weight1 = semiring.get_path_set_weight(*path_set1)
+    path_set_weight2 = semiring.get_path_set_weight(*path_set2)
 
     # Recall that this log add is associative.
     # 1. ``-ln(e^(-(-0.6340067520000001)) + e^(-1.30383)) = -0.7685509`` <- plug this value into (2).
@@ -89,7 +84,6 @@ def test_log_semiring():
 
     # ``-ln(e^(-(-0.6340067520000001) + e^(-1.30383)) = -0.76855089``.
     assert round(path_set_weight2, _SIGNIFICANT_PLACES) == -0.76855089
-    assert path_set_weight3 == path_set_weight1
 
     
 def test_probability_semiring():
@@ -103,9 +97,9 @@ def test_probability_semiring():
     transition_negative_weight = [0.1, 0.2, -0.4]
 
     # This operation will be standard multiplication.
-    path1_weight = semiring.get_path_weight(transition_weights_path1)
-    path2_weight = semiring.get_path_weight(transition_weights_path2)
-    path3_weight = semiring.get_path_weight(transition_weights_path3)
+    path1_weight = semiring.get_path_weight(*transition_weights_path1)
+    path2_weight = semiring.get_path_weight(*transition_weights_path2)
+    path3_weight = semiring.get_path_weight(*transition_weights_path3)
     positive_values_in_semiring_domain = semiring.check_membership(*transition_weights_path1)
     negative_value_in_semiring_domain = semiring.check_membership(*transition_negative_weight)
 
@@ -117,16 +111,13 @@ def test_probability_semiring():
 
     path_set1 = [path1_weight, path2_weight, path3_weight]
     path_set2 = [path1_weight, path2_weight]
-    path_set3_uncomputed_paths = [transition_weights_path1, transition_weights_path2, transition_weights_path3]
 
     # This operation will be standard addition.
-    path_set_weight1 = semiring.get_path_set_weight(path_set1)
-    path_set_weight2 = semiring.get_path_set_weight(path_set2)
-    path_set_weight3 = semiring.get_path_set_weight_for_uncomputed_path_weights(path_set3_uncomputed_paths)
+    path_set_weight1 = semiring.get_path_set_weight(*path_set1)
+    path_set_weight2 = semiring.get_path_set_weight(*path_set2)
 
     assert path_set_weight1 == sum(path_set1)
     assert path_set_weight2 == sum(path_set2)
-    assert path_set_weight3 == path_set_weight1
 
 
 def test_tropical_semiring():
@@ -139,9 +130,9 @@ def test_tropical_semiring():
     transition_weights_path3 = [0.1, 0.2, -0.3]
 
     # This operation will be standard addition, which is the multiplication function of the tropical semiring.
-    path1_weight = semiring.get_path_weight(transition_weights_path1)
-    path2_weight = semiring.get_path_weight(transition_weights_path2)
-    path3_weight = semiring.get_path_weight(transition_weights_path3)
+    path1_weight = semiring.get_path_weight(*transition_weights_path1)
+    path2_weight = semiring.get_path_weight(*transition_weights_path2)
+    path3_weight = semiring.get_path_weight(*transition_weights_path3)
 
     assert path1_weight == sum(transition_weights_path1)
     assert path2_weight == sum(transition_weights_path2)
@@ -149,13 +140,10 @@ def test_tropical_semiring():
 
     path_set1 = [path1_weight, path2_weight, path3_weight]
     path_set2 = [path1_weight, path2_weight]
-    path_set3_uncomputed_paths = [transition_weights_path1, transition_weights_path2, transition_weights_path3]
 
     # This operation will be ``min{x, y}``, which is the addition function of the tropical semiring.
-    path_set_weight1 = semiring.get_path_set_weight(path_set1)
-    path_set_weight2 = semiring.get_path_set_weight(path_set2)
-    path_set_weight3 = semiring.get_path_set_weight_for_uncomputed_path_weights(path_set3_uncomputed_paths)
+    path_set_weight1 = semiring.get_path_set_weight(*path_set1)
+    path_set_weight2 = semiring.get_path_set_weight(*path_set2)
 
     assert round(path_set_weight1, _SIGNIFICANT_PLACES) == 0.0
     assert path_set_weight2 == 1.0
-    assert path_set_weight3 == path_set_weight1
