@@ -25,7 +25,7 @@ TropicalSemiring[float] : class
 
 from abc import ABC, abstractmethod
 import math
-from typing import Callable, Iterable, Any
+from typing import Callable, Any
 
 class Semiring[T](ABC):
     """
@@ -50,10 +50,6 @@ class Semiring[T](ABC):
 
     get_path_set_weight : method
         Computes the overall weight of a set of paths by adding the weights of individual paths.
-
-    get_path_set_weight_for_uncomputed_path_weights : method
-        Computes the overall weight of a set of paths by first calculating the weight of each path and then 
-        summing these weights.
 
     check_membership : abstract method
         This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
@@ -198,14 +194,14 @@ class Semiring[T](ABC):
 
         return self._multiply(a, b)
 
-    def get_path_weight(self, path_weights: Iterable[T]) -> T:
+    def get_path_weight(self, *path_weights: T) -> T:
         """
         Computes the overall weight of a single path by multiplying the weights of all edges in the path.
 
         Parameters
         ----------
-        path_weights : Iterable[T]
-            A list of weights corresponding to the edges in a path.
+        *path_weights : T
+            Weights corresponding to the edges in a path.
 
         Returns
         -------
@@ -224,13 +220,13 @@ class Semiring[T](ABC):
 
         return overall_path_weight
 
-    def get_path_set_weight(self, set_of_path_weights: Iterable[T]) -> T:
+    def get_path_set_weight(self, *set_of_path_weights: T) -> T:
         """
         Computes the overall weight of a set of paths by adding the weights of individual paths.
 
         Parameters
         ----------
-        set_of_path_weights : Iterable[T]
+        *set_of_path_weights : T
             A list of weights corresponding to individual paths.
 
         Returns
@@ -249,29 +245,6 @@ class Semiring[T](ABC):
             overall_set_weight = self.add(overall_set_weight, path_weight)
 
         return overall_set_weight
-
-    def get_path_set_weight_for_uncomputed_path_weights(self, set_of_paths: Iterable[Iterable[T]]) -> T:
-        """
-        Computes the overall weight of a set of paths by first calculating the weight of each path and then 
-        summing these weights.
-
-        Parameters
-        ----------
-        set_of_paths : Iterable[Iterable[T]]
-            A list of paths, where each path is represented as a list of weights.
-
-        Returns
-        -------
-        T
-            The overall weight of the set of paths.
-
-        References
-        ----------
-        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.
-        """
-
-        set_of_path_weights = [self.get_path_weight(path) for path in set_of_paths]
-        return self.get_path_set_weight(set_of_path_weights)
 
     @abstractmethod
     def check_membership(self, *values: Any) -> bool:
