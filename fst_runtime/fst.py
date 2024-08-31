@@ -15,7 +15,7 @@ EPSILON : str
 
 from __future__ import annotations
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 import os
 import sys
 from typing import Generator, Iterator, Any
@@ -510,7 +510,7 @@ class Fst:
         *,
         prefixes: list[list[str]] | None = None,
         suffixes: list[list[str]] | None = None
-    ) -> dict[str, Generator[str]]:
+    ) -> dict[str, Generator[FstOutput]]:
         """
         Calls ``down_generation`` for each lemma and returns a dictionary keyed on each lemma.
 
@@ -668,13 +668,13 @@ class Fst:
             sys.setrecursionlimit(self.recursion_limit)
 
         for query in queries:
-            results = Fst.__traverse_down(
+            results = self.__traverse_down(
                 current_node=self._start_state,
                 input_tokens=tokenize_input_string(query, self._multichar_symbols)
             )
 
             for result in results:
-                yield result.replace(EPSILON, '')
+                yield replace(result, output_string=result.output_string.replace(EPSILON, ''))
 
         # Reset recursion limit before exiting the function.
         if recursion_limit_set:
@@ -715,24 +715,24 @@ class Fst:
                 # then add the output of this transition to the matches and continue to the recursive step,
                 # since there could be further epsilon transitions to follow.
                 if not current_token and edge.target_node.is_accepting_state and edge.output_symbol:
-                    weight = None
+                    path_weight = None
 
                     if self._semiring is not None:
-                        weight = self._semiring.get_path_weight([edge.weight, edge.target_node.final_state_weight])
+                        path_weight = self._semiring.get_path_weight(edge.weight, edge.target_node.final_state_weight)
 
-                    yield FstOutput(edge.output_symbol, weight)
+                    yield FstOutput(edge.output_symbol, path_weight)
 
-                recursive_results = Fst.__traverse_down(edge.target_node, input_tokens)
-
+                recursive_results = self.__traverse_down(edge.target_node, input_tokens)
+                
                 try:
                     for result in recursive_results:
                         output_string = edge.output_symbol + result.output_string
-                        weight = None
+                        path_weight = None
 
                         if self._semiring is not None:
-                            weight = self._semiring.get_path_weight([edge.weight, result.path_weight])
+                            path_weight = self._semiring.get_path_weight(edge.weight, result.path_weight)
                         
-                        yield FstOutput(output_string, weight)
+                        yield FstOutput(output_string, path_weight)
 
                 except RecursionError:
                     pass
@@ -746,27 +746,24 @@ class Fst:
                 new_input_tokens = input_tokens[1:]
 
                 if not new_input_tokens and edge.target_node.is_accepting_state:
-                    weight = None
+                    path_weight = None
 
                     if self._semiring is not None:
-                        weight = self._semiring.get_path_weight([edge.weight, edge.target_node.final_state_weight])
+                        path_weight = self._semiring.get_path_weight(edge.weight, edge.target_node.final_state_weight)
 
-                    yield FstOutput(edge.output_symbol, weight)
+                    yield FstOutput(edge.output_symbol, path_weight)
 
-                try:
-                    recursive_results = Fst.__traverse_down(edge.target_node, new_input_tokens)
-                except RecursionError:
-                    recursive_results = []
-
+                recursive_results = self.__traverse_down(edge.target_node, new_input_tokens)
+                
                 try:
                     for result in recursive_results:
                         output_string = edge.output_symbol + result.output_string
-                        weight = None
+                        path_weight = None
 
                         if self._semiring is not None:
-                            weight = self._semiring.get_path_weight([edge.weight, result.path_weight])
-
-                        yield FstOutput(output_string, weight)
+                            path_weight = self._semiring.get_path_weight(edge.weight, result.path_weight)
+                        
+                        yield FstOutput(output_string, path_weight)
 
                 except RecursionError:
                     pass
@@ -841,17 +838,18 @@ class Fst:
             sys.setrecursionlimit(self.recursion_limit)
 
         for accepting_state in self._accepting_states.values():
-            recursive_results = Fst._traverse_up(accepting_state, wordform)
+            recursive_results = self._traverse_up(accepting_state, wordform)
 
+            # This reverses the final output as the string being returned from the recursion is backwards since we're going in the up direction.
             for result in recursive_results:
-                yield result[::-1].replace(EPSILON, '')
+                result.output_string = result.output_string[::-1].replace(EPSILON, '')
+                yield result
 
         # Reset recursion limit before exiting the function.
         if recursion_limit_set:
             sys.setrecursionlimit(original_recursion_limit)
         
 
-    # TODO No longer static
     def _traverse_up(self, current_state: _FstNode, wordform: str) -> Generator[FstOutput]:
         """
         Handles the recursive walk through the FST.
@@ -873,48 +871,46 @@ class Fst:
         -----
         This function recursively walks through the FST starting from the given state node.
         """
-        
+
         current_char = wordform[-1] if wordform else None
 
         for edge in current_state.in_transitions:
 
-            # If the current character matches the output symbol and takes you to the starting state.
+            new_wordform: str = ''
+            recursive_results: Generator[FstOutput]
+            
+            # If the current character matches the output symbol and takes you to the starting state, i.e. the end of the walk.
             if current_char == edge.output_symbol and edge.source_node.id == Fst._STARTING_STATE:
 
                 new_wordform = wordform[:-1]
 
+                # Since we're at the starting state, we check if there are any input characters left. If not, then we are at our base case.
                 if not new_wordform:
-                    yield edge.input_symbol[::-1]
+                    # This reverses the symbol since we're going up instead of down.
+                    yield FstOutput(edge.input_symbol[::-1], edge.weight)
 
-                recursive_results = Fst._traverse_up(edge.source_node, new_wordform)
-
-                try:
-                    for result in recursive_results:
-                        yield edge.input_symbol[::-1] + result
-                except RecursionError:
-                    pass
-
-            # Otherwise, output symbol is epsilon, then consume no characters and recurse.
+            # Otherwise, output symbol is epsilon, then consume no characters.
             elif edge.output_symbol == EPSILON:
+                new_wordform = wordform
 
-                recursive_results = Fst._traverse_up(edge.source_node, wordform)
-
-                try:
-                    for result in recursive_results:
-                        yield edge.input_symbol[::-1] + result
-                except RecursionError:
-                    pass
-
-            # Otherwise, current character matches output character, so chop off the current character and recurse.
+            # Otherwise, current character matches output character, so chop off the current character..
             elif current_char == edge.output_symbol:
                 new_wordform = wordform[:-1]
 
-                recursive_results = Fst._traverse_up(edge.source_node, new_wordform)
+            recursive_results: Generator[FstOutput] = self._traverse_up(edge.source_node, new_wordform)
+            
+            try:
+                for result in recursive_results:
+                    # This reverses the symbol since we're going up instead of down.
+                    output_string = edge.output_symbol[::-1] + result.output_string
+                    path_weight = None
 
-                try:
-                    for result in recursive_results:
-                        yield edge.input_symbol[::-1] + result
-                except RecursionError:
-                    pass
+                    if self._semiring is not None:
+                        path_weight = self._semiring.get_path_weight(edge.weight, result.path_weight)
+
+                    yield FstOutput(output_string, path_weight)
+
+            except RecursionError:
+                pass
 
     #endregion
