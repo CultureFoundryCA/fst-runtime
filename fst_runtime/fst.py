@@ -33,12 +33,26 @@ EPSILON: str = "@0@"
 
 #region Helper Classes
 
-# TODO
-
 @dataclass
 class FstOutput:
+    """
+    A dataclass for holding the output from a given node to another in an FST.
+
+    Attributes
+    ----------
+    ouput_string : str
+        This string represents the current state of the FST output; e.g. this could be "r", then "ru", then "run" as you walk through the FST.
+
+    path_weight : Any
+        This is the current weight of the path being walked. This value is computed via the semiring provided to the FST.
+
+    """
     output_string: str
+    """This string represents the current state of the FST output; e.g. this could be "r", then "ru", then "run" as you walk through the FST."""
+
     path_weight: Any
+    """This is the current weight of the path being walked. This value is computed via the semiring provided to the FST."""
+
 
 @dataclass
 class _AttInputInfo:

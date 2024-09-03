@@ -281,6 +281,8 @@ class Semiring[T](ABC):
         pass
     
 
+#region Concrete Semirings
+
 class BooleanSemiring(Semiring[bool]):
     """
     A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.
@@ -562,3 +564,5 @@ class TropicalSemiring(Semiring[float]):
 
     def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)
+
+#endregion
