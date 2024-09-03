@@ -283,7 +283,7 @@ class Fst:
         return self._multichar_symbols.copy()
     
     @property
-    def recursion_limit(self) -> int:
+    def recursion_limit(self) -> int | None:
         """
         Public getter for the recursion_limit variable.
 
@@ -296,7 +296,7 @@ class Fst:
         return self._recursion_limit
 
     @recursion_limit.setter
-    def recursion_limit(self, new_recursion_limit: int) -> None:
+    def recursion_limit(self, new_recursion_limit: int | None) -> None:
         """
         Public setter for the recursion_limit variable.
 
@@ -351,7 +351,8 @@ class Fst:
         return node
 
 
-    def _read_att_file_into_transitions(self, att_file_path: str) -> tuple[dict[int, dict[str, list[_AttInputInfo]]], dict[int, Any]]:
+    def _read_att_file_into_transitions(self, att_file_path: str) \
+        -> tuple[dict[int, dict[str, list[_AttInputInfo]]], dict[int, Any]]: # pylint: disable=too-many-branches,too-many-statements
         """
         Reads in all the transition and state information from the file into the ``transitions`` object,
         and also saves the accepting states of the FST.
@@ -424,7 +425,11 @@ class Fst:
                     state_id, weight = att_line_items
 
                     state_id = int(state_id)
-                    weight = self._semiring.convert_string_into_domain(weight)
+
+                    if self._semiring is not None:
+                        weight = self._semiring.convert_string_into_domain(weight)
+                    else:
+                        weight = None
 
                     accepting_states[state_id] = weight
 
@@ -439,7 +444,12 @@ class Fst:
                         self._multichar_symbols.add(output_symbol)
 
                     next_state = int(next_state)
-                    weight = self._semiring.convert_string_into_domain(weight)
+
+                    if self._semiring is not None:
+                        weight = self._semiring.convert_string_into_domain(weight)
+                    else:
+                        weight = None
+
                     info = _AttInputInfo(next_state, output_symbol, weight)
 
                     try:
@@ -499,9 +509,9 @@ class Fst:
                 for att_input in att_inputs:
 
                     next_state, output_symbol, weight = att_input
-                    next_node = self._get_or_create_node(next_state, nodes, accepting_states)
+                    next_node = self._get_or_create_node(next_state, nodes, accepting_states) # type: ignore
 
-                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight)
+                    directed_edge = _FstEdge(current_node, next_node, input_symbol, output_symbol, weight) # type: ignore
 
                     current_node.out_transitions.append(directed_edge)
                     next_node.in_transitions.append(directed_edge)
@@ -673,10 +683,9 @@ class Fst:
         """
 
         original_recursion_limit = 0
-        recursion_limit_set = self.recursion_limit is not None
         
         # If the recursion limit has been set, the save the original value, and set it to the specified one.
-        if recursion_limit_set:
+        if self.recursion_limit is not None:
             original_recursion_limit = sys.getrecursionlimit()
             sys.setrecursionlimit(self.recursion_limit)
 
@@ -690,11 +699,11 @@ class Fst:
                 yield replace(result, output_string=result.output_string.replace(EPSILON, ''))
 
         # Reset recursion limit before exiting the function.
-        if recursion_limit_set:
+        if self.recursion_limit is not None:
             sys.setrecursionlimit(original_recursion_limit)
 
 
-    def __traverse_down(self, current_node: _FstNode, input_tokens: list[str]) -> Generator[FstOutput]:
+    def __traverse_down(self, current_node: _FstNode, input_tokens: list[str]) -> Generator[FstOutput]: # pylint: disable=too-many-branches
         """
         Traverses down the FST beginning at an initial provided node.
 
@@ -843,10 +852,9 @@ class Fst:
         """
 
         original_recursion_limit = 0
-        recursion_limit_set = self.recursion_limit is not None
         
         # If the recursion limit has been set, the save the original value, and set it to the specified one.
-        if recursion_limit_set:
+        if self.recursion_limit is not None:
             original_recursion_limit = sys.getrecursionlimit()
             sys.setrecursionlimit(self.recursion_limit)
 
@@ -858,7 +866,7 @@ class Fst:
                 yield replace(result, output_string=result.output_string[::-1].replace(EPSILON, ''))
 
         # Reset recursion limit before exiting the function.
-        if recursion_limit_set:
+        if self.recursion_limit is not None:
             sys.setrecursionlimit(original_recursion_limit)
         
 
@@ -888,17 +896,17 @@ class Fst:
 
         for edge in current_state.in_transitions:
 
-            def yield_results(new_wordform: str) -> Generator[FstOutput]:
+            def yield_results(new_wordform: str, current_edge: _FstEdge) -> Generator[FstOutput]:
                 
-                recursive_results: Generator[FstOutput] = self._traverse_up(edge.source_node, new_wordform)
+                recursive_results: Generator[FstOutput] = self._traverse_up(current_edge.source_node, new_wordform)
             
                 try:
                     for result in recursive_results:
-                        output_string = edge.input_symbol[::-1] + result.output_string
+                        output_string = current_edge.input_symbol[::-1] + result.output_string
                         path_weight = None
 
                         if self._semiring:
-                            path_weight = self._semiring.get_path_weight(edge.weight, result.path_weight)
+                            path_weight = self._semiring.get_path_weight(current_edge.weight, result.path_weight)
 
                         yield FstOutput(output_string, path_weight)
 
@@ -915,14 +923,14 @@ class Fst:
                     # This reverses the symbol since we're going up instead of down.
                     yield FstOutput(edge.input_symbol[::-1], edge.weight)
 
-                yield from yield_results(new_wordform)
+                yield from yield_results(new_wordform, edge)
 
             # Otherwise, output symbol is epsilon, then consume no characters.
             elif edge.output_symbol == EPSILON:
-                yield from yield_results(wordform)
+                yield from yield_results(wordform, edge)
 
             # Otherwise, current character matches output character, so chop off the current character..
             elif current_char == edge.output_symbol:
-                yield from yield_results(wordform[:-1])
+                yield from yield_results(wordform[:-1], edge)
 
     #endregion

@@ -261,7 +261,6 @@ class Semiring[T](ABC):
         bool
             Whether or not every provided value is in the underlying set or not.
         """
-        pass
 
     @abstractmethod
     def convert_string_into_domain(self, string_representation_of_value: str) -> T:
@@ -278,7 +277,6 @@ class Semiring[T](ABC):
         T
             The value converted into the underlying domain of the semiring.
         """
-        pass
     
 
 #region Concrete Semirings
@@ -348,7 +346,7 @@ class BooleanSemiring(Semiring[bool]):
             return True
         
         if string_representation_of_value == "False":
-            return 
+            return False
         
         if value_as_num := int(string_representation_of_value) == 1:
             return True
