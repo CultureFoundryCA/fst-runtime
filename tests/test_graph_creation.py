@@ -14,7 +14,8 @@ test_directed_graph_initialization_weighted : function
 
 
 import pytest
-from fst_runtime.fst import Fst, _FstEdge
+from fst_runtime.fst import Fst
+from fst_runtime.semiring import ProbabilitySemiring
 
 
 @pytest.fixture
@@ -60,8 +61,8 @@ def _att_file_path_weighted(tmp_path):
 
     # 0 1 a b 0.5
     # 1 2 b c 1.0
-    # 2
-    att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\n")
+    # 2 0.2
+    att_file.write_text("0\t1\ta\tb\t0.5\n1\t2\tb\tc\t1.0\n2\t0.2\n")
     return att_file
 
 
@@ -98,13 +99,13 @@ def test_directed_graph_initialization_unweighted(_att_file_path_unweighted):
     assert edge0.target_node == node1
     assert edge0.input_symbol == 'a'
     assert edge0.output_symbol == 'b'
-    assert edge0.weight == _FstEdge.NO_WEIGHT
+    assert edge0.weight is None
 
     assert edge1.source_node == node1
     assert edge1.target_node == node2
     assert edge1.input_symbol == 'b'
     assert edge1.output_symbol == 'c'
-    assert edge1.weight == _FstEdge.NO_WEIGHT
+    assert edge1.weight is None
 
 
 def test_directed_graph_initialization_weighted(_att_file_path_weighted):
@@ -116,7 +117,7 @@ def test_directed_graph_initialization_weighted(_att_file_path_weighted):
     _att_file_path_weighted : pathlib.Path
         Path to the temporary weighted FST file. Provided automatically by Pytest.
     """
-    graph = Fst(_att_file_path_weighted)
+    graph = Fst(_att_file_path_weighted, semiring=ProbabilitySemiring())
 
     assert graph._start_state.id == 0
     assert len(graph._accepting_states) == 1
