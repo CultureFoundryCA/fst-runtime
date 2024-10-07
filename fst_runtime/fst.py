@@ -20,7 +20,7 @@ from itertools import product as cartesian_product
 import json
 import os
 import sys
-from typing import Generator, Iterator, Any
+from typing import Any, Generator, Iterable, Iterator
 
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
@@ -70,13 +70,14 @@ class FstOutput:
         '''
         return self.__dict__
 
-    def json_serialize_outputs(outputs: Iterator[FstOutput]) -> str:
+    @staticmethod
+    def json_serialize_outputs(outputs: Iterable[FstOutput]) -> str:
         """
         This function returns creates the json-serialized string-representation of a collection of FstOutput objects.
         
         Parameters
         ----------
-        outputs : Iterator[FstOutput]
+        outputs : Iterable[FstOutput]
             The outputs collection to be serialized.
     
         Returns

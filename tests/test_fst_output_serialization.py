@@ -1,3 +1,5 @@
+'''Tests the serialization of the FstOutput class.'''
+
 import json
 from fst_runtime.fst import Fst, FstOutput
 
