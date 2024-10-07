@@ -15,7 +15,8 @@ EPSILON : str
 
 from __future__ import annotations
 from collections import defaultdict
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, replace as dataclass_replace
+from itertools import product as cartesian_product
 import os
 import sys
 from typing import Generator, Iterator, Any
@@ -615,14 +616,14 @@ class Fst:
 
         permutations: list[list[str]] = prefixes + [[lemma]] + suffixes
 
-        queries: list[str] = Fst._permute_tags(permutations)
+        queries: Generator[str] = Fst._permute_tags(permutations)
         logger.debug('Queries created: %s', queries)
 
         yield from self._traverse_down(queries)
 
 
     @staticmethod
-    def _permute_tags(parts: list[list[str]]) -> list[str]:
+    def _permute_tags(parts: list[list[str]], separator: str = '+') -> Generator[str]:
         """
         Recursively descends into the tags to create all permutations of the given tags in the given order.
 
@@ -641,51 +642,22 @@ class Fst:
         This method generates all possible permutations of the tags by recursively descending through the provided lists of tags.
         """
 
-        # FIXME Why isn't this just taking the cartesian product? Was this hyper overthought?
+        separator_length = len(separator)
+        resulting_products = cartesian_product(*parts)
 
-        import itertools
-
-        cartesian_product = itertools.product(parts)
-
-        for product in cartesian_product:
+        for product in resulting_products:
             combined_parts = ''
 
             for tag in product:
-                combined_parts += tag
+                if tag == EPSILON:
+                    continue
+                combined_parts += f'{tag}{separator}'
             
-            yield combined_parts
-
-        if not parts:
-            return ['']
-
-        # Remember: EPSILON in a slot mean that slot can be omitted for a construction.
-        # Example: parts = [["dis", "re"], ["member"], ["ment", "ing"], ["s", EPSILON]]
-        # First pass: head = ["dis", "re"], tail = [["member"], ["ment", "ing"], ["s", EPSILON]]
-        # Second pass: head = ["member"], tail = [["ment", "ing"], ["s", EPSILON]]
-        # Third pass: head = ["ment", "ing"], tail = [["s", EPSILON]]
-        # Fourth pass: head = ["s", EPSILON], tail = [] <- base case reached
-        # Fourth pass return: ['']
-        # Third pass return: ["ments", "ment", "ings", "ing"] <- note the epsilon omissions here
-        # Second pass return: ["memberments", "memberment", "memberings", "membering"]
-        # First pass return: ["dismemberments", "dismemberment", "dismemberings", "dismembering",
-        #                       "rememberments", "rememberment", "rememberings", "remembering"]
-        # Having incorrect combinations like this is okay, like "rememberments", as they'll just return no results
-        # from the final FST when you try to query it (i.e. ends up in an unaccepting state).
-        head = parts[0]
-        tail = Fst._permute_tags(parts[1:])
-        result = []
-
-        for prefix in head:
-            for suffix in tail:
-                if prefix == EPSILON:
-                    result.append(suffix)
-                else:
-                    result.append(prefix + suffix)
-
-        return result
+            # Chops off the extra plus sign at the end.
+            yield combined_parts[:-separator_length]
 
     
-    def _traverse_down(self, queries: list[str]) -> Generator[FstOutput]:
+    def _traverse_down(self, queries: Generator[str]) -> Generator[FstOutput]:
         """
         Handles all the queries down the FST and returns all the resulting outputs that were found.
 
@@ -715,10 +687,7 @@ class Fst:
 
             for result in results:
                 finalized_output_string = result.output_string.replace(EPSILON, '')
-
-                # Takes one dataclass and returns a new dataclass with the changes made to the data below.
-                # Basically like the ``with`` syntax on records in C#.
-                yield replace(result, output_string=finalized_output_string, input_string=query)
+                yield dataclass_replace(result, output_string=finalized_output_string, input_string=query)
 
         # Reset recursion limit before exiting the function.
         if self.recursion_limit is not None:
@@ -886,10 +855,7 @@ class Fst:
             # This reverses the final output as the string being returned from the recursion is backwards since we're going in the up direction.
             for result in recursive_results:
                 finalized_output_string = result.output_string[::-1].replace(EPSILON, '')
-
-                # Takes one dataclass and returns a new dataclass with the changes made to the data below.
-                # Basically like the ``with`` syntax on records in C#.
-                yield replace(result, output_string=finalized_output_string, input_string=wordform)
+                yield dataclass_replace(result, output_string=finalized_output_string, input_string=wordform)
 
         # Reset recursion limit before exiting the function.
         if self.recursion_limit is not None:
