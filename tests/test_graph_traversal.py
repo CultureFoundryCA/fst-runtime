@@ -163,7 +163,7 @@ def test_down_traversal_fst4(_data_dir):
     graph = Fst(_data_dir / 'fst4.att')
 
     lemma = 'wal'
-    suffixes = [['+VERB'], ['+INF', '+GER', '+PAST', '+PRES']]
+    suffixes = [['VERB'], ['INF', 'GER', 'PAST', 'PRES']]
 
     results = graph.down_generation(lemma, suffixes=suffixes)
 
@@ -211,15 +211,15 @@ def test_down_traversal_fst6(_data_dir):
 
     graph = Fst(_data_dir / 'fst6_waabam.att')
 
-    prefixes = [["PVTense/gii+", "PVTense/wii'+"]]
+    prefixes = [["PVTense/gii", "PVTense/wii'"]]
     lemma = 'waabam'
 
-    suffixes = [['+VTA'],
-                ['+Ind'],
-                ['+Pos'],
-                ['+Neu'],
-                ['+1SgSubj'],
-                ['+2SgObj', '+2PlObj']]
+    suffixes = [['VTA'],
+                ['Ind'],
+                ['Pos'],
+                ['Neu'],
+                ['1SgSubj'],
+                ['2SgObj', '2PlObj']]
 
     results = graph.down_generation(lemma, prefixes=prefixes, suffixes=suffixes)
     results = {result.output_string for result in results}
