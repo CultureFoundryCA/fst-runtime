@@ -17,9 +17,10 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field, replace as dataclass_replace
 from itertools import product as cartesian_product
+import json
 import os
 import sys
-from typing import Generator, Iterator, Any
+from typing import Any, Generator, Iterable, Iterator
 
 from fst_runtime import logger
 from fst_runtime.att_format_error import AttFormatError
@@ -57,6 +58,36 @@ class FstOutput:
 
     input_string: str = 'uninitialized'
     """This is the string that was inputted into the FST that resulted in this output."""
+
+    def get_serialialization_dictionary(self) -> dict[str, Any]:
+        '''
+        Gets the dictionary representation of this object for use in i.e. json serialization.
+        
+        Returns
+        -------
+        dict[str, Any]
+            The dictionary representation of this object.
+        '''
+        return self.__dict__
+
+    @staticmethod
+    def json_serialize_outputs(outputs: Iterable[FstOutput]) -> str:
+        """
+        This function returns creates the json-serialized string-representation of a collection of FstOutput objects.
+        
+        Parameters
+        ----------
+        outputs : Iterable[FstOutput]
+            The outputs collection to be serialized.
+    
+        Returns
+        -------
+        str
+            The json-serialized string-representation of the collection of outputs.
+        
+        """
+        values = [output.get_serialialization_dictionary() for output in outputs]
+        return json.dumps(values)
 
 
 @dataclass
