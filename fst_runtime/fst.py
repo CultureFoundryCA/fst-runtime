@@ -47,11 +47,15 @@ class FstOutput:
         This is the current weight of the path being walked. This value is computed via the semiring provided to the FST.
 
     """
+
     output_string: str
     """This string represents the current state of the FST output; e.g. this could be "r", then "ru", then "run" as you walk through the FST."""
 
     path_weight: Any
     """This is the current weight of the path being walked. This value is computed via the semiring provided to the FST."""
+
+    input_string: str = 'uninitialized'
+    """This is the string that was inputted into the FST that resulted in this output."""
 
 
 @dataclass
@@ -637,6 +641,20 @@ class Fst:
         This method generates all possible permutations of the tags by recursively descending through the provided lists of tags.
         """
 
+        # FIXME Why isn't this just taking the cartesian product? Was this hyper overthought?
+
+        import itertools
+
+        cartesian_product = itertools.product(parts)
+
+        for product in cartesian_product:
+            combined_parts = ''
+
+            for tag in product:
+                combined_parts += tag
+            
+            yield combined_parts
+
         if not parts:
             return ['']
 
@@ -696,7 +714,11 @@ class Fst:
             )
 
             for result in results:
-                yield replace(result, output_string=result.output_string.replace(EPSILON, ''))
+                finalized_output_string = result.output_string.replace(EPSILON, '')
+
+                # Takes one dataclass and returns a new dataclass with the changes made to the data below.
+                # Basically like the ``with`` syntax on records in C#.
+                yield replace(result, output_string=finalized_output_string, input_string=query)
 
         # Reset recursion limit before exiting the function.
         if self.recursion_limit is not None:
@@ -863,7 +885,11 @@ class Fst:
 
             # This reverses the final output as the string being returned from the recursion is backwards since we're going in the up direction.
             for result in recursive_results:
-                yield replace(result, output_string=result.output_string[::-1].replace(EPSILON, ''))
+                finalized_output_string = result.output_string[::-1].replace(EPSILON, '')
+
+                # Takes one dataclass and returns a new dataclass with the changes made to the data below.
+                # Basically like the ``with`` syntax on records in C#.
+                yield replace(result, output_string=finalized_output_string, input_string=wordform)
 
         # Reset recursion limit before exiting the function.
         if self.recursion_limit is not None:
