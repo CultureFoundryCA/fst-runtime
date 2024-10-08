@@ -1,9 +1,5 @@
-# Pytest: unit testing framework
-# Pylint: code quality checker
-# Pyright: type checker
-name: Run Pytest, Pylint, and Pyright
+name: Run Tests and Publish on Release
 
-# These tests only run when a pull-request is opened from any branch into main.
 on:
   pull_request:
     branches:
@@ -17,7 +13,7 @@ permissions:
 
 jobs:
 
-  # This job executes the unit tests in the `tests/` folder of the project.
+  # Pytest job
   pytest:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  
+          python-version: '3.12'
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -40,7 +36,7 @@ jobs:
         run: |
           poetry run pytest
 
-  # This job executes pylint on the project code, ensuring standardized code quality that is PEP compliant.
+  # Pylint job
   pylint:
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +46,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  
+          python-version: '3.12'
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -59,12 +55,11 @@ jobs:
         run: |
           poetry install --with dev
 
-      # Runs pylint to check and guarantee shared code quality.
       - name: Run pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
 
-  # This job runs pyright, which runs type checking on the code based on the type hints provided.
+  # Pyright job
   pyright:
     runs-on: ubuntu-latest
     steps:
@@ -74,17 +69,46 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  
+          python-version: '3.12'
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
-      
+
       - name: Install dependencies
         run: |
           poetry install --with dev
 
-      # Runs pyright to check code for typing errors.
       - name: Run pyright
         run: |
           poetry run pyright
 
+  # Publish job (only runs on release)
+  publish:
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    needs: [pytest, pylint, pyright]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: |
+          poetry install --with dev
+
+      - name: Build the package
+        run: |
+          poetry build
+
+      - name: Publish to PyPI
+        env:
+          PUBLISHING_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry publish --username __token__ --password $PUBLISHING_TOKEN
