@@ -127,6 +127,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
       - name: Install Sphinx and other dependencies
         run: |
           poetry install --with docs
