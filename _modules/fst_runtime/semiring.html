@@ -1,0 +1,724 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fst_runtime.semiring &mdash; fst_runtime 0.1.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=7ab3649f" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=bafade30"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            fst_runtime
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/fst_runtime.html">fst_runtime package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">fst_runtime</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">fst_runtime.semiring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for fst_runtime.semiring</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=undefined-variable</span>
+<span class="c1"># This is disabled because pylint isn&#39;t recognize the new generic syntax for python yet and can&#39;t figure out what &quot;T&quot; is.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">This module defines a semiring as well as several semirings commonly used with weighted FSTs.</span>
+
+<span class="sd">Attributes</span>
+<span class="sd">----------</span>
+<span class="sd">Semiring[T] : class</span>
+<span class="sd">    An abstract class that defines a semiring.</span>
+
+<span class="sd">BooleanSemiring[bool] : class</span>
+<span class="sd">    A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.</span>
+
+<span class="sd">LogSemiring[float] : class</span>
+<span class="sd">    A semiring whose underlying set of values are the reals with +/- infinity, with addition as logadd and</span>
+<span class="sd">    multiplication as standard addition.</span>
+
+<span class="sd">ProbabilitySemiring[float] : class</span>
+<span class="sd">    This is the probability semiring that is defined on the non-negative reals and standard additiona and multiplication.</span>
+
+<span class="sd">TropicalSemiring[float] : class</span>
+<span class="sd">    The tropical semiring is defined on the reals with +/- infinity, where addition is the minimum and multiplication is standard addition.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+
+<div class="viewcode-block" id="Semiring">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring">[docs]</a>
+<span class="k">class</span> <span class="nc">Semiring</span><span class="p">[</span><span class="n">T</span><span class="p">](</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An abstract class that defines a semiring.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    additive_identity : T</span>
+<span class="sd">        The additive identity of the semiring.</span>
+
+<span class="sd">    multiplicative_identity : T</span>
+<span class="sd">        The multiplicative identity of the semiring.</span>
+
+<span class="sd">    add : method</span>
+<span class="sd">        The addition operation for the semiring.</span>
+
+<span class="sd">    multiply : method</span>
+<span class="sd">        The multiplication operation for the semiring.</span>
+
+<span class="sd">    get_path_weight : method</span>
+<span class="sd">        Computes the overall weight of a single path by multiplying the weights of all edges in the path.</span>
+
+<span class="sd">    get_path_set_weight : method</span>
+<span class="sd">        Computes the overall weight of a set of paths by adding the weights of individual paths.</span>
+
+<span class="sd">    check_membership : abstract method</span>
+<span class="sd">        This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.</span>
+<span class="sd">    </span>
+<span class="sd">    convert_string_into_domain : abstract method</span>
+<span class="sd">        This takes the string representation of a value and converts it into the underlying domain of the semiring.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    An example of initializing this object for the tropical semiring would be::</span>
+<span class="sd">    </span>
+<span class="sd">        class TropicalSemiring(Semiring[float]):</span>
+<span class="sd">            def __init__(self) -&gt; None:</span>
+<span class="sd">                super().__init__(</span>
+<span class="sd">                    add=min,</span>
+<span class="sd">                    multiply=lambda a, b: a + b,</span>
+<span class="sd">                    additive_identity=float(&#39;inf&#39;),</span>
+<span class="sd">                    multiplicative_identity=0.0</span>
+<span class="sd">                )</span>
+<span class="sd">        </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See this OpenFST paper for a relatively high-level discussion of weighted FSTs and semirings.</span>
+<span class="sd">        https://www.openfst.org/twiki/pub/FST/FstBackground/ciaa.pdf</span>
+
+<span class="sd">    Wikipedia discussion on semirings:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Semiring</span>
+
+<span class="sd">    See this paper for a more in-depth and technical weighted FST design discussion:</span>
+<span class="sd">        https://www.cs.mun.ca/~harold/Courses/Old/Ling6800.W06/Diary/tcs.pdf</span>
+
+<span class="sd">    See this textbook for the definitions of the different semirings used here, as well as the general</span>
+<span class="sd">    mathematical underpinning of them, and their uses in/for FSTs:</span>
+<span class="sd">        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 200.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">add</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span> <span class="n">T</span><span class="p">],</span>
+            <span class="n">multiply</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">,</span> <span class="n">T</span><span class="p">],</span> <span class="n">T</span><span class="p">],</span>
+            <span class="n">additive_identity</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span>
+            <span class="n">multiplicative_identity</span><span class="p">:</span> <span class="n">T</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the semiring with the specified operations and identity elements.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        add : Callable[[T, T], T]</span>
+<span class="sd">            A function that defines the addition operation for the semiring.</span>
+
+<span class="sd">        multiply : Callable[[T, T], T]</span>
+<span class="sd">            A function that defines the multiplication operation for the semiring.</span>
+
+<span class="sd">        additive_identity : T</span>
+<span class="sd">            The identity element for the addition operation.</span>
+
+<span class="sd">        multiplicative_identity : T</span>
+<span class="sd">            The identity element for the multiplication operation.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add</span> <span class="o">=</span> <span class="n">add</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span> <span class="o">=</span> <span class="n">multiply</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_additive_identity</span> <span class="o">=</span> <span class="n">additive_identity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_multiplicative_identity</span> <span class="o">=</span> <span class="n">multiplicative_identity</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">additive_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The additive identity of the semiring.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The additive identity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_additive_identity</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">multiplicative_identity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The multiplicative identity of the semiring.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The multiplicative identity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiplicative_identity</span>
+        
+<div class="viewcode-block" id="Semiring.add">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.add">[docs]</a>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs the addition operation of the semiring.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a : T</span>
+<span class="sd">            The first operand.</span>
+
+<span class="sd">        b : T</span>
+<span class="sd">            The second operand.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The result of the addition.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        -----</span>
+<span class="sd">        Please note that this addition is not the standard &quot;+&quot; operation, but could be any associative, commutative binary operation</span>
+<span class="sd">        that has an identity element **0**.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Semiring.multiply">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.multiply">[docs]</a>
+    <span class="k">def</span> <span class="nf">multiply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Performs the multiplication operation of the semiring.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a : T</span>
+<span class="sd">            The first operand.</span>
+<span class="sd">            </span>
+<span class="sd">        b : T</span>
+<span class="sd">            The second operand.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The result of the multiplication.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        -----</span>
+<span class="sd">        Please note that this multiplication is not the standard &quot;*&quot; operation, but could be any associative binary operation</span>
+<span class="sd">        that distributes over the defined addition with identity element **1** and that has **0** as an annhilator. Multiplication</span>
+<span class="sd">        retains higher precedence over the defined addition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_multiply</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Semiring.get_path_weight">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.get_path_weight">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_path_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">path_weights</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the overall weight of a single path by multiplying the weights of all edges in the path.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *path_weights : T</span>
+<span class="sd">            Weights corresponding to the edges in a path.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The overall weight of the path, computed as the product of the individual edge weights.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">overall_path_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiplicative_identity</span>
+
+        <span class="k">for</span> <span class="n">path_weight</span> <span class="ow">in</span> <span class="n">path_weights</span><span class="p">:</span>
+            <span class="n">overall_path_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">overall_path_weight</span><span class="p">,</span> <span class="n">path_weight</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">overall_path_weight</span></div>
+
+
+<div class="viewcode-block" id="Semiring.get_path_set_weight">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.get_path_set_weight">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_path_set_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">set_of_path_weights</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the overall weight of a set of paths by adding the weights of individual paths.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *set_of_path_weights : T</span>
+<span class="sd">            A list of weights corresponding to individual paths.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The overall weight of the set of paths, computed as the sum of the individual path weights.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Lothaire, *Applied Combinatorics on Words* (Cambridge: Cambridge University Press, 2004), 201.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">overall_set_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">additive_identity</span>
+
+        <span class="k">for</span> <span class="n">path_weight</span> <span class="ow">in</span> <span class="n">set_of_path_weights</span><span class="p">:</span>
+            <span class="n">overall_set_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">overall_set_weight</span><span class="p">,</span> <span class="n">path_weight</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">overall_set_weight</span></div>
+
+
+<div class="viewcode-block" id="Semiring.check_membership">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.check_membership">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that the given values are members of the underlying set of the semiring.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        *values : Any</span>
+<span class="sd">            The values that will be checked to guarantee they are of the type of the underlying set of the semiring.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Semiring.convert_string_into_domain">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.Semiring.convert_string_into_domain">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">convert_string_into_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_representation_of_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the underlying value for a given string representation of a that value (i.e. as read in from a file).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        string_representation_of_value: str</span>
+<span class="sd">            This is the string representation of the value to be converted.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T</span>
+<span class="sd">            The value converted into the underlying domain of the semiring.</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+</div>
+
+    
+
+<span class="c1">#region Concrete Semirings</span>
+
+<div class="viewcode-block" id="BooleanSemiring">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.BooleanSemiring">[docs]</a>
+<span class="k">class</span> <span class="nc">BooleanSemiring</span><span class="p">(</span><span class="n">Semiring</span><span class="p">[</span><span class="nb">bool</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A semiring whose underlying set and operations are defined over the boolean values ``True`` and ``False``.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    check_membership : method</span>
+<span class="sd">        Checks that all provided values are boolean.</span>
+
+<span class="sd">    convert_string_into_domain : method</span>
+<span class="sd">        Converts the string representation of a value into the ``bool`` type.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    -----</span>
+<span class="sd">    The boolean semiring defines ``add`` as the ``or`` operator and ``multiply`` as the ``and`` operator.</span>
+<span class="sd">    The additive identity of the semiring is ``False``, and the multiplicative idenity is ``True``.</span>
+
+<span class="sd">    This is also apparently the smallest semiring that is not a ring.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Semiring : The base class of the ``BooleanSemiring`` with ``T = bool``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Wikipedia article on two-element boolean algebra:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Two-element_Boolean_algebra</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">add</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="ow">or</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">multiply</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="ow">and</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">additive_identity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">multiplicative_identity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="BooleanSemiring.check_membership">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.BooleanSemiring.check_membership">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that all provided values are boolean.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *values : Any</span>
+<span class="sd">            The values to check for boolean membership.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+    
+<div class="viewcode-block" id="BooleanSemiring.convert_string_into_domain">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.BooleanSemiring.convert_string_into_domain">[docs]</a>
+    <span class="k">def</span> <span class="nf">convert_string_into_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_representation_of_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="n">string_representation_of_value</span> <span class="o">==</span> <span class="s2">&quot;True&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        
+        <span class="k">if</span> <span class="n">string_representation_of_value</span> <span class="o">==</span> <span class="s2">&quot;False&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">if</span> <span class="n">value_as_num</span> <span class="o">:=</span> <span class="nb">int</span><span class="p">(</span><span class="n">string_representation_of_value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        
+        <span class="k">if</span> <span class="n">value_as_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-boolean weight found. Offending weight: </span><span class="si">{</span><span class="n">string_representation_of_value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LogSemiring">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.LogSemiring">[docs]</a>
+<span class="k">class</span> <span class="nc">LogSemiring</span><span class="p">(</span><span class="n">Semiring</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A semiring whose underlying set of values are the reals with +/- infinity, with addition as logadd and</span>
+<span class="sd">    multiplication as standard addition.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    check_membership : method</span>
+<span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
+<span class="sd">    </span>
+<span class="sd">    convert_string_into_domain : method</span>
+<span class="sd">        Converts the string representation of a value into the ``float`` type.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    -----</span>
+<span class="sd">    This is also known as the minimum logarithmic semiring, given the negation of the log and the exponents of e.</span>
+
+<span class="sd">    This semiring defines ``add`` as ``-math.log(math.exp(-a) + math.exp(-b))`` and ``multiply`` as ``a + b``.</span>
+<span class="sd">    It defines the additive identity as ``float(&#39;inf&#39;)``, and the multiplicative identity as ``0.0``.</span>
+
+<span class="sd">    This ``add`` function is a smooth approximation of the minimum of the values ``a`` and ``b``. This sort of operation</span>
+<span class="sd">    is known as the log-sum-exp trick, which allows for higher precision when doing floating-point arithmetic on large or small</span>
+<span class="sd">    values by shifting the values into a domain that&#39;s better suited for floating-point precision. This sort of equation is often</span>
+<span class="sd">    used in probability theory, as logarithms can have a bunch of benefits for calculations.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Semiring : The base class of the ``LogSemiring`` with ``T = float``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Wikipedia article on the LogSumExp function:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/LogSumExp</span>
+
+<span class="sd">    Wikipedia article on the log semiring:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Log_semiring</span>
+
+<span class="sd">    Numpy has the maximum version of this function, see this and the Wikipedia article on the log semiring:</span>
+<span class="sd">        https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">add</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">b</span><span class="p">)),</span>
+            <span class="n">multiply</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">additive_identity</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span>
+            <span class="n">multiplicative_identity</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LogSemiring.check_membership">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.LogSemiring.check_membership">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *values : Any</span>
+<span class="sd">            The values to check for real number membership.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="LogSemiring.convert_string_into_domain">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.LogSemiring.convert_string_into_domain">[docs]</a>
+    <span class="k">def</span> <span class="nf">convert_string_into_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_representation_of_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">string_representation_of_value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProbabilitySemiring">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.ProbabilitySemiring">[docs]</a>
+<span class="k">class</span> <span class="nc">ProbabilitySemiring</span><span class="p">(</span><span class="n">Semiring</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the probability semiring that is defined on the non-negative reals and standard additiona and multiplication.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    check_membership : method</span>
+<span class="sd">        Checks that all provided values are non-negative real numbers.</span>
+<span class="sd">    </span>
+<span class="sd">    convert_string_into_domain : method</span>
+<span class="sd">        Converts the string representation of a value into the ``float`` type.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    -----</span>
+<span class="sd">    This semiring uses standard addition and multiplication, and is meant for managing weights that are probabilities.</span>
+<span class="sd">    </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Semiring : The base class of the ``ProbabilitySemiring`` with ``T = float``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">add</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">multiply</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">additive_identity</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">multiplicative_identity</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ProbabilitySemiring.check_membership">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.ProbabilitySemiring.check_membership">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that all provided values are non-negative real numbers.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *values : Any</span>
+<span class="sd">            The values to check for membership in the non-negative reals.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ProbabilitySemiring.convert_string_into_domain">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.ProbabilitySemiring.convert_string_into_domain">[docs]</a>
+    <span class="k">def</span> <span class="nf">convert_string_into_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_representation_of_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">string_representation_of_value</span><span class="p">)</span></div>
+</div>
+
+    
+
+<div class="viewcode-block" id="TropicalSemiring">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.TropicalSemiring">[docs]</a>
+<span class="k">class</span> <span class="nc">TropicalSemiring</span><span class="p">(</span><span class="n">Semiring</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The tropical semiring is defined on the reals with +/- infinity, where addition is the minimum and multiplication is standard addition.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    check_membership : method</span>
+<span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
+<span class="sd">    </span>
+<span class="sd">    convert_string_into_domain : method</span>
+<span class="sd">        Converts the string representation of a value into the ``float`` type.</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    -----</span>
+<span class="sd">    This is also known as the minimum tropical semiring for its use of ``min``, instead of ``max``, as the addition function.</span>
+<span class="sd">    </span>
+<span class="sd">    As mentioned, ``add`` is defined as ``min{a, b}``. Multiplication is defined as standard addition. The additive identity is ``float(&#39;inf&#39;)``.</span>
+
+<span class="sd">    The way this works is that for a given output form, you may end up with a bunch of different paths that got you there. Each of those paths</span>
+<span class="sd">    will have its own weight, and, because addition is ``min``, that means when you sum the paths together, the result you get is the lowest</span>
+<span class="sd">    weight among paths that led to the output. This can be useful because some paths may be penalized for having maybe non-standard forms, etc.,</span>
+<span class="sd">    but which lead to a perfectly valid output. We therefore only care about the minimum weight which is therefore the determiner of the</span>
+<span class="sd">    validity/order of the output form. The rest of the weights can be thought of as superfluous.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Semiring : The base class of the ``TropicalSemiring`` with ``T = float``.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    The Wikipedia article on tropical semirings:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Tropical_semiring</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">add</span><span class="o">=</span><span class="nb">min</span><span class="p">,</span>
+            <span class="n">multiply</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span>
+            <span class="n">additive_identity</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span>
+            <span class="n">multiplicative_identity</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="TropicalSemiring.check_membership">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.TropicalSemiring.check_membership">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_membership</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks that all provided values are real numbers or +/- infinity.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *values : Any</span>
+<span class="sd">            The values to check for real number membership.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Whether or not every provided value is in the underlying set or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TropicalSemiring.convert_string_into_domain">
+<a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.semiring.TropicalSemiring.convert_string_into_domain">[docs]</a>
+    <span class="k">def</span> <span class="nf">convert_string_into_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string_representation_of_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">string_representation_of_value</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1">#endregion</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, CultureFoundry Inc.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
