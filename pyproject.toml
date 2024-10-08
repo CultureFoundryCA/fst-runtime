@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fst_runtime"
-version = "0.1.8"
+version = "0.1.9"
 description = "A runtime environment for querying FSTs stored in the AT&T `.att` format."
 authors = ["CultureFoundryInc. <info@culturefoundrystudios.com>"]
 maintainers = ["Scott Parkhill <contact@parkhill.tech>"]
