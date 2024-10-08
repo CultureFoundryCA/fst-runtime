@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>fst_runtime.fst &mdash; fst_runtime 0.1.10 documentation</title>
+  <title>fst_runtime.fst &mdash; fst_runtime 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=7ab3649f" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=bafade30"></script>
+      <script src="../../_static/documentation_options.js?v=92734c54"></script>
       <script src="../../_static/doctools.js?v=9a2dae69"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -120,6 +120,15 @@
 
 <span class="sd">    path_weight : Any</span>
 <span class="sd">        This is the current weight of the path being walked. This value is computed via the semiring provided to the FST.</span>
+
+<span class="sd">    input_string : str, optional</span>
+<span class="sd">        The input string that resulted in the given output.</span>
+
+<span class="sd">    get_serialization_dictionary : method</span>
+<span class="sd">        This method returns a dictionary represenatation of the fields of the dataclass to be used in object serialization.</span>
+
+<span class="sd">    json_serialize_outputs : static method</span>
+<span class="sd">        This method returns the json serialization of a collection of ``FstOutput``s in order to be returned from an API.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
