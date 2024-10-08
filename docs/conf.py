@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../fst_runtime'))
 project = 'fst_runtime'
 copyright = '2024, CultureFoundry Inc'
 author = 'CultureFoundry Inc., Scott Parkhill'
-release = '0.1.10'
+release = '0.1.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
