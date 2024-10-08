@@ -48,6 +48,15 @@ class FstOutput:
     path_weight : Any
         This is the current weight of the path being walked. This value is computed via the semiring provided to the FST.
 
+    input_string : str, optional
+        The input string that resulted in the given output.
+
+    get_serialization_dictionary : method
+        This method returns a dictionary represenatation of the fields of the dataclass to be used in object serialization.
+
+    json_serialize_outputs : static method
+        This method returns the json serialization of a collection of ``FstOutput``s in order to be returned from an API.
+
     """
 
     output_string: str
