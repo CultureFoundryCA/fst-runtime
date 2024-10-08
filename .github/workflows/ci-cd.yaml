@@ -112,3 +112,36 @@ jobs:
           PUBLISHING_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           poetry publish --username __token__ --password $PUBLISHING_TOKEN
+
+  # Generate and push documentation
+  generate-docs:
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+    needs: [pytest, pylint, pyright]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Sphinx and other dependencies
+        run: |
+          poetry install --with docs
+
+      - name: Build Sphinx documentation
+        run: |
+          poetry run sphinx-build -b html docs/ _build/html
+
+      - name: Deploy to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags --prune --depth=1 origin gh-pages || git checkout --orphan gh-pages
+          git reset
+          cp -r _build/html/* .
+          git add .
+          git commit -m "Update documentation for ${{ github.sha }}"
+          git push origin gh-pages --force

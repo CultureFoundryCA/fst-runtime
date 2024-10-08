@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fst_runtime"
-version = "0.1.2"
+version = "0.1.4"
 description = "A runtime environment for querying FSTs stored in the AT&T `.att` format."
 authors = ["CultureFoundryInc. <info@culturefoundrystudios.com>"]
 maintainers = ["Scott Parkhill <contact@parkhill.tech>"]
@@ -15,10 +15,12 @@ python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
-sphinx = "^7.4.3"
-sphinx-rtd-theme = "^2.0.0"
 pylint = "^3.2.6"
 pyright = "^1.1.377"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.0.2"
+sphinx-rtd-theme = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]
