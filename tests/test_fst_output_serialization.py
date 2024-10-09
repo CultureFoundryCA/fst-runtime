@@ -12,10 +12,19 @@ def test_fst_output_serialization():
     assert len(query_results) > 0
 
     json_data = FstOutput.json_serialize_outputs(query_results)
-    json_loaded = json.loads(json_data)
+    json_loaded = json.loads(str(json_data))
 
     assert len(json_loaded) == len(query_results)
 
     deserialized_object = FstOutput(json_loaded[0]['output_string'], json_loaded[0]['path_weight'], json_loaded[0]['input_string'])
 
     assert deserialized_object == query_results[0]
+
+def test_empty_fst_output_serialization():
+    '''Tests to make sure that if empty serialization data is passed to the serialization function, that it returns ``None``.'''
+
+    fst = Fst('./tests/data/fst6_waabam.att')
+    query_results = list(fst.up_analysis('hi my name is charlie im a unicorn'))
+    json_data = FstOutput.json_serialize_outputs(query_results)
+
+    assert json_data is None
