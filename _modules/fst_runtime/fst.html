@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>fst_runtime.fst &mdash; fst_runtime 0.2.0 documentation</title>
+  <title>fst_runtime.fst &mdash; fst_runtime 0.2.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=7ab3649f" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="../../_static/documentation_options.js?v=37f418d5"></script>
       <script src="../../_static/doctools.js?v=9a2dae69"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -158,7 +158,7 @@
 <div class="viewcode-block" id="FstOutput.json_serialize_outputs">
 <a class="viewcode-back" href="../../source/fst_runtime.html#fst_runtime.fst.FstOutput.json_serialize_outputs">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">json_serialize_outputs</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">FstOutput</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">json_serialize_outputs</span><span class="p">(</span><span class="n">outputs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">FstOutput</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function returns creates the json-serialized string-representation of a collection of FstOutput objects.</span>
 <span class="sd">        </span>
@@ -170,10 +170,14 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            The json-serialized string-representation of the collection of outputs.</span>
+<span class="sd">            The json-serialized string-representation of the collection of outputs. Returns ``None`` when there is nothing to serialize.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">output</span><span class="o">.</span><span class="n">get_serialialization_dictionary</span><span class="p">()</span> <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">values</span><span class="p">)</span></div>
 </div>
 
