@@ -80,7 +80,7 @@ class FstOutput:
         return self.__dict__
 
     @staticmethod
-    def json_serialize_outputs(outputs: Iterable[FstOutput]) -> str:
+    def json_serialize_outputs(outputs: Iterable[FstOutput]) -> str | None:
         """
         This function returns creates the json-serialized string-representation of a collection of FstOutput objects.
         
@@ -92,10 +92,14 @@ class FstOutput:
         Returns
         -------
         str
-            The json-serialized string-representation of the collection of outputs.
+            The json-serialized string-representation of the collection of outputs. Returns ``None`` when there is nothing to serialize.
         
         """
         values = [output.get_serialialization_dictionary() for output in outputs]
+
+        if not values:
+            return None
+
         return json.dumps(values)
 
 
