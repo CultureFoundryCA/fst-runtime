@@ -27,6 +27,64 @@ from abc import ABC, abstractmethod
 import math
 from typing import Callable, Any
 
+
+def _is_real_number(value: Any) -> bool:
+    """
+    Checks whether a value is a real number or +/- infinity. Booleans and NaN are not counted as real numbers.
+
+    Parameters
+    ----------
+    value : Any
+        The value to check. Strings that represent a number, such as ``"1.5"``, are counted as real numbers.
+
+    Returns
+    -------
+    bool
+        Whether or not the value is a real number or +/- infinity.
+    """
+
+    if isinstance(value, bool):
+        return False
+
+    try:
+        value_as_float = float(value)
+    except (TypeError, ValueError):
+        return False
+
+    return not math.isnan(value_as_float)
+
+
+def _log_add(a: float, b: float) -> float:
+    """
+    Computes ``-log(exp(-a) + exp(-b))`` without overflowing or taking the log of zero.
+
+    Parameters
+    ----------
+    a : float
+        The first operand.
+
+    b : float
+        The second operand.
+
+    Returns
+    -------
+    float
+        The result of the log addition.
+    """
+
+    # Positive infinity is the additive identity.
+    if a == math.inf:
+        return b
+
+    if b == math.inf:
+        return a
+
+    if -math.inf in (a, b):
+        return -math.inf
+
+    return min(a, b) - math.log1p(math.exp(-abs(a - b)))
+
+
 class Semiring[T](ABC):
     """
     An abstract class that defines a semiring.
@@ -52,7 +110,7 @@ class Semiring[T](ABC):
         Computes the overall weight of a set of paths by adding the weights of individual paths.
 
     check_membership : abstract method
-        This method ensures that the values provided to it are members of the underlying set of the semiring. Raises a ``ValueError`` if not.
+        This method checks whether the values provided to it are all members of the underlying set of the semiring.
     
     convert_string_into_domain : abstract method
         This takes the string representation of a value and converts it into the underlying domain of the semiring.
@@ -348,7 +406,12 @@ class BooleanSemiring(Semiring[bool]):
         if string_representation_of_value == "False":
             return False
         
-        if value_as_num := int(string_representation_of_value) == 1:
+        try:
+            value_as_num = int(string_representation_of_value)
+        except ValueError:
+            value_as_num = None
+
+        if value_as_num == 1:
             return True
         
         if value_as_num == 0:
@@ -401,7 +464,7 @@ class LogSemiring(Semiring[float]):
     def __init__(self) -> None:
         
         super().__init__(
-            add=lambda a, b: -math.log(math.exp(-a) + math.exp(-b)),
+            add=_log_add,
             multiply=lambda a, b: a + b,
             additive_identity=float('inf'),
             multiplicative_identity=0.0,
@@ -421,13 +484,7 @@ class LogSemiring(Semiring[float]):
         bool
             Whether or not every provided value is in the underlying set or not.
         """
-        for value in values:
-            try:
-                _ = float(value)
-            except ValueError:
-                return False
-            
-        return True
+        return all(_is_real_number(value) for value in values)
 
     def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)
@@ -480,12 +537,10 @@ class ProbabilitySemiring(Semiring[float]):
         """
 
         for value in values:
-            try:
-                value = float(value)
-            except ValueError:
+            if not _is_real_number(value):
                 return False
 
-            if value < 0 or value == float('inf'):
+            if float(value) < 0 or float(value) == math.inf:
                 return False
         
         return True
@@ -552,13 +607,7 @@ class TropicalSemiring(Semiring[float]):
             Whether or not every provided value is in the underlying set or not.
         """
 
-        for value in values:
-            try:
-                _ = float(value)
-            except ValueError:
-                return False
-            
-        return True
+        return all(_is_real_number(value) for value in values)
 
     def convert_string_into_domain(self, string_representation_of_value: str) -> float:
         return float(string_representation_of_value)

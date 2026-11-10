@@ -59,11 +59,7 @@ def tokenize_input_string(input_string: str, multichar_symbols: set[str]) -> lis
         # found, then token found is a single character. This continues until the whole input has been consumed.
         if multichar_lengths:
             for symbol_length in multichar_lengths:
-                try:
-                    substring = input_string[:symbol_length]
-                # Not enough input left.
-                except IndexError:
-                    continue
+                substring = input_string[:symbol_length]
 
                 if substring in multichar_symbols:
                     tokens.append(substring)
