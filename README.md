@@ -21,13 +21,13 @@ from fst_runtime.fst import Fst
 
 fst = Fst('/home/username/fsts/walk.att')
 
-generations = fst.down_generation('wal', suffixes=[['+VERB'], ['+GER', '+INF']])
+generations = fst.down_generation('wal', suffixes=[['VERB'], ['GER', 'INF']])
 
 for generation in generations:
-    print(generation)
+    print(generation.output_string)
 ```
 
-This example, based off of `tests/data/fst4.att`, would then return the results of `wal+VERB+GER` and `wal+VERB+INF` which would be `['walking', 'walk']`. If you simply called `fst.down_generation('wal')`, it would generate all possible wordforms of it in the FST.
+The suffixes (and prefixes) are joined to the lemma with `+`, so they are given without it. This example, based off of `tests/data/fst4.att`, queries the FST with `wal+VERB+GER` and `wal+VERB+INF`, and prints `walking` and `walk`. Each result is an `FstOutput` object that holds the `output_string`, the `input_string` that produced it, and the `path_weight`. A call with no prefixes or suffixes, like `fst.down_generation('wal+VERB+GER')`, queries the FST with the string exactly as given.
 
 Similarly with up:
 
@@ -35,7 +35,7 @@ Similarly with up:
 analyses = fst.up_analysis('walking')
 
 for analysis in analyses:
-    print(analysis)
+    print(analysis.output_string)
 ```
 
 In this case, we only get one result back, `wal+VERB+GER`.

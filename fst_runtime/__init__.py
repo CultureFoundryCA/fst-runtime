@@ -15,10 +15,10 @@ This package is used via the ``Fst`` object. This object requires a path to the 
 You can get the multi-character symbols used in the FST via ``fst.multichar_symbols``.
 
 The ``Fst`` object has a public method named ``down_generation``, which follows the FST convention of the "down" direction being the
-direction of "generation" (i.e., creating forms from some tagged word form). For example, in English, for the lemma "do" with
-possible affixes of ``prefixes = [['de', 'un']]`` and ``suffixes = [['+VERB'], ['+GER', '+INF', '+PAST']]``,
-the call would be ``fst.down_generation([['un']], 'do', [['+VERB'], ['+GER', '+INF', '+PAST']])``.
-This would return ``['do', 'doing', 'did', 'undo', 'undoing', 'undid']``.
+direction of "generation" (i.e., creating forms from some tagged word form). The affixes are joined to the lemma with ``+``,
+so they are given without it. For example, in English, for the lemma "wal" with suffixes of ``[['VERB'], ['GER', 'INF']]``,
+the call would be ``fst.down_generation('wal', suffixes=[['VERB'], ['GER', 'INF']])``. This queries the FST with ``wal+VERB+GER``
+and ``wal+VERB+INF``, and returns a generator of ``FstOutput`` objects whose ``output_string`` values are ``walking`` and ``walk``.
 """
 
 import logging
